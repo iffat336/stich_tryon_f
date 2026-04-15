@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KINETIC MUSE - Performance Athletic Wear</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        :root {
+            --ink: #111111;
+            --clay: #9f3d2f;
+            --sage: #59684f;
+            --mist: #e8ecec;
+            --paper: #f8f5ef;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: linear-gradient(135deg, var(--paper) 0%, var(--mist) 48%, #d7cbbb 100%);
+        }
+        .hero-gradient {
+            min-height: 88vh;
+            display: flex;
+            align-items: center;
+            background:
+                linear-gradient(90deg, rgba(17,17,17,.86) 0%, rgba(17,17,17,.62) 46%, rgba(17,17,17,.20) 100%),
+                url('https://images.pexels.com/photos/8499273/pexels-photo-8499273.jpeg?auto=compress&cs=tinysrgb&w=1600') center/cover;
+        }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .nav-shell {
+            box-shadow: 0 18px 44px rgba(17,17,17,.08);
+        }
+        .category-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 26px;
+            border: 1px solid rgba(17,17,17,.1);
+            background: rgba(255,255,255,.74);
+            box-shadow: 0 18px 44px rgba(17,17,17,.08);
+            transition: transform .22s ease, box-shadow .22s ease;
+        }
+        .category-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 28px 70px rgba(17,17,17,.16);
+        }
+        .category-card img {
+            transition: transform .55s ease, filter .55s ease;
+        }
+        .category-card:hover img {
+            transform: scale(1.08);
+            filter: saturate(1.06) contrast(1.04);
+        }
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 24px 60px rgba(17,17,17,0.14);
+        }
+        .product-card img { transition: transform .55s ease; }
+        .product-card:hover img { transform: scale(1.05); }
+        .feature-panel {
+            background: rgba(255,255,255,.78);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(17,17,17,.08);
+            box-shadow: 0 24px 64px rgba(17,17,17,.08);
+        }
+        #about .grid.md\:grid-cols-4 > div {
+            border-radius: 24px;
+            border: 1px solid rgba(17,17,17,.08);
+            background: rgba(255,255,255,.78);
+            padding: 1.5rem;
+            box-shadow: 0 20px 54px rgba(17,17,17,.08);
+        }
+        #about .grid.md\:grid-cols-4 > div > .text-4xl {
+            display: none;
+        }
+        #about .grid.md\:grid-cols-4 > div:before {
+            display: inline-flex;
+            height: 3rem;
+            width: 3rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: #111;
+            color: #fff;
+            font-family: 'Material Symbols Outlined';
+            font-size: 1.5rem;
+            line-height: 1;
+            margin-bottom: 1rem;
+            content: 'diamond';
+        }
+        #about .grid.md\:grid-cols-4 > div:nth-child(2):before { content: 'eco'; background: #59684f; }
+        #about .grid.md\:grid-cols-4 > div:nth-child(3):before { content: 'bolt'; background: #9f3d2f; }
+        #about .grid.md\:grid-cols-4 > div:nth-child(4):before { content: 'straighten'; }
+        .stat-chip {
+            border: 1px solid rgba(255,255,255,.18);
+            background: rgba(255,255,255,.09);
+            backdrop-filter: blur(12px);
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-slide {
+            animation: slideIn 0.6s ease-out;
+        }
+        .font-display {
+            font-family: 'Noto Serif', serif;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-white/82 glass-nav border-b border-black/5 nav-shell">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+            <a href="index.html" class="font-display text-2xl font-bold italic">KINETIC MUSE</a>
+            <div class="hidden md:flex gap-8">
+                <a href="collections.html" class="text-gray-700 hover:text-black transition">Collections</a>
+                <a href="try-on.html" class="text-gray-700 hover:text-black transition">Virtual Try-On</a>
+                <a href="#about" class="text-gray-700 hover:text-black transition">About</a>
+            </div>
+            <div class="flex gap-4">
+                <button class="relative hover:opacity-80 transition" id="wishlist-btn" onclick="window.location.href='wishlist.html'">
+                    <span class="material-symbols-outlined">favorite</span>
+                    <span id="wishlist-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full" style="display:none;">0</span>
+                </button>
+                <button class="relative hover:opacity-80 transition" onclick="window.location.href='cart.html'">
+                    <span class="material-symbols-outlined">shopping_bag</span>
+                    <span id="cart-badge" class="absolute -top-2 -right-2 bg-[#9f3d2f] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full" style="display:none;">0</span>
+                </button>
+            </div>
+        </div>
+        <div class="md:hidden border-t border-gray-200 px-4 py-3">
+            <div class="flex gap-2 overflow-x-auto text-sm whitespace-nowrap">
+                <a href="collections.html" class="rounded-full border border-black/10 px-4 py-2">Collections</a>
+                <a href="try-on.html" class="rounded-full border border-black/10 px-4 py-2">Virtual Try-On</a>
+                <a href="#about" class="rounded-full border border-black/10 px-4 py-2">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient text-white px-6 pb-16 pt-36 md:pt-28">
+        <div class="max-w-7xl mx-auto w-full animate-slide">
+            <div class="max-w-3xl">
+                <p class="mb-4 text-xs uppercase tracking-[0.35em] text-white/55">Kinetic Muse Studio</p>
+                <h1 class="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.98]">Performance pieces with a digital fitting edge.</h1>
+                <p class="mt-6 max-w-xl text-base md:text-lg leading-8 text-white/72">Shop the modern edit, preview pieces in the try-on studio, and move from product discovery to bag without losing the look.</p>
+                <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                    <button onclick="document.getElementById('collections').scrollIntoView({ behavior: 'smooth' })" class="rounded-full bg-white px-8 py-4 font-semibold text-black hover:bg-white/90 transition">Shop Collection</button>
+                    <button onclick="window.location.href='try-on.html'" class="rounded-full border border-white/55 px-8 py-4 font-semibold text-white hover:bg-white/10 transition">Open Try-On Studio</button>
+                </div>
+            </div>
+            <div class="mt-12 grid max-w-3xl gap-3 sm:grid-cols-3">
+                <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Live Catalog</p><p class="font-display mt-2 text-3xl font-bold">18</p></div>
+                <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Try-On Modes</p><p class="font-display mt-2 text-3xl font-bold">3</p></div>
+                <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Core Fits</p><p class="font-display mt-2 text-3xl font-bold">4</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Category Preview -->
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <div class="mb-12 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-black/45">Curated Paths</p>
+                <h2 class="font-display mt-2 text-4xl font-bold">Shop by Category</h2>
+            </div>
+            <a href="collections.html" class="w-fit rounded-full border border-black/10 px-5 py-3 text-sm font-semibold hover:bg-black hover:text-white transition">View Everything</a>
+        </div>
+        <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
+            <!-- Athletic Wear -->
+            <div class="category-card group cursor-pointer p-3" onclick="filterByCategory('athletic')">
+                <div class="aspect-[4/5] bg-gradient-to-br from-gray-100 to-gray-200 rounded-[20px] overflow-hidden">
+                    <img src="https://images.pexels.com/photos/3208617/pexels-photo-3208617.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Athletic Wear" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                </div>
+                <div class="p-3">
+                    <h4 class="text-2xl font-bold mt-2">ATHLETIC WEAR</h4>
+                    <p class="text-gray-600">Performance technology in motion</p>
+                </div>
+            </div>
+
+            <div class="category-card group cursor-pointer p-3" onclick="filterBySubcategory('t-shirts')">
+                <div class="aspect-[4/5] bg-gradient-to-br from-zinc-100 to-stone-200 rounded-[20px] overflow-hidden">
+                    <img src="https://images.pexels.com/photos/18139574/pexels-photo-18139574.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Modern T-shirts" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                </div>
+                <div class="p-3">
+                    <h4 class="text-2xl font-bold mt-2">MODERN T-SHIRTS</h4>
+                    <p class="text-gray-600">Boxy, oversized, and clean everyday fits</p>
+                </div>
+            </div>
+
+            <div class="category-card group cursor-pointer p-3" onclick="filterBySubcategory('trousers')">
+                <div class="aspect-[4/5] bg-gradient-to-br from-stone-100 to-neutral-200 rounded-[20px] overflow-hidden">
+                    <img src="https://images.pexels.com/photos/20709539/pexels-photo-20709539.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Modern trousers" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                </div>
+                <div class="p-3">
+                    <h4 class="text-2xl font-bold mt-2">TROUSERS</h4>
+                    <p class="text-gray-600">Tailored movement for street and travel</p>
+                </div>
+            </div>
+            
+            <div class="category-card group cursor-pointer p-3" onclick="filterBySubcategory('shorts')">
+                <div class="aspect-[4/5] bg-gradient-to-br from-stone-100 to-stone-200 rounded-[20px] overflow-hidden">
+                    <img src="https://images.pexels.com/photos/16848896/pexels-photo-16848896.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Performance shorts" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                </div>
+                <div class="p-3">
+                    <h4 class="text-2xl font-bold mt-2">SHORTS</h4>
+                    <p class="text-gray-600">Bike, split, and woven styles for warmer movement</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section id="collections" class="py-20 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-6 mb-12">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.3em] text-black/45">Featured Drop</p>
+                    <h3 class="font-display mt-2 text-4xl font-bold">Featured Collection</h3>
+                    <p class="mt-2 text-sm text-gray-500">Browse the strongest pieces first, then jump into try-on or product detail.</p>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-center w-full lg:w-auto">
+                    <select id="sortSelect" onchange="updateProductsDisplay()" class="px-4 py-3 border rounded bg-white">
+                        <option value="featured">Featured</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="rating">Top Rated</option>
+                        <option value="newest">Newest</option>
+                    </select>
+                    <input type="text" id="searchInput" placeholder="Search products..." onkeyup="updateProductsDisplay()" class="px-4 py-3 border rounded w-full lg:w-64">
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Products will be loaded here by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="about" class="py-20 px-6 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <h3 class="text-3xl font-bold mb-12 text-center">Why Choose KINETIC MUSE?</h3>
+            <div class="grid md:grid-cols-4 gap-8 text-center">
+                <div>
+                    <div class="text-4xl mb-4">🎨</div>
+                    <h4 class="font-bold mb-2">Premium Quality</h4>
+                    <p class="text-gray-600">Hand-selected fabrics and artisan craftsmanship</p>
+                </div>
+                <div>
+                    <div class="text-4xl mb-4">💫</div>
+                    <h4 class="font-bold mb-2">Sustainable</h4>
+                    <p class="text-gray-600">Eco-friendly materials and ethical production</p>
+                </div>
+                <div>
+                    <div class="text-4xl mb-4">🌍</div>
+                    <h4 class="font-bold mb-2">Performance Focus</h4>
+                    <p class="text-gray-600">A tighter catalog built around movement and fit</p>
+                </div>
+                <div>
+                    <div class="text-4xl mb-4">✨</div>
+                    <h4 class="font-bold mb-2">Perfect Fit</h4>
+                    <p class="text-gray-600">Virtual try-on with custom sizing</p>
+                </div>
+            </div>
+            <div class="mt-16 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                <div class="rounded-3xl border border-black/10 bg-gray-50 p-8">
+                    <p class="text-xs uppercase tracking-[0.25em] text-gray-500">About The Brand</p>
+                    <h4 class="font-display mt-3 text-3xl font-bold">A sharper storefront for motion, fit, and performance.</h4>
+                    <p class="mt-4 text-gray-600 leading-8">Kinetic Muse now connects browsing, product detail, cart, checkout, and try-on into one flow. The goal is not just a pretty homepage, but a storefront where every major action leads somewhere real.</p>
+                </div>
+                <div class="rounded-3xl bg-black text-white p-8">
+                    <p class="text-xs uppercase tracking-[0.25em] text-white/55">What To Try</p>
+                    <div class="mt-4 space-y-3 text-sm text-white/75">
+                        <p>Open a product detail page from the homepage cards.</p>
+                        <p>Jump into try-on from collections to test the fitting stage.</p>
+                        <p>Add a recommended size to bag and follow it through checkout.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="bg-black text-white py-16 px-6">
+        <div class="max-w-2xl mx-auto text-center">
+            <h3 class="text-3xl font-bold mb-4">Stay in the Loop</h3>
+            <p class="text-gray-300 mb-6">Get exclusive deals and new arrivals</p>
+            <form class="flex flex-col sm:flex-row gap-2" onsubmit="handleNewsletterSignup(event)">
+                <input type="email" placeholder="Enter your email" required class="flex-1 px-4 py-3 rounded text-black">
+                <button type="submit" class="px-8 py-3 bg-[#9f3d2f] rounded font-bold hover:bg-[#7d2f25] transition">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 px-6">
+        <div class="max-w-6xl mx-auto grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <h4 class="font-bold mb-4">KINETIC MUSE</h4>
+                <p class="text-gray-400">Where athletic performance meets a sharper digital fitting flow</p>
+            </div>
+            <div>
+                <h4 class="font-bold mb-4">SHOP</h4>
+                <ul class="space-y-2 text-gray-400">
+                    <li><a href="collections.html" class="hover:text-white transition">Collections</a></li>
+                    <li><a href="#" class="hover:text-white transition">Sale</a></li>
+                    <li><a href="try-on.html" class="hover:text-white transition">Virtual Try-On</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-4">SUPPORT</h4>
+                <ul class="space-y-2 text-gray-400">
+                    <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                    <li><a href="#" class="hover:text-white transition">Shipping</a></li>
+                    <li><a href="#" class="hover:text-white transition">Returns</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-4">FOLLOW</h4>
+                <div class="flex gap-4 text-gray-400">
+                    <a href="#" class="hover:text-white transition">Instagram</a>
+                    <a href="#" class="hover:text-white transition">Twitter</a>
+                    <a href="#" class="hover:text-white transition">TikTok</a>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 KINETIC MUSE. All rights reserved. | <a href="#" class="hover:text-white">Privacy</a> | <a href="#" class="hover:text-white">Terms</a></p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="products.js?v=catalog-3"></script>
+    <script src="cart-enhanced.js"></script>
+    <script>
+        // Display products on page load
+        let currentCategory = null;
+        let currentSubcategory = null;
+        let currentSort = 'featured';
+        
+        function renderProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+            
+            if (products.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500">No products found</p>';
+                return;
+            }
+            
+            products.forEach((product, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white/85 backdrop-blur overflow-hidden border border-black/10 transition product-card';
+                card.style.borderRadius = '28px';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.className += ' animate-slide';
+                
+                const discount = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
+                
+                card.innerHTML = `
+                    <div class="relative overflow-hidden bg-gray-100 aspect-[3/4]">
+                        <a href="product.html?productId=${product.id}" class="block h-full w-full">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                        </a>
+                        <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+                            <span class="rounded-full bg-black px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white">${product.badge || productTypeLabel(product)}</span>
+                            ${discount > 0 ? `<span class="rounded-full bg-[#9f3d2f] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white">-${discount}%</span>` : ''}
+                        </div>
+                        <button onclick="handleWishlistToggle(event, ${product.id})" class="absolute top-4 right-4 bg-white/90 p-2 rounded-full hover:bg-white transition" title="Add to wishlist">
+                            <span class="material-symbols-outlined ${isInWishlist(product.id) ? 'text-red-500' : ''}">favorite</span>
+                        </button>
+                    </div>
+                    <div class="space-y-4 p-5">
+                        <p class="text-sm text-gray-500 mb-1">${productTypeLabel(product).toUpperCase()} / ${product.line.toUpperCase()}</p>
+                        <a href="product.html?productId=${product.id}" class="block font-bold text-lg mb-1 hover:underline">${product.name}</a>
+                        <p class="text-sm text-gray-600 mb-3">${productStructureLabel(product)}</p>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-yellow-500">★</span>
+                            <span class="text-sm text-gray-600">${product.rating} (${product.reviews})</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex gap-2">
+                                ${product.originalPrice ? `<span class="text-gray-500 line-through">$${product.originalPrice}</span>` : ''}
+                                <span class="text-xl font-bold">$${product.price}</span>
+                            </div>
+                        </div>
+                        <div class="grid gap-2 sm:grid-cols-3">
+                            <a href="product.html?productId=${product.id}" class="w-full border border-black/10 py-3 text-center rounded-full text-sm font-semibold hover:bg-black hover:text-white transition">Details</a>
+                            <button onclick="handleQuickAdd(event, ${product.id})" class="w-full bg-black text-white py-3 rounded-full text-sm font-semibold hover:bg-gray-800 transition">Add</button>
+                            <button onclick="window.location.href='try-on.html?productId=${product.id}'" class="w-full border border-black/10 py-3 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition">Try</button>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        function filterByCategory(category) {
+            currentCategory = category;
+            currentSubcategory = null;
+            updateProductsDisplay();
+            document.getElementById('collections').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function filterBySubcategory(subcategory) {
+            currentCategory = null;
+            currentSubcategory = subcategory;
+            updateProductsDisplay();
+            document.getElementById('collections').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function updateProductsDisplay() {
+            const sortType = document.getElementById('sortSelect').value;
+            const searchTerm = document.getElementById('searchInput').value;
+            
+            let filtered = getAllProducts();
+            
+            if (currentCategory) {
+                filtered = filtered.filter(p => p.category === currentCategory);
+            }
+
+            if (currentSubcategory) {
+                filtered = filtered.filter(p => p.subcategory === currentSubcategory);
+            }
+            
+            if (searchTerm) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    p.color.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            filtered = sortProducts(filtered, sortType);
+            renderProducts(filtered);
+        }
+        
+        function handleNewsletterSignup(e) {
+            e.preventDefault();
+            alert('Thank you for subscribing! Check your email for exclusive offers.');
+            e.target.reset();
+        }
+        
+        // Load products on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateProductsDisplay();
+        });
+    </script>
+</body>
+</html>

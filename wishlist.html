@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist | KINETIC MUSE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: linear-gradient(180deg, #fbf8f4 0%, #efe4d6 100%);
+            color: #171717;
+        }
+        .font-display {
+            font-family: 'Noto Serif', serif;
+        }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 22px 60px rgba(17, 17, 17, 0.08);
+        }
+        .wishlist-card {
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+        .wishlist-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 40px rgba(17, 17, 17, 0.08);
+        }
+    </style>
+</head>
+<body>
+    <nav class="sticky top-0 z-50 border-b border-black/5 bg-white/80 glass-nav">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+            <div>
+                <a href="index.html" class="font-display text-2xl font-bold italic tracking-tight">KINETIC MUSE</a>
+                <p class="text-xs uppercase tracking-[0.25em] text-black/40">Saved Looks</p>
+            </div>
+            <div class="hidden items-center gap-3 md:flex">
+                <a href="index.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Home</a>
+                <a href="collections.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Collections</a>
+                <a href="try-on.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Try-On</a>
+                <button class="relative rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white" id="wishlist-btn">
+                    Wishlist
+                    <span id="wishlist-badge" class="absolute -right-2 -top-2 hidden h-5 min-w-5 items-center justify-center rounded-full bg-[#9f3d2f] px-1 text-[10px] font-bold text-white">0</span>
+                </button>
+                <button class="relative rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white" onclick="window.location.href='cart.html'">
+                    Bag
+                    <span id="cart-badge" class="absolute -right-2 -top-2 hidden h-5 min-w-5 items-center justify-center rounded-full bg-black px-1 text-[10px] font-bold text-white">0</span>
+                </button>
+            </div>
+        </div>
+        <div class="border-t border-black/5 px-4 py-3 md:hidden">
+            <div class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm">
+                <a href="index.html" class="rounded-full border border-black/10 px-4 py-2">Home</a>
+                <a href="collections.html" class="rounded-full border border-black/10 px-4 py-2">Collections</a>
+                <a href="try-on.html" class="rounded-full border border-black/10 px-4 py-2">Try-On</a>
+                <a href="wishlist.html" class="rounded-full border border-black/10 px-4 py-2">Wishlist</a>
+                <a href="cart.html" class="rounded-full border border-black/10 px-4 py-2">Bag</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-6 py-10">
+        <section class="mb-10 grid gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+            <div>
+                <p class="mb-3 text-xs uppercase tracking-[0.35em] text-black/45">Wishlist Edit</p>
+                <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl">Keep the pieces you like close, then jump back into try-on or add them to bag when the look feels right.</h1>
+            </div>
+            <div class="glass-panel rounded-[28px] border border-black/10 p-5 text-sm text-black/65">
+                Your saved items stay connected to the same product detail, try-on, and live bag flow used across the rest of the app.
+            </div>
+        </section>
+
+        <div id="wishlistEmpty" class="glass-panel hidden rounded-[32px] border border-dashed border-black/15 px-8 py-16 text-center">
+            <p class="text-xs uppercase tracking-[0.28em] text-black/45">Nothing Saved Yet</p>
+            <h3 class="font-display mt-4 text-3xl font-bold tracking-tight">Start building a shortlist of looks you want to revisit.</h3>
+            <p class="mx-auto mt-4 max-w-2xl text-base leading-8 text-black/60">Save products from collections or product detail, then come back here to compare them, open try-on faster, or move your favorite piece into the bag.</p>
+            <div class="mt-8 flex flex-wrap justify-center gap-3">
+                <a href="collections.html" class="rounded-full bg-black px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] text-white hover:opacity-90">Browse Collections</a>
+                <a href="try-on.html" class="rounded-full border border-black/10 px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] hover:bg-black hover:text-white">Open Try-On</a>
+            </div>
+        </div>
+
+        <div id="wishlistContainer" class="grid gap-6 md:grid-cols-2 xl:grid-cols-3"></div>
+    </main>
+
+    <script src="products.js?v=catalog-3"></script>
+    <script src="cart-enhanced.js"></script>
+    <script>
+        function formatCurrency(value) {
+            return `$${Number(value).toFixed(2)}`;
+        }
+
+        function renderWishlist() {
+            const wishlist = getWishlist();
+            const container = document.getElementById('wishlistContainer');
+            const emptyState = document.getElementById('wishlistEmpty');
+
+            if (wishlist.length === 0) {
+                container.style.display = 'none';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.style.display = 'grid';
+            container.innerHTML = '';
+
+            wishlist.forEach(item => {
+                const product = getProductById(item.id);
+                if (!product) return;
+
+                const card = document.createElement('article');
+                card.className = 'wishlist-card glass-panel overflow-hidden rounded-[30px] border border-black/10';
+
+                card.innerHTML = `
+                    <div class="relative aspect-[4/5] overflow-hidden bg-[#f5ede4]">
+                        <img src="${product.image}" alt="${product.name}" class="h-full w-full object-cover">
+                        <button onclick="removeFromWishlist(${product.id}); renderWishlist()" class="absolute right-4 top-4 rounded-full bg-white/90 p-2 text-[#9f3d2f] shadow hover:bg-[#9f3d2f] hover:text-white transition">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                        <span class="absolute left-4 top-4 rounded-full bg-black px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">${product.category}</span>
+                    </div>
+                    <div class="space-y-4 p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h4 class="text-2xl font-semibold">${product.name}</h4>
+                                <p class="mt-2 text-sm text-black/60">${product.color} &middot; ${product.subcategory}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold">${formatCurrency(product.price)}</p>
+                                ${product.originalPrice ? `<p class="text-sm text-black/35 line-through">${formatCurrency(product.originalPrice)}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-black/55">
+                            <span class="text-yellow-500">&#9733;</span>
+                            <span>${product.rating} rating</span>
+                            <span>&middot;</span>
+                            <span>${product.reviews} reviews</span>
+                        </div>
+                        <p class="text-sm leading-7 text-black/60">${product.description}</p>
+                        <div class="grid gap-2 sm:grid-cols-3">
+                            <a href="product.html?productId=${product.id}" class="rounded-full border border-black/10 px-4 py-3 text-center text-sm font-semibold hover:bg-black hover:text-white transition">Details</a>
+                            <a href="try-on.html?productId=${product.id}" class="rounded-full border border-black/10 px-4 py-3 text-center text-sm font-semibold hover:bg-black hover:text-white transition">Try On</a>
+                            <button onclick="handleQuickAdd(event, ${product.id}); setTimeout(() => { renderWishlist(); }, 1500)" class="rounded-full bg-black px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition">Add To Bag</button>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderWishlist();
+            updateWishlistBadge();
+            updateCartBadge();
+            window.addEventListener('wishlistUpdated', renderWishlist);
+        });
+    </script>
+</body>
+</html>

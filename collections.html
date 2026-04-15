@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collections | KINETIC MUSE</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; background: linear-gradient(135deg, #f8f5ef 0%, #e8ecec 48%, #d8d0c3 100%); color: #161616; }
+        .font-display { font-family: 'Noto Serif', serif; }
+        .glass-card { background: rgba(255,255,255,0.82); backdrop-filter: blur(18px); box-shadow: 0 24px 70px rgba(17,17,17,0.1); border: 1px solid rgba(17,17,17,.08); }
+        .product-card { transition: transform 220ms ease, box-shadow 220ms ease; box-shadow: 0 18px 44px rgba(17,17,17,.08); }
+        .product-card:hover { transform: translateY(-6px); box-shadow: 0 28px 70px rgba(17,17,17,0.16); }
+        .product-card img { transition: transform 520ms ease, filter 520ms ease; }
+        .product-card:hover img { transform: scale(1.055); filter: saturate(1.06) contrast(1.03); }
+        .filter-chip.active { background: #111111; color: #ffffff; border-color: #111111; }
+        .editorial-tile { transition: transform 180ms ease, box-shadow 180ms ease; }
+        .editorial-tile:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(0,0,0,0.1); }
+        .collection-hero { position: relative; }
+        .collection-hero:after { content: ""; position: absolute; left: 0; right: 0; bottom: -24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(17,17,17,.22), transparent); }
+    </style>
+</head>
+<body>
+    <nav class="sticky top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-xl">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 sm:px-6 py-4">
+            <div>
+                <a href="index.html" class="font-display text-2xl font-bold italic tracking-tight">KINETIC MUSE</a>
+                <p class="text-xs uppercase tracking-[0.25em] text-black/40">Curated Collections</p>
+            </div>
+            <div class="hidden items-center gap-3 md:flex">
+                <a href="index.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Home</a>
+                <a href="collections.html" class="rounded-full bg-black px-4 py-2 text-sm text-white">Collections</a>
+                <a href="try-on.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Try-On</a>
+                <a href="wishlist.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Wishlist</a>
+                <button onclick="window.location.href='cart.html'" class="relative rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">
+                    Bag
+                    <span id="cart-badge" class="absolute -right-2 -top-2 hidden h-5 min-w-5 items-center justify-center rounded-full bg-black px-1 text-[10px] font-bold text-white">0</span>
+                </button>
+            </div>
+        </div>
+        <div class="md:hidden border-t border-black/5 px-4 py-3">
+            <div class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm">
+                <a href="index.html" class="rounded-full border border-black/10 px-4 py-2">Home</a>
+                <a href="collections.html" class="rounded-full bg-black px-4 py-2 text-white">Collections</a>
+                <a href="try-on.html" class="rounded-full border border-black/10 px-4 py-2">Try-On</a>
+                <a href="wishlist.html" class="rounded-full border border-black/10 px-4 py-2">Wishlist</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-6 py-10">
+        <section class="collection-hero mb-14 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+            <div>
+                <p class="mb-3 text-xs uppercase tracking-[0.35em] text-black/45">Shop The Modern Edit</p>
+                <h1 class="font-display text-4xl font-bold tracking-tight sm:text-6xl">Fresh T-shirts, tailored trousers, and easy shorts for a cleaner everyday look.</h1>
+                <p class="mt-5 max-w-2xl text-sm leading-7 text-black/58">A tighter, more visual collection built around product-true imagery, smart filters, and instant try-on from every piece.</p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-3">
+                <button type="button" class="editorial-tile group overflow-hidden rounded-[28px] border border-black/10 bg-white text-left" data-jump-filter="t-shirts">
+                    <div class="relative aspect-[4/3] overflow-hidden bg-[#eee7dd]">
+                        <img src="https://images.pexels.com/photos/18139574/pexels-photo-18139574.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Modern T-shirts" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                        <span class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]">New</span>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-xs uppercase tracking-[0.22em] text-black/45">Modern Style</p>
+                        <h2 class="mt-1 text-xl font-semibold">T-Shirts</h2>
+                    </div>
+                </button>
+                <button type="button" class="editorial-tile group overflow-hidden rounded-[28px] border border-black/10 bg-white text-left" data-jump-filter="trousers">
+                    <div class="relative aspect-[4/3] overflow-hidden bg-[#eee7dd]">
+                        <img src="https://images.pexels.com/photos/20709539/pexels-photo-20709539.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Modern trousers" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                        <span class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]">Tailored</span>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-xs uppercase tracking-[0.22em] text-black/45">New Bottoms</p>
+                        <h2 class="mt-1 text-xl font-semibold">Trousers</h2>
+                    </div>
+                </button>
+                <button type="button" class="editorial-tile group overflow-hidden rounded-[28px] border border-black/10 bg-white text-left" data-jump-filter="shorts">
+                    <div class="relative aspect-[4/3] overflow-hidden bg-[#eee7dd]">
+                        <img src="https://images.pexels.com/photos/16848896/pexels-photo-16848896.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Performance shorts" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                        <span class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]">Light</span>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-xs uppercase tracking-[0.22em] text-black/45">Warm Weather</p>
+                        <h2 class="mt-1 text-xl font-semibold">Shorts</h2>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <section class="glass-card rounded-[30px] p-6 md:p-8">
+            <div class="grid gap-4 lg:grid-cols-[1fr_auto_auto] lg:items-center">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-black/40">search</span>
+                    <input id="search-input" type="text" placeholder="Search by name, line, activity, or color" class="w-full rounded-full border border-black/10 bg-white px-12 py-3 outline-none focus:border-black/30">
+                </div>
+                <div id="category-filters" class="flex flex-wrap gap-2">
+                    <button type="button" class="filter-chip active rounded-full border border-black/10 px-4 py-3 text-sm" data-filter="all">All</button>
+                    <button type="button" class="filter-chip rounded-full border border-black/10 px-4 py-3 text-sm" data-filter="t-shirts">T-Shirts</button>
+                    <button type="button" class="filter-chip rounded-full border border-black/10 px-4 py-3 text-sm" data-filter="trousers">Trousers</button>
+                    <button type="button" class="filter-chip rounded-full border border-black/10 px-4 py-3 text-sm" data-filter="shorts">Shorts</button>
+                    <button type="button" class="filter-chip rounded-full border border-black/10 px-4 py-3 text-sm" data-filter="tops">Tops</button>
+                    <button type="button" class="filter-chip rounded-full border border-black/10 px-4 py-3 text-sm" data-filter="bottoms">Bottoms</button>
+                </div>
+                <select id="sort-select" class="rounded-full border border-black/10 bg-white px-4 py-3 outline-none focus:border-black/30">
+                    <option value="featured">Featured</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Top Rated</option>
+                    <option value="newest">Newest</option>
+                </select>
+            </div>
+
+            <div class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p id="results-summary" class="text-sm text-black/55">Loading products...</p>
+                <a href="try-on.html" class="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">Open Try-On Studio</a>
+            </div>
+
+            <div id="products-grid" class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <!-- Dynamic products -->
+            </div>
+        </section>
+    </main>
+
+    <script src="products.js?v=catalog-3"></script>
+    <script src="cart-enhanced.js"></script>
+    <script>
+        let activeFilter = 'all';
+
+        const FILTERS = {
+            't-shirts': product => product.subcategory === 't-shirts',
+            trousers: product => product.subcategory === 'trousers',
+            shorts: product => product.subcategory === 'shorts',
+            tops: product => ['tops', 'sports-bra', 'jackets', 't-shirts'].includes(product.subcategory),
+            bottoms: product => ['leggings', 'shorts', 'skort', 'pants', 'trousers'].includes(product.subcategory)
+        };
+
+        function currentProducts() {
+            const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+            const sortValue = document.getElementById('sort-select').value;
+
+            let products = getAllProducts();
+
+            if (activeFilter !== 'all' && FILTERS[activeFilter]) {
+                products = products.filter(FILTERS[activeFilter]);
+            }
+
+            if (searchTerm) {
+                products = products.filter(product =>
+                    product.name.toLowerCase().includes(searchTerm) ||
+                    product.description.toLowerCase().includes(searchTerm) ||
+                    product.subcategory.toLowerCase().includes(searchTerm) ||
+                    product.color.toLowerCase().includes(searchTerm) ||
+                    product.line.toLowerCase().includes(searchTerm) ||
+                    product.activity.toLowerCase().includes(searchTerm) ||
+                    product.fitProfile.toLowerCase().includes(searchTerm) ||
+                    product.supportLevel.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            return sortProducts(products, sortValue);
+        }
+
+        function productCard(product) {
+            const discount = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
+            product = {
+                ...product,
+                color: productStructureLabel(product),
+                activity: product.fitProfile
+            };
+
+            return `
+                <article class="product-card overflow-hidden rounded-[28px] border border-black/10 bg-white/88 backdrop-blur">
+                    <div class="relative aspect-[4/5] overflow-hidden bg-[#f4ede4]">
+                        <a href="product.html?productId=${product.id}" class="block h-full w-full">
+                            <img src="${product.image}" alt="${product.name}" class="h-full w-full object-cover">
+                        </a>
+                        <div class="absolute left-4 top-4 flex flex-wrap gap-2">
+                            ${product.badge ? `<span class="rounded-full bg-black px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">${product.badge}</span>` : ''}
+                            ${discount > 0 ? `<span class="rounded-full bg-[#9f3d2f] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">-${discount}%</span>` : ''}
+                        </div>
+                        <button onclick="handleWishlistToggle(event, ${product.id})" class="absolute right-4 top-4 rounded-full bg-white/90 p-2" title="Toggle wishlist">
+                            <span class="material-symbols-outlined ${isInWishlist(product.id) ? 'text-red-500' : ''}">favorite</span>
+                        </button>
+                    </div>
+                    <div class="space-y-4 p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.22em] text-black/45">${productTypeLabel(product)} / ${product.line}</p>
+                                <a href="product.html?productId=${product.id}" class="mt-1 block text-xl font-semibold hover:underline">${product.name}</a>
+                                <p class="mt-1 text-sm text-black/55">${product.color} · ${product.activity}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold">$${product.price}</p>
+                                ${product.originalPrice ? `<p class="text-sm text-black/40 line-through">$${product.originalPrice}</p>` : ''}
+                            </div>
+                        </div>
+                        <p class="text-sm leading-6 text-black/65">${product.description}</p>
+                        <p class="text-xs uppercase tracking-[0.16em] text-black/45">${product.fabric}</p>
+                        <div class="flex items-center gap-2 text-sm text-black/55">
+                            <span class="text-yellow-500">★</span>
+                            <span>${product.rating} rating</span>
+                            <span>•</span>
+                            <span>${product.reviews} reviews</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-black/45">
+                            <span class="rounded-full border border-black/10 px-3 py-2">${product.silhouette}</span>
+                            <span class="rounded-full border border-black/10 px-3 py-2">${product.supportLevel}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-black/45">
+                            ${product.sizes.map(size => `<span class="rounded-full border border-black/10 px-3 py-2">${size}</span>`).join('')}
+                        </div>
+                        <div class="grid gap-2 sm:grid-cols-3">
+                            <a href="product.html?productId=${product.id}" class="rounded-full border border-black/10 px-4 py-3 text-center text-sm font-semibold hover:bg-black hover:text-white">Details</a>
+                            <button onclick="handleQuickAdd(event, ${product.id})" class="rounded-full bg-black px-4 py-3 text-sm font-semibold text-white hover:opacity-90">Add</button>
+                            <button onclick="window.location.href='try-on.html?productId=${product.id}'" class="rounded-full border border-black/10 px-4 py-3 text-sm font-semibold hover:bg-black hover:text-white">Try</button>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderCollections() {
+            const products = currentProducts();
+            const grid = document.getElementById('products-grid');
+            const summary = document.getElementById('results-summary');
+
+            summary.textContent = `${products.length} product${products.length === 1 ? '' : 's'} found`;
+
+            if (!products.length) {
+                grid.innerHTML = '<p class="col-span-full rounded-[24px] border border-dashed border-black/15 bg-white/60 p-10 text-center text-black/55">No products match your current search and filter.</p>';
+                return;
+            }
+
+            grid.innerHTML = products.map(productCard).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCollections();
+            updateCartBadge();
+            updateWishlistBadge();
+
+            document.getElementById('search-input').addEventListener('input', renderCollections);
+            document.getElementById('sort-select').addEventListener('change', renderCollections);
+
+            document.querySelectorAll('#category-filters .filter-chip').forEach(button => {
+                button.addEventListener('click', () => {
+                    activeFilter = button.dataset.filter;
+                    document.querySelectorAll('#category-filters .filter-chip').forEach(chip => chip.classList.remove('active'));
+                    button.classList.add('active');
+                    renderCollections();
+                });
+            });
+
+            document.querySelectorAll('[data-jump-filter]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetFilter = button.dataset.jumpFilter;
+                    const targetButton = document.querySelector(`#category-filters [data-filter="${targetFilter}"]`);
+                    if (targetButton) {
+                        targetButton.click();
+                        document.getElementById('products-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

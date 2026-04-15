@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product | KINETIC MUSE</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: linear-gradient(135deg, #f8f5ef 0%, #e8ecec 48%, #d8d0c3 100%);
+            color: #171717;
+        }
+        .font-display {
+            font-family: 'Noto Serif', serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 24px 70px rgba(17, 17, 17, 0.1);
+        }
+        .hero-image-panel { position: relative; }
+        .hero-image-panel:before {
+            content: "";
+            position: absolute;
+            inset: 18px;
+            border: 1px solid rgba(255,255,255,.7);
+            border-radius: 28px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        #product-image { transition: transform 600ms ease, filter 600ms ease; }
+        .hero-image-panel:hover #product-image { transform: scale(1.035); filter: saturate(1.06) contrast(1.03); }
+        .size-chip.active {
+            background: #111111;
+            color: #ffffff;
+            border-color: #111111;
+        }
+        .related-card {
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+        .related-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(17, 17, 17, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="sticky top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-xl">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+            <div>
+                <a href="index.html" class="font-display text-2xl font-bold italic tracking-tight">KINETIC MUSE</a>
+                <p class="text-xs uppercase tracking-[0.25em] text-black/40">Live Product Detail</p>
+            </div>
+            <div class="hidden items-center gap-3 md:flex">
+                <a href="index.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Home</a>
+                <a href="collections.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Collections</a>
+                <a href="try-on.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Try-On</a>
+                <a href="wishlist.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Wishlist</a>
+                <button onclick="window.location.href='cart.html'" class="relative rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">
+                    Bag
+                    <span id="cart-badge" class="absolute -right-2 -top-2 hidden h-5 min-w-5 items-center justify-center rounded-full bg-black px-1 text-[10px] font-bold text-white">0</span>
+                </button>
+            </div>
+        </div>
+        <div class="border-t border-black/5 px-4 py-3 md:hidden">
+            <div class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm">
+                <a href="index.html" class="rounded-full border border-black/10 px-4 py-2">Home</a>
+                <a href="collections.html" class="rounded-full border border-black/10 px-4 py-2">Collections</a>
+                <a href="try-on.html" class="rounded-full border border-black/10 px-4 py-2">Try-On</a>
+                <a href="wishlist.html" class="rounded-full border border-black/10 px-4 py-2">Wishlist</a>
+                <a href="cart.html" class="rounded-full border border-black/10 px-4 py-2">Bag</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-6 py-10">
+        <section class="mb-8 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.22em] text-black/45">
+            <a href="index.html" class="hover:text-black">Home</a>
+            <span>/</span>
+            <a href="collections.html" class="hover:text-black">Collections</a>
+            <span>/</span>
+            <span id="breadcrumb-product">Product</span>
+        </section>
+
+        <section class="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+            <div class="space-y-6">
+                <div class="glass-panel hero-image-panel overflow-hidden rounded-[34px] border border-black/10 p-4">
+                    <div class="relative overflow-hidden rounded-[28px] bg-[#f5ede4]">
+                        <img id="product-image" src="" alt="" class="aspect-[4/5] w-full object-cover">
+                        <div class="absolute left-5 top-5 flex flex-wrap gap-2">
+                            <span id="product-category-badge" class="rounded-full bg-black px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">Category</span>
+                            <span id="product-discount-badge" class="hidden rounded-full bg-[#9f3d2f] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-3">
+                    <article class="glass-panel rounded-[28px] border border-black/10 p-5">
+                        <p class="text-xs uppercase tracking-[0.22em] text-black/45">Material</p>
+                        <p id="product-fabric" class="mt-3 text-sm leading-6 text-black/70"></p>
+                    </article>
+                    <article class="glass-panel rounded-[28px] border border-black/10 p-5">
+                        <p class="text-xs uppercase tracking-[0.22em] text-black/45">Fit Profile</p>
+                        <p id="product-care" class="mt-3 text-sm leading-6 text-black/70"></p>
+                    </article>
+                    <article class="glass-panel rounded-[28px] border border-black/10 p-5">
+                        <p class="text-xs uppercase tracking-[0.22em] text-black/45">Best For</p>
+                        <p id="product-stock" class="mt-3 text-sm leading-6 text-black/70"></p>
+                    </article>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-[34px] border border-black/10 p-6 md:p-8">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <p id="product-subtitle" class="text-xs uppercase tracking-[0.28em] text-black/45"></p>
+                        <h1 id="product-name" class="font-display mt-3 text-4xl font-bold tracking-tight sm:text-5xl"></h1>
+                    </div>
+                    <button id="wishlist-toggle" type="button" class="rounded-full border border-black/10 px-4 py-3 text-sm hover:bg-black hover:text-white">Save</button>
+                </div>
+
+                <div class="mt-6 flex flex-wrap items-center gap-4">
+                    <div class="flex items-end gap-3">
+                        <span id="product-price" class="text-3xl font-bold"></span>
+                        <span id="product-original-price" class="text-lg text-black/35 line-through"></span>
+                    </div>
+                    <div class="rounded-full bg-black/5 px-4 py-2 text-sm text-black/65">
+                        <span class="text-yellow-500">★</span>
+                        <span id="product-rating"></span>
+                    </div>
+                    <div id="product-color" class="rounded-full bg-white px-4 py-2 text-sm text-black/65"></div>
+                    <div id="product-activity" class="rounded-full bg-white px-4 py-2 text-sm text-black/65"></div>
+                    <div id="product-support" class="rounded-full bg-white px-4 py-2 text-sm text-black/65"></div>
+                </div>
+
+                <p id="product-description" class="mt-6 max-w-2xl text-base leading-8 text-black/70"></p>
+
+                <div class="mt-8">
+                    <p class="text-xs uppercase tracking-[0.24em] text-black/45">Select Size</p>
+                    <div id="size-options" class="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-5"></div>
+                </div>
+
+                <div class="mt-8 grid gap-3 sm:grid-cols-2">
+                    <button id="add-to-bag-btn" type="button" class="rounded-full bg-black px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] text-white hover:opacity-90">Add To Bag</button>
+                    <button id="try-on-btn" type="button" class="rounded-full border border-black/10 bg-white/60 px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] hover:bg-black hover:text-white">Try This Look</button>
+                </div>
+
+                <div class="mt-8 rounded-[28px] border border-black/10 bg-[rgba(159,61,47,0.06)] p-5">
+                    <p class="text-xs uppercase tracking-[0.22em] text-black/45">Highlights</p>
+                    <div id="product-features" class="mt-4 flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="mt-8 grid gap-4 md:grid-cols-2">
+                    <article class="rounded-[28px] border border-black/10 bg-white/70 p-5">
+                        <p class="text-xs uppercase tracking-[0.22em] text-black/45">Why It Works</p>
+                        <p id="product-story" class="mt-3 text-sm leading-7 text-black/70"></p>
+                    </article>
+                    <article class="rounded-[28px] border border-black/10 bg-white/70 p-5">
+                        <p class="text-xs uppercase tracking-[0.22em] text-black/45">Next Step</p>
+                        <p class="mt-3 text-sm leading-7 text-black/70">Open the try-on studio for a visual preview, or add your preferred size directly to bag from here.</p>
+                        <a id="deep-link-try-on" href="try-on.html" class="mt-4 inline-flex rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">Open Try-On Studio</a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="mt-14">
+            <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.28em] text-black/45">Curated Pairing</p>
+                    <h2 class="font-display mt-2 text-3xl font-bold tracking-tight">Related Pieces</h2>
+                </div>
+                <a href="collections.html" class="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">Browse Full Collection</a>
+            </div>
+            <div id="related-products" class="grid gap-6 md:grid-cols-2 xl:grid-cols-3"></div>
+        </section>
+    </main>
+
+    <script src="products.js?v=catalog-3"></script>
+    <script src="cart-enhanced.js"></script>
+    <script>
+        let activeProduct = null;
+        let selectedSize = '';
+
+        function formatCurrency(value) {
+            return `$${Number(value).toFixed(2)}`;
+        }
+
+        function getRequestedProduct() {
+            const params = new URLSearchParams(window.location.search);
+            const requestedId = Number(params.get('productId'));
+            if (requestedId && typeof getProductById === 'function') {
+                return getProductById(requestedId);
+            }
+            return getAllProducts()[0];
+        }
+
+        function renderSizeOptions(product) {
+            const container = document.getElementById('size-options');
+            container.innerHTML = '';
+
+            const preferred = product.sizes.includes('M') ? 'M' : product.sizes[0];
+            if (!selectedSize || !product.sizes.includes(selectedSize)) {
+                selectedSize = preferred;
+            }
+
+            product.sizes.forEach(size => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `size-chip rounded-2xl border border-black/10 px-4 py-4 text-sm font-semibold transition ${size === selectedSize ? 'active' : ''}`;
+                button.textContent = size;
+                button.addEventListener('click', () => {
+                    selectedSize = size;
+                    renderSizeOptions(product);
+                });
+                container.appendChild(button);
+            });
+        }
+
+        function renderWishlistButton(product) {
+            const button = document.getElementById('wishlist-toggle');
+            const liked = isInWishlist(product.id);
+            button.textContent = liked ? 'Saved To Wishlist' : 'Save To Wishlist';
+            button.classList.toggle('bg-black', liked);
+            button.classList.toggle('text-white', liked);
+        }
+
+        function relatedProductCard(product) {
+            const discount = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
+            return `
+                <article class="related-card overflow-hidden rounded-[28px] border border-black/10 bg-white">
+                    <a href="product.html?productId=${product.id}" class="block">
+                        <div class="relative aspect-[4/5] overflow-hidden bg-[#f5ede4]">
+                            <img src="${product.image}" alt="${product.name}" class="h-full w-full object-cover">
+                            ${discount > 0 ? `<span class="absolute left-4 top-4 rounded-full bg-black px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">-${discount}%</span>` : ''}
+                        </div>
+                    </a>
+                    <div class="space-y-4 p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.22em] text-black/45">${productTypeLabel(product)} / ${product.line}</p>
+                                <a href="product.html?productId=${product.id}" class="mt-1 block text-xl font-semibold hover:underline">${product.name}</a>
+                                <p class="mt-1 text-sm text-black/55">${productStructureLabel(product)}</p>
+                            </div>
+                            <p class="text-lg font-bold">${formatCurrency(product.price)}</p>
+                        </div>
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            <button onclick="handleQuickAdd(event, ${product.id})" class="rounded-full bg-black px-4 py-3 text-sm font-semibold text-white hover:opacity-90">Quick Add</button>
+                            <a href="try-on.html?productId=${product.id}" class="rounded-full border border-black/10 px-4 py-3 text-center text-sm font-semibold hover:bg-black hover:text-white">Try On</a>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderRelatedProducts(product) {
+            const related = getAllProducts()
+                .filter(item => item.id !== product.id && item.category === product.category)
+                .slice(0, 3);
+
+            const fallback = getAllProducts().filter(item => item.id !== product.id).slice(0, 3);
+            const picks = related.length ? related : fallback;
+
+            document.getElementById('related-products').innerHTML = picks.map(relatedProductCard).join('');
+        }
+
+        function productStory(product) {
+            if (product.story) return product.story;
+            const firstFeature = product.features[0] || 'crafted detail';
+            const secondFeature = product.features[1] || 'refined finishing';
+            return `${product.name} pairs ${firstFeature.toLowerCase()} with ${secondFeature.toLowerCase()}, giving the piece a more considered feel than a basic catalog card can show.`;
+        }
+
+        function renderProduct(product) {
+            activeProduct = product;
+            document.title = `${product.name} | KINETIC MUSE`;
+            document.getElementById('breadcrumb-product').textContent = product.name;
+            document.getElementById('product-image').src = product.image;
+            document.getElementById('product-image').alt = product.name;
+            document.getElementById('product-category-badge').textContent = product.badge || product.category;
+            document.getElementById('product-subtitle').textContent = `${product.line} / ${product.silhouette}`;
+            document.getElementById('product-name').textContent = product.name;
+            document.getElementById('product-price').textContent = formatCurrency(product.price);
+            document.getElementById('product-original-price').textContent = product.originalPrice ? formatCurrency(product.originalPrice) : '';
+            document.getElementById('product-original-price').style.display = product.originalPrice ? 'inline' : 'none';
+            document.getElementById('product-rating').textContent = `${product.rating} rating · ${product.reviews} reviews`;
+            document.getElementById('product-color').textContent = product.color;
+            document.getElementById('product-activity').textContent = product.activity;
+            document.getElementById('product-support').textContent = product.supportLevel;
+            document.getElementById('product-description').textContent = product.description;
+            document.getElementById('product-fabric').textContent = `${product.fabric}${product.composition ? ` · ${product.composition}` : ''}`;
+            document.getElementById('product-care').textContent = `${product.fitProfile}${product.stock > 0 ? ` · ${product.stock} in stock` : ' · Sold out'}`;
+            document.getElementById('product-stock').textContent = (product.bestFor || []).join(' · ');
+            document.getElementById('product-story').textContent = productStory(product);
+            document.getElementById('deep-link-try-on').href = `try-on.html?productId=${product.id}`;
+
+            const discount = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
+            const discountBadge = document.getElementById('product-discount-badge');
+            discountBadge.textContent = discount > 0 ? `${discount}% Off` : '';
+            discountBadge.classList.toggle('hidden', discount <= 0);
+
+            document.getElementById('product-features').innerHTML = product.features
+                .map(feature => `<span class="rounded-full border border-black/10 bg-white px-4 py-2 text-xs uppercase tracking-[0.16em] text-black/55">${feature}</span>`)
+                .join('');
+
+            renderSizeOptions(product);
+            renderWishlistButton(product);
+            renderRelatedProducts(product);
+        }
+
+        function addCurrentProductToBag() {
+            if (!activeProduct) return;
+            addToCart(activeProduct, 1, selectedSize);
+
+            const button = document.getElementById('add-to-bag-btn');
+            const originalText = button.textContent;
+            button.textContent = 'Added To Bag';
+            button.classList.add('bg-[#2d6a4f]');
+            button.classList.remove('bg-black');
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.classList.add('bg-black');
+                button.classList.remove('bg-[#2d6a4f]');
+            }, 1500);
+        }
+
+        function toggleCurrentWishlist() {
+            if (!activeProduct) return;
+            if (isInWishlist(activeProduct.id)) {
+                removeFromWishlist(activeProduct.id);
+            } else {
+                addToWishlist(activeProduct);
+            }
+            renderWishlistButton(activeProduct);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const product = getRequestedProduct();
+            if (!product) return;
+
+            renderProduct(product);
+            updateCartBadge();
+            updateWishlistBadge();
+
+            document.getElementById('add-to-bag-btn').addEventListener('click', addCurrentProductToBag);
+            document.getElementById('try-on-btn').addEventListener('click', () => {
+                window.location.href = `try-on.html?productId=${product.id}`;
+            });
+            document.getElementById('wishlist-toggle').addEventListener('click', toggleCurrentWishlist);
+            window.addEventListener('wishlistUpdated', () => renderWishlistButton(activeProduct));
+        });
+    </script>
+</body>
+</html>

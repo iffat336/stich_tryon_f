@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINETIC MUSE | Premium Women's Athletics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#bac3ff",
+                        "background": "#fcf9f8",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container": "#f0eded",
+                        "outline": "#747878",
+                        "on-tertiary-fixed": "#211a13",
+                        "inverse-primary": "#bac3ff",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1c1b1b",
+                        "on-error": "#ffffff",
+                        "secondary": "#5f5e5e",
+                        "surface-bright": "#fcf9f8",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-background": "#1c1b1b",
+                        "on-surface-variant": "#444748",
+                        "tertiary-fixed": "#eee0d3",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#474746",
+                        "secondary-fixed": "#e5e2e1",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "tertiary-container": "#211a13",
+                        "tertiary-fixed-dim": "#d1c4b8",
+                        "surface-container-high": "#eae7e7",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-tertiary-container": "#8d8277",
+                        "primary-container": "#00105c",
+                        "secondary-container": "#e2dfde",
+                        "on-primary-container": "#6a7ce2",
+                        "on-secondary-container": "#636262",
+                        "surface": "#fcf9f8",
+                        "primary": "#000000",
+                        "surface-tint": "#4355b9",
+                        "inverse-surface": "#313030",
+                        "on-primary-fixed-variant": "#293ca0",
+                        "outline-variant": "#c4c7c7",
+                        "on-tertiary-fixed-variant": "#4e453c",
+                        "on-primary-fixed": "#00105c",
+                        "surface-container-low": "#f6f3f2",
+                        "tertiary": "#000000",
+                        "primary-fixed": "#dee0ff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-secondary-fixed": "#1b1c1c"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .noto-serif { font-family: 'Noto Serif', serif; }
+        .manrope { font-family: 'Manrope', sans-serif; }
+        .backdrop-blur-20px { backdrop-filter: blur(20px); }
+        .glass-panel {
+            background: rgba(252, 249, 248, 0.7);
+            backdrop-filter: blur(20px);
+        }
+        .hero-gradient {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.6) 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background manrope font-light antialiased overflow-x-hidden">
+<!-- Top Navigation Shell -->
+<nav class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl shadow-sm shadow-black/5 flex justify-between items-center px-6 md:px-10 py-6 transition-all duration-300">
+<div class="flex items-center gap-8">
+<a class="text-2xl font-serif italic tracking-tighter text-primary" href="index.html">KINETIC MUSE</a>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-primary font-semibold border-b border-primary/20 manrope text-sm tracking-wide" href="collections.html">Collections</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope text-sm tracking-wide" href="try-on.html">Virtual Try-On</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope text-sm tracking-wide" href="#">Performance</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope text-sm tracking-wide" href="#">Editorial</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope text-sm tracking-wide" href="#">Story</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden lg:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/15">
+<span class="material-symbols-outlined text-secondary scale-90">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-xs manrope uppercase tracking-widest ml-2 w-32" placeholder="Search" type="text"/>
+</div>
+<div class="flex items-center gap-4 text-primary">
+<button class="hover:opacity-80 transition-opacity relative">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+<button class="hover:opacity-80 transition-opacity relative" onclick="window.location.href='cart.html'">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span id="cart-badge" class="absolute -top-1 -right-1 bg-surface-tint text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full" style="display:none;">0</span>
+</button>
+<button class="md:hidden">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 bg-primary overflow-hidden">
+<img class="w-full h-full object-cover opacity-80" data-alt="Cinematic wide shot of a woman in high-performance yoga apparel moving gracefully against a minimalist concrete architectural background with soft natural side lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_o81_uEuW6KYyrNzK2Fs3AjKz0klz55uxoIPPci-_R2hWvgNIq6aS51zheWmMT_pkHGrqKahIno1CWesDxtJDLAURLXv8TcHFe1Ni7dONGhFoPYIPpkk7FlaH_epCZtUEVpI5zmjU9t6FwGQlNrw_a6iiztfdFzW-ANV5XDJjzwhH2VCYcc1dq2HRUsxbZllq1mjQDDeU_fww0EoiHUeLnLhDc6denDXFO3Pa3wC-EbZBKdziVNwAoJ82sxONcVcS_qmS2HmQsbA"/>
+<div class="absolute inset-0 hero-gradient"></div>
+</div>
+<div class="relative z-10 text-center px-6 max-w-5xl">
+<h1 class="noto-serif text-5xl md:text-8xl text-white font-bold tracking-tight mb-8 leading-[1.1]">
+                The Poetry <br/> <span class="italic font-normal">of Motion</span>
+</h1>
+<p class="manrope text-white/80 text-lg md:text-xl font-light mb-12 max-w-2xl mx-auto tracking-wide">
+                Engineered for the elite athlete. Designed for the editorial gaze. Performance wear redefined as wearable art.
+            </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+<a class="w-full sm:w-auto px-10 py-4 bg-primary text-white text-xs font-bold uppercase tracking-[0.2em] rounded-sm bg-gradient-to-br from-primary to-primary-container hover:shadow-xl hover:shadow-primary-container/20 transition-all duration-300" href="collections.html">Shop New Arrivals</a>
+<a class="w-full sm:w-auto px-10 py-4 border border-white/20 text-white text-xs font-bold uppercase tracking-[0.2em] rounded-sm hover:bg-white/10 transition-all duration-300 backdrop-blur-sm" href="#">
+                    View Editorial
+                </a>
+</div>
+</div>
+<div class="absolute bottom-10 left-10 hidden md:block">
+<span class="manrope text-white/40 text-[10px] uppercase tracking-[0.3em] vertical-rl transform rotate-180">Spring / Summer 2024</span>
+</div>
+</section>
+<!-- Virtual Try-On Section -->
+<section class="py-24 md:py-32 bg-primary/5">
+<div class="px-6 md:px-10 max-w-[1400px] mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div>
+<span class="manrope text-primary text-[10px] font-bold uppercase tracking-[0.3em] block mb-4">Innovation in Fit</span>
+<h3 class="noto-serif text-4xl md:text-5xl font-bold tracking-tight mb-6">Virtual Try-On Experience</h3>
+<p class="manrope text-secondary text-lg leading-relaxed mb-8">Enter your measurements and body type to visualize how our pieces fit your silhouette. See how different sizes adapt to your unique shape before you purchase.</p>
+<div class="space-y-4">
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-primary text-2xl">check_circle</span>
+<span class="manrope text-secondary">Personalized fit recommendations</span>
+</div>
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-primary text-2xl">check_circle</span>
+<span class="manrope text-secondary">Visual size comparison</span>
+</div>
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-primary text-2xl">check_circle</span>
+<span class="manrope text-secondary">See your avatar in every style</span>
+</div>
+</div>
+<a href="try-on.html" class="inline-block mt-8 px-10 py-4 bg-primary text-white text-xs font-bold uppercase tracking-[0.2em] rounded-sm hover:shadow-xl hover:shadow-primary-container/20 transition-all duration-300">Try Virtual Try-On</a>
+</div>
+<div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-12 flex items-center justify-center min-h-96">
+<div class="text-center">
+<span class="material-symbols-outlined text-primary/40 text-8xl block mb-4">account_circle</span>
+<p class="manrope text-secondary/60 text-sm">Virtual Avatar Visualization</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Selected Pieces Grid -->
+<section class="py-24 md:py-32 bg-surface">
+<div class="px-6 md:px-10 max-w-[1400px] mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+<div class="max-w-xl">
+<span class="manrope text-primary text-[10px] font-bold uppercase tracking-[0.3em] block mb-4">Curated Collection</span>
+<h2 class="noto-serif text-4xl md:text-5xl font-bold tracking-tight">Selected Pieces</h2>
+</div>
+<a class="manrope text-xs font-bold uppercase tracking-widest border-b border-primary/20 pb-1 hover:border-primary transition-all" href="collections.html">Explore All Collections</a>
+</div>
+<!-- Bento-style Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+<!-- Large Featured Card -->
+<div class="md:col-span-7 group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="relative overflow-hidden aspect-[4/5] bg-surface-container-low mb-6">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Full body shot of a female athlete in charcoal athletic set standing in a high-contrast industrial gym setting with dramatic shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQElaxuUwLcCAlzReA9gpZLPm3pnM0oFnTBiKBl9bvVY7KRcuEBc-tp2iSFy9s8yza2xnHejenkqvaLlahTzaxk-ccK6LQTLUFDmAOScjKbF8aw3B6-lqWruypPxB4qm47jU6RcyRk1jzbSLdsfr_YW7EckzPiMtDuOaQw4fpOb4rxAHTF7VF8_RD4kCMfZPv9TY73f_ie-knyJNQsqSW44hoaIzcdJ_FO1EkoFUxNSoBHQdee_Z1knrqbEQ6edKjsVa86nGJrTUE"/>
+<div class="absolute top-6 left-6">
+<span class="bg-white/90 backdrop-blur-md px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary">Best Seller</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="manrope font-semibold text-lg mb-1">Aero-Kinetic Leggings</h3>
+<p class="manrope text-secondary text-sm">Matte Onyx / Seamless Tech</p>
+</div>
+<span class="manrope font-medium">$145.00</span>
+</div>
+</div>
+<!-- Vertical Card Column -->
+<div class="md:col-span-5 flex flex-col gap-12">
+<div class="group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="relative overflow-hidden aspect-[3/4] bg-surface-container-low mb-6">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Close up of high-performance yoga fabric texture on a model performing a stretch in soft morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAchzhZvbxIeqhWy0YwAthv1ltWEkT0TR_E7NSfRpPlxwoysl4pf-QVuzLnnQMOxQywWi3NI5UExAiVx5iTTbNutLRElkyiAteg_pL6MCK-K4i9pK7LCv5pV_sLvYzUj_Ww-9y3A40IWwViElHPGyQ2gr2gx103mcgUEFJjHd9hCxDKEH98sj2AVBfYMneNwd7M0e0uwecd579TAXiNubmTZggAbRcSbA3F3BBTUoy3vle8F9dQsW7CJh60ebvIF_Xx4zouBm_gm4"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="manrope font-semibold text-lg mb-1">Gravity Sports Bra</h3>
+<p class="manrope text-secondary text-sm">Arctic White / High Impact</p>
+</div>
+<span class="manrope font-medium">$85.00</span>
+</div>
+</div>
+<div class="group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="relative overflow-hidden aspect-[3/4] bg-surface-container-low mb-6">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Editorial fashion shot of high-end white athletic sneakers on a minimalist platform with cool-toned lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz7c_pK66lBJcXP_ZbSR_xPpyaKBcwPiZj258wCmN2X96tToXireCDA3wBBQTE5Syy18lsCUnDnrK58gn9lLgz-50_CCb0dz31Y5f5uAouQb7r36hcshGM4nP_I5LPPxk4zsMenhot1tSWE1SVQs5v1YJ6kFoKHZfIbY9GKOtAZWyhDIJB7a4BGBuATTlM0NgzKCutV7O2Z-vFRz2amQmzBULolyqkQA6miW7BqtEM_UUG3NdOJ5LXRZQOD22rT4Ng5pzVccwC1s8"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="manrope font-semibold text-lg mb-1">Crest Runner Sneakers</h3>
+<p class="manrope text-secondary text-sm">Limited Edition / Carbon Core</p>
+</div>
+<span class="manrope font-medium">$220.00</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Storytelling Section: The Science of Movement -->
+<section class="relative bg-primary text-white py-32 overflow-hidden">
+<!-- Abstract Decoration -->
+<div class="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
+<svg class="w-full h-full" viewbox="0 0 400 800">
+<path d="M400,0 C300,200 100,600 0,800" fill="none" stroke="white" stroke-width="1"></path>
+<path d="M400,100 C250,300 50,700 0,800" fill="none" stroke="white" stroke-width="1"></path>
+</svg>
+</div>
+<div class="px-6 md:px-10 max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+<div class="relative z-10">
+<span class="manrope text-surface-tint text-[10px] font-bold uppercase tracking-[0.4em] block mb-6">Ethos &amp; Innovation</span>
+<h2 class="noto-serif text-4xl md:text-6xl font-bold tracking-tight mb-8 leading-tight">The Science <br/> of Movement</h2>
+<div class="space-y-6 text-white/70 manrope font-light text-lg leading-relaxed max-w-lg">
+<p>We believe that athletic wear should be a seamless extension of the human form. Through our Kinetic-Mesh technology, we've developed fabrics that react to your body's temperature and movement in real-time.</p>
+<p>It is the intersection of advanced biomechanics and haute couture—clothing that performs under extreme pressure while maintaining a silhouette of effortless elegance.</p>
+</div>
+<div class="mt-12 flex flex-wrap gap-12">
+<div>
+<span class="block text-3xl font-serif mb-1 italic">0.2mm</span>
+<span class="block text-[10px] uppercase tracking-widest text-white/50">Fabric Thickness</span>
+</div>
+<div>
+<span class="block text-3xl font-serif mb-1 italic">400%</span>
+<span class="block text-[10px] uppercase tracking-widest text-white/50">Omni-Directional Stretch</span>
+</div>
+<div>
+<span class="block text-3xl font-serif mb-1 italic">100%</span>
+<span class="block text-[10px] uppercase tracking-widest text-white/50">Recycled Polyamide</span>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="aspect-[4/5] bg-zinc-900 overflow-hidden rounded-sm transform lg:translate-x-12">
+<img class="w-full h-full object-cover grayscale opacity-80" data-alt="Monochrome close-up of a high-tech athletic fabric weave showing intricate texture and modern design pattern" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeOEhG1oZcXrDwz0Pp3mPpDENTFQbmmogCY_AMGb69gAa27a-y5PFzatiNfoEqXefOY5po2pWJ9Bvd7lZKI5bqI_VG05sca7aSikou17wlR96-TSNZK_TLTViWa3hCRKQtBcQfxf5hV9mCWKmuzQFvbH_SL2rYSFKj1eXlohhY5i6bsY-dVFyVhDxIk9NYbwnyrKhplzLBdhYKKwppTSxHUJgkZ1GAePZHBfRRvwv-5MMpMdBTwdgFM2IGYSQXAZTO9pkWSvz72L8"/>
+</div>
+<div class="absolute -bottom-10 -left-10 md:-left-20 w-1/2 hidden md:block">
+<div class="glass-panel p-8 text-primary shadow-2xl">
+<span class="material-symbols-outlined text-4xl mb-4" data-icon="auto_awesome">auto_awesome</span>
+<p class="noto-serif italic text-lg leading-snug">"The most intelligent apparel I've ever worn. It's truly a second skin."</p>
+<p class="manrope font-bold text-[10px] uppercase tracking-widest mt-4">— Elena K., Marathoner</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Editorial Cards Section -->
+<section class="py-24 md:py-32 bg-surface-container-low">
+<div class="px-6 md:px-10 max-w-[1400px] mx-auto">
+<h2 class="noto-serif text-3xl font-bold mb-16 text-center">In Focus</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<div class="bg-surface-container-lowest p-4 group cursor-pointer transition-all duration-500 hover:shadow-xl hover:shadow-black/5" onclick="window.location.href='product.html'">
+<div class="aspect-[1/1] overflow-hidden mb-8">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Action shot of a woman running through a modern city landscape at twilight with blurred city lights in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLdF9la8Vh8oqs8GBxM9YCgC7D5UFGJiLUFA9JJZQc2NEcrvi9JWftL-KY7DJjuLo5k0C0AoriFfRDRfMQNey9ctzQUdKuOFjHuZEChBAFvjb15b2VJrS9k5Nwh-6XiVn276ZfmT0fW21PfELvrQVILesoVqLN3y3rnzVFO0ODHhvHg9fRzlOkWI07YId92zUAYpkk-bMTbbb-_fvurMK4awHL1ho6r2uBG99U3nIU9evfDVii4VDl0d0XB4bYCRCOO6SHFrT8urY"/>
+</div>
+<div class="px-2 pb-4">
+<span class="manrope text-[10px] uppercase tracking-widest text-secondary mb-2 block">Performance Journal</span>
+<h3 class="noto-serif text-xl font-bold mb-4">The Urban Interval: Mastering Cold Weather Cardio</h3>
+<p class="manrope text-sm text-secondary line-clamp-2 mb-6">Explore the technical layers designed for peak performance in sub-zero city environments.</p>
+<a class="inline-block text-[10px] font-bold uppercase tracking-widest border-b border-primary/10 hover:border-primary transition-all pb-1" href="#">Read Article</a>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 group cursor-pointer transition-all duration-500 hover:shadow-xl hover:shadow-black/5" onclick="window.location.href='product.html'">
+<div class="aspect-[1/1] overflow-hidden mb-8">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Overhead shot of a yoga mat with luxury water bottle and high-end accessories in a sun-drenched studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGy5uDhlPwO3O4tf_6lKbGrNFB7-gzunwhTWrp6wor57ytAXEbiTkFmQlnFRYX0_zcVrSc095bzIKSr8or29u9YRNwwSFgr0zl0pMHVh_HfQjYFJB09CCf5agpVtntm4RMn-i5vqrd_wkoePRoM7IxC1oswwv7AnqrnOy4NaoZ6PNBiD00enNSPiWxmK05PoDbsO5awndkTPBxQ9rHNlcvqfI2korWGkuntgFTzqQcVj3DfgvRk4YnffclrUywSVJi1RN4PZVP17o"/>
+</div>
+<div class="px-2 pb-4">
+<span class="manrope text-[10px] uppercase tracking-widest text-secondary mb-2 block">Sustainability</span>
+<h3 class="noto-serif text-xl font-bold mb-4">Circular Strength: The Future of Sport Fibers</h3>
+<p class="manrope text-sm text-secondary line-clamp-2 mb-6">How we transformed ocean plastic into our signature Muse-Silk fabric without compromising on hand-feel.</p>
+<a class="inline-block text-[10px] font-bold uppercase tracking-widest border-b border-primary/10 hover:border-primary transition-all pb-1" href="#">Read Article</a>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 group cursor-pointer transition-all duration-500 hover:shadow-xl hover:shadow-black/5" onclick="window.location.href='product.html'">
+<div class="aspect-[1/1] overflow-hidden mb-8">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Back view of an athlete's shoulders showing muscle definition and technical stitching of a performance top in a high-fashion studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDN62qThuGcM10tjjebXvg52u3Lzv-OyObynZBJ0kW137Ty2MiQo1iwvLjJeVSzehgyuFkac-fMk16O6ZYPGs_243jbMb1iELAdOdCMOpNUuPeFBCKv-0_pIUEU0gjNVL4IKpFeGRx8zcSgE2gKE9a-Oh2_b9n6BN3zbSsZhQOYVUEvxLv_Gg0YhVXCE4GdkIy20L6LDrOm2R_B1Iyriq-QDkvioCAmxlWQup6_BeYlvu3-gja3tICkcFO7r9bxs7Ta3GChwI5wFqI"/>
+</div>
+<div class="px-2 pb-4">
+<span class="manrope text-[10px] uppercase tracking-widest text-secondary mb-2 block">Style Report</span>
+<h3 class="noto-serif text-xl font-bold mb-4">Sculpted Minimal: The New Uniform of Movement</h3>
+<p class="manrope text-sm text-secondary line-clamp-2 mb-6">Transition seamlessly from high-intensity training to high-profile appointments with our core essentials.</p>
+<a class="inline-block text-[10px] font-bold uppercase tracking-widest border-b border-primary/10 hover:border-primary transition-all pb-1" href="#">Read Article</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter Section -->
+<section class="py-24 bg-white">
+<div class="px-6 md:px-10 max-w-2xl mx-auto text-center">
+<span class="material-symbols-outlined text-4xl mb-6 text-primary-container" data-icon="circle">circle</span>
+<h2 class="noto-serif text-4xl font-bold mb-6">Join the Circle</h2>
+<p class="manrope text-secondary text-lg mb-12 font-light">Be the first to access limited drops, editorial previews, and exclusive invitations to Kinetic Muse events.</p>
+<form class="relative group">
+<input class="w-full border-0 border-b border-outline-variant/30 py-4 px-0 manrope text-sm tracking-widest focus:ring-0 focus:border-primary transition-all duration-500 placeholder:text-outline/50 uppercase" placeholder="EMAIL ADDRESS" type="email"/>
+<button class="absolute right-0 bottom-4 group-hover:translate-x-1 transition-transform duration-300" type="submit">
+<span class="material-symbols-outlined">trending_flat</span>
+</button>
+</form>
+<p class="mt-6 text-[10px] text-outline manrope uppercase tracking-widest">By joining, you agree to our Privacy Policy and Terms of Service.</p>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-surface-container w-full mt-24">
+<div class="max-w-7xl mx-auto px-10 py-20 flex flex-col md:flex-row justify-between gap-12">
+<div class="flex-1 max-w-sm">
+<h3 class="text-xl font-serif text-primary mb-8">KINETIC MUSE</h3>
+<p class="manrope text-sm text-secondary leading-relaxed mb-8">
+                    Elevating human performance through the lens of high-fashion and technical innovation. Designed for those who move with purpose.
+                </p>
+<div class="flex gap-6">
+<a class="text-secondary hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-xl">brand_family</span></a>
+<a class="text-secondary hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-xl">share</span></a>
+<a class="text-secondary hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-xl">play_circle</span></a>
+</div>
+</div>
+<div class="flex-1 grid grid-cols-2 gap-12">
+<div class="flex flex-col gap-4">
+<span class="manrope text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Shop</span>
+<a class="manrope text-sm text-secondary hover:text-primary transition-colors" href="#">New Arrivals</a>
+<a class="manrope text-sm text-secondary hover:text-primary transition-colors" href="#">Best Sellers</a>
+<a class="manrope text-sm text-secondary hover:text-primary transition-colors" href="#">Accessories</a>
+<a class="manrope text-sm text-secondary hover:text-primary transition-colors" href="#">All Collections</a>
+</div>
+<div class="flex flex-col gap-4">
+<span class="manrope text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Company</span>
+<a class="manrope text-sm text-secondary hover:text-primary transition-colors" href="#">Journal</a>
+<a class="manrope text-sm text-secondary hover:text-primary transition-colors" href="#">Sustainability</a>
+<a class="manrope text-sm text-secondary hover:text-primary transition-colors" href="#">Concierge</a>
+<a class="manrope text-sm text-secondary hover:text-primary transition-colors" href="#">Shipping &amp; Returns</a>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-10 pb-10 flex flex-col md:flex-row justify-between items-center border-t border-outline-variant/10 pt-10">
+<span class="manrope text-[10px] text-secondary tracking-widest uppercase mb-4 md:mb-0">© 2024 KINETIC MUSE. ALL RIGHTS RESERVED.</span>
+<div class="flex gap-8">
+<a class="manrope text-[10px] text-secondary hover:text-primary transition-colors uppercase tracking-widest" href="#">Privacy Policy</a>
+<a class="manrope text-[10px] text-secondary hover:text-primary transition-colors uppercase tracking-widest" href="#">Terms of Use</a>
+</div>
+</div>
+</footer>
+<script src="cartLogic.js"></script>
+</body></html>

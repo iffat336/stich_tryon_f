@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@200;300;400;600;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .noto-serif { font-family: 'Noto Serif', serif; }
+        .manrope { font-family: 'Manrope', sans-serif; }
+        .backdrop-blur-20px { backdrop-filter: blur(20px); }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary": "#ffffff",
+              "primary-fixed-dim": "#bac3ff",
+              "background": "#fcf9f8",
+              "surface-variant": "#e5e2e1",
+              "surface-container": "#f0eded",
+              "outline": "#747878",
+              "on-tertiary-fixed": "#211a13",
+              "inverse-primary": "#bac3ff",
+              "surface-dim": "#dcd9d9",
+              "surface-container-lowest": "#ffffff",
+              "on-surface": "#1c1b1b",
+              "on-error": "#ffffff",
+              "secondary": "#5f5e5e",
+              "surface-bright": "#fcf9f8",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "error": "#ba1a1a",
+              "on-background": "#1c1b1b",
+              "on-surface-variant": "#444748",
+              "tertiary-fixed": "#eee0d3",
+              "on-error-container": "#93000a",
+              "on-secondary-fixed-variant": "#474746",
+              "secondary-fixed": "#e5e2e1",
+              "secondary-fixed-dim": "#c8c6c5",
+              "tertiary-container": "#211a13",
+              "tertiary-fixed-dim": "#d1c4b8",
+              "surface-container-high": "#eae7e7",
+              "inverse-on-surface": "#f3f0ef",
+              "on-tertiary-container": "#8d8277",
+              "primary-container": "#00105c",
+              "secondary-container": "#e2dfde",
+              "on-primary-container": "#6a7ce2",
+              "on-secondary-container": "#636262",
+              "surface": "#fcf9f8",
+              "primary": "#000000",
+              "surface-tint": "#4355b9",
+              "inverse-surface": "#313030",
+              "on-primary-fixed-variant": "#293ca0",
+              "outline-variant": "#c4c7c7",
+              "on-tertiary-fixed-variant": "#4e453c",
+              "on-primary-fixed": "#00105c",
+              "surface-container-low": "#f6f3f2",
+              "tertiary": "#000000",
+              "primary-fixed": "#dee0ff",
+              "on-secondary": "#ffffff",
+              "surface-container-highest": "#e5e2e1",
+              "on-secondary-fixed": "#1b1c1c"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface manrope font-light antialiased">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl shadow-sm shadow-black/5 flex justify-between items-center px-10 py-6">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-serif italic tracking-tighter text-primary">KINETIC MUSE</span>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope font-light" href="collections.html">Collections</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope font-light" href="try-on.html">Virtual Try-On</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope font-light" href="#">Performance</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope font-light" href="#">Editorial</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300 manrope font-light" href="#">Story</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center border-b border-outline-variant/15 px-2 py-1">
+<span class="material-symbols-outlined text-secondary scale-75">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm manrope placeholder:text-outline-variant" placeholder="Search" type="text"/>
+</div>
+<button class="text-primary hover:opacity-80 transition-opacity duration-300 relative">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+<button class="text-primary hover:opacity-80 transition-opacity duration-300 relative">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span id="cart-badge" class="absolute -top-1 -right-1 bg-surface-tint text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full" style="display:none;">0</span>
+
+</button>
+</div>
+</header>
+<main class="pt-32 pb-24 px-10 max-w-7xl mx-auto">
+<h1 class="noto-serif text-4xl font-bold tracking-tight mb-12 text-primary">Your Selection</h1>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+<!-- Cart Items List -->
+<div id="cart-items-container" class="lg:col-span-8 space-y-8">
+<!-- Item 1 -->
+<div class="bg-surface-container-lowest/70 backdrop-blur-20px p-6 flex flex-col sm:flex-row gap-8 transition-all duration-300 group">
+<div class="w-full sm:w-48 aspect-[3/4] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="studio shot of high-end athletic compression leggings in charcoal grey with subtle texture and premium stitching detail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4tcnyr3TdymAy2PxWQbc-v6u8S46FRznFXIxpDHQoaCmWNjgesyBBfxbt4wZbq1glu8CvcOeWNYsm-JsdWuqOWVQUpL3n1ipubfimfsJs4x9iaGJEAdKy-a9eVLO4ep7aX0ht7TJOJlBP3GVmORIKohWpkA-_gPnfZHH0z1CYbjAyuyef7B6OeFupa9N6rAFxOkj-MJRpJorvf9HWVp0Y3EGfBT0durP8Hp1_laaJUuIPFojwIZ5FLji4VrjmEcSuvRWOzTcazdk"/>
+</div>
+<div class="flex flex-col justify-between flex-1 py-2">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="noto-serif text-xl font-bold text-primary">AERO-KNIT COMPRESSION</h3>
+<span class="manrope font-semibold text-lg">$185.00</span>
+</div>
+<p class="text-secondary text-sm mt-2 mb-4 tracking-wide uppercase manrope label-md">Midnight / Medium</p>
+<div class="flex items-center gap-4 text-xs tracking-[0.1em] uppercase manrope font-semibold text-on-surface-variant/60">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">bolt</span> Breathable Fabric</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">refresh</span> Sustainable Origin</span>
+</div>
+</div>
+<div class="flex justify-between items-end mt-8">
+<div class="flex items-center border border-outline-variant/15">
+<button class="px-3 py-1 text-secondary hover:text-primary transition-colors">-</button>
+<span class="px-4 py-1 text-sm font-semibold">1</span>
+<button class="px-3 py-1 text-secondary hover:text-primary transition-colors">+</button>
+</div>
+<button class="text-xs uppercase tracking-widest text-outline hover:text-error transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">close</span> Remove
+                            </button>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container-lowest/70 backdrop-blur-20px p-6 flex flex-col sm:flex-row gap-8 transition-all duration-300 group">
+<div class="w-full sm:w-48 aspect-[3/4] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="minimalist off-white oversized hoodie made from organic heavy cotton hanging in a bright luxury studio environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfFgYj8M0ur0PYfp4-Pit4EjHt7l3-qBHVb8rqUkQcPf4NykljKKMo6_EefAgBIDLgwrg8uX-5rOLifGJuaacH_kEq1G0lxAZNEAr1rUeutfqBu5sCm7CYpkipYsIi2vOU4M7D95FkcLc07l-c4_Tid4OyWKyFRfSbeymgkeQMyMej3MyJpJ3735xmeYTGCIepnkvZ23IZ2FrHNfBBxYD4RHIrrji-PkKQlGubtdsJUCQuLtyQR5v1mH2a_KuKlzVLmHQNtgKwuSc"/>
+</div>
+<div class="flex flex-col justify-between flex-1 py-2">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="noto-serif text-xl font-bold text-primary">SCULPT HOODIE</h3>
+<span class="manrope font-semibold text-lg">$240.00</span>
+</div>
+<p class="text-secondary text-sm mt-2 mb-4 tracking-wide uppercase manrope label-md">Ecru / Large</p>
+<div class="flex items-center gap-4 text-xs tracking-[0.1em] uppercase manrope font-semibold text-on-surface-variant/60">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">ac_unit</span> Thermal Layer</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">shield</span> Reinforced Hem</span>
+</div>
+</div>
+<div class="flex justify-between items-end mt-8">
+<div class="flex items-center border border-outline-variant/15">
+<button class="px-3 py-1 text-secondary hover:text-primary transition-colors">-</button>
+<span class="px-4 py-1 text-sm font-semibold">1</span>
+<button class="px-3 py-1 text-secondary hover:text-primary transition-colors">+</button>
+</div>
+<button class="text-xs uppercase tracking-widest text-outline hover:text-error transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">close</span> Remove
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Summary Sidebar -->
+<div class="lg:col-span-4">
+<div class="bg-surface-container-low p-10 space-y-8 sticky top-32">
+<h2 class="noto-serif text-2xl font-bold text-primary">Summary</h2>
+<div class="space-y-4 text-sm manrope">
+<div class="flex justify-between text-secondary">
+<span>Subtotal</span>
+<span id="cart-subtotal" class="text-on-surface font-semibold">$425.00</span>
+</div>
+<div class="flex justify-between text-secondary">
+<span>Shipping</span>
+<span id="cart-shipping" class="text-on-surface font-semibold">Calculated at checkout</span>
+</div>
+<div class="flex justify-between text-secondary">
+<span>Tax</span>
+<span id="cart-tax" class="text-on-surface font-semibold">$34.00</span>
+</div>
+<div class="pt-4 border-t border-outline-variant/15 flex justify-between text-lg font-bold">
+<span class="noto-serif">Estimated Total</span>
+<span id="cart-total" class="manrope">$459.00</span>
+</div>
+</div>
+<div class="space-y-4">
+<button class="w-full bg-primary text-white py-5 text-xs font-bold tracking-[0.2em] uppercase hover:bg-surface-tint transition-all duration-500 rounded-sm" onclick="window.location.href='flow.html'">Proceed to Checkout</button>
+<button class="w-full bg-transparent border border-outline-variant/30 py-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-on-surface/5 transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">payment</span> Apple Pay
+                        </button>
+</div>
+<div class="pt-8 space-y-4">
+<p class="text-[10px] uppercase tracking-widest text-secondary font-bold text-center">Secure Payment Icons</p>
+<div class="flex justify-center gap-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+<span class="material-symbols-outlined" title="Visa">credit_card</span>
+<span class="material-symbols-outlined" title="Mastercard">payments</span>
+<span class="material-symbols-outlined" title="Paypal">account_balance_wallet</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 text-[11px] leading-relaxed text-on-surface-variant/70 italic border-l-2 border-surface-tint">
+                        "Each piece is crafted upon order to minimize environmental impact. Shipping estimates reflect our commitment to conscious logistics."
+                    </div>
+</div>
+</div>
+</div>
+<!-- Frequently Paired With -->
+<section class="mt-32">
+<div class="flex justify-between items-end mb-12">
+<div>
+<span class="manrope text-[10px] uppercase tracking-[0.3em] text-surface-tint font-extrabold mb-2 block">Complete the Aesthetic</span>
+<h2 class="noto-serif text-3xl font-bold text-primary">Frequently Paired With</h2>
+</div>
+<div class="flex gap-4">
+<button class="w-12 h-12 rounded-full border border-outline-variant/15 flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-outline-variant/15 flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<!-- Suggestion 1 -->
+<div class="group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="aspect-[4/5] overflow-hidden bg-surface-container relative mb-6">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="red high-performance sleek running shoes with aerodynamic design on a neutral architectural concrete background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_ZdZ3MMwLJU0AUjyy2DGb-6MCkw7irIXBQakQT7-SaIx6LTG7iWoBUbwqPowecyi09Yb4LKQxZyfYej-33ow7lgGaETZ4vZSI9Mc8JNt0R-6hYeOPSNlo3fTfaoAuNvllZtA8f0BqpBAjXGMWzh67wbo3tvHbNv48R1SmuZUrm840gHUXpJeaY7lQLipN-EvQ3UnqquoY14c-wUJGs1OMp0q88JaO7lWjD0gRgCdQKJ3evhe_6KvjUGQ19pYQy0E75G43VyUrlH0"/>
+<button class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-6 py-3 text-[10px] font-bold tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            Quick Add +
+                        </button>
+</div>
+<h4 class="manrope font-semibold text-primary">KINETIC VELOCITY V1</h4>
+<p class="manrope text-sm text-secondary mt-1">$195.00</p>
+</div>
+<!-- Suggestion 2 -->
+<div class="group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="aspect-[4/5] overflow-hidden bg-surface-container relative mb-6">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="luxury designer gym bag in matte black technical leather with silver hardware zippers and clean minimalist lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkTnpasLFfnqi4GV4tO8wZCY0urBKee4jl_hiV9ZEdyzveV_5SelHMXs_5h5fE3cNnW4ygjZYV16DwfgHPUYPHXfaXtUKnDjdBjWedkUvaLOEDXg52RPeuuTI9krOeFk9p-rRMPus7c2uV71SgK3Zmt35HMfERcPnw2SqChGpO2bdjRd2waaa_cZlC7qzwhizn4uXYykrfNdqerx6rRIajxRkYcIh8SQjOYTx6i3ZJN2fcbfLPaHBy8va12xCcWVBtEJFPrOkCUnw"/>
+<button class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-6 py-3 text-[10px] font-bold tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            Quick Add +
+                        </button>
+</div>
+<h4 class="manrope font-semibold text-primary">URBAN TRANSIT DUFFEL</h4>
+<p class="manrope text-sm text-secondary mt-1">$310.00</p>
+</div>
+<!-- Suggestion 3 -->
+<div class="group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="aspect-[4/5] overflow-hidden bg-surface-container relative mb-6">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="premium natural cork yoga mat with subtle embossed geometric branding on a soft sunlit wooden floor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6XZqYlDJ7mAzLKsyAMWXl_TvAp8HioRC4PVIcvlEtIF-Q4kM8rndR9gJj-uKTPVK6M-hKiCZ8rSBv78HtzsTZb9_ezyi7dVKMv624zRkfGusA-mS3ozkZF7ATl-ee6yRBKYEnb64v4Q1o48El5weYmHuQt91sR07qd_unNrUNkquZct9G_3Fdoa9_Yiptk0dhqXOvuw_ux08AvY9a0dODV2iJVLJGFZR9x7ZGNFRo74PbPDqFbXEQhCB-5MkhxR2DmmdylhDzhT8"/>
+<button class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-6 py-3 text-[10px] font-bold tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            Quick Add +
+                        </button>
+</div>
+<h4 class="manrope font-semibold text-primary">ZENITH ALIGN MAT</h4>
+<p class="manrope text-sm text-secondary mt-1">$120.00</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-24 bg-surface-container dark:bg-zinc-900 border-t border-outline-variant/10">
+<div class="max-w-7xl mx-auto px-10 py-20 flex flex-col md:flex-row justify-between gap-12">
+<div class="space-y-6">
+<span class="text-xl font-serif text-primary italic">KINETIC MUSE</span>
+<p class="manrope text-sm text-secondary max-w-xs leading-relaxed">
+                    Defining the intersection of peak performance and editorial grace. Elevating the athlete through luxury design.
+                </p>
+<div class="flex gap-4">
+<a class="text-secondary hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">camera</span></a>
+<a class="text-secondary hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">alternate_email</span></a>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-16">
+<div class="space-y-6">
+<h5 class="noto-serif font-bold text-primary">Curations</h5>
+<ul class="space-y-3 text-sm manrope text-secondary">
+<li><a class="hover:text-primary transition-colors" href="#">Journal</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Sustainability</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">New Arrivals</a></li>
+</ul>
+</div>
+<div class="space-y-6">
+<h5 class="noto-serif font-bold text-primary">Support</h5>
+<ul class="space-y-3 text-sm manrope text-secondary">
+<li><a class="hover:text-primary transition-colors" href="#">Concierge</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Shipping &amp; Returns</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Track Order</a></li>
+</ul>
+</div>
+</div>
+<div class="space-y-6">
+<h5 class="noto-serif font-bold text-primary">Newsletter</h5>
+<div class="flex border-b border-outline-variant/30 pb-2">
+<input class="bg-transparent border-none focus:ring-0 w-full text-sm manrope" placeholder="Email Address" type="email"/>
+<button class="text-primary font-bold text-xs tracking-widest">JOIN</button>
+</div>
+<p class="text-[10px] text-on-surface-variant/50 uppercase tracking-widest">© 2024 KINETIC MUSE. ALL RIGHTS RESERVED.</p>
+</div>
+</div>
+</footer>
+<script src="cartLogic.js"></script>
+<script src="renderCart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('button').forEach(btn => {
+        if(btn.innerText.includes('Quick Add +')) {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Find parent container
+                const card = btn.closest('.group');
+                if(!card) return;
+                const nameEl = card.querySelector('h4, h5');
+                const priceEl = card.querySelector('p');
+                const imgEl = card.querySelector('img');
+                
+                const name = nameEl ? nameEl.innerText : 'KINETIC ITEM';
+                const price = priceEl ? parseFloat(priceEl.innerText.replace(/[^0-9.]/g, '')) : 100.00;
+                const image = imgEl ? imgEl.src : '';
+                
+                window.handleQuickAdd(e, name, price, image);
+            });
+        }
+    });
+});
+</script>
+</body></html>

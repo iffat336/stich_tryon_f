@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../shopping-bag-app"
+		}
+	],
+	"settings": {
+		"git.ignoreLimitWarning": true
+	}
+}

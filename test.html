@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KINETIC MUSE - Function Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #fcf9f8; }
+        .test-section { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; }
+        button { padding: 10px 20px; background: #000; color: #fff; border: none; cursor: pointer; margin: 5px; }
+        button:hover { opacity: 0.8; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        pre { background: #f0f0f0; padding: 10px; overflow-x: auto; }
+        h2 { color: #000; }
+    </style>
+</head>
+<body>
+    <h1>🧪 KINETIC MUSE - Function Test</h1>
+    
+    <div class="test-section">
+        <h2>1️⃣ Test Cart Functions</h2>
+        <button onclick="testGetCart()">Test getCart()</button>
+        <button onclick="testAddToCart()">Test addToCart()</button>
+        <button onclick="testGetCartTotals()">Test getCartTotals()</button>
+        <button onclick="testUpdateQuantity()">Test updateQuantity()</button>
+        <button onclick="testRemoveFromCart()">Test removeFromCart()</button>
+        <pre id="cart-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2️⃣ Test Cart Badge</h2>
+        <button onclick="testUpdateBadges()">Test updateCartBadges()</button>
+        <p>Cart Badge Display: <span id="cart-badge" style="background: #4355b9; color: white; padding: 2px 6px; border-radius: 50%; min-width: 20px; display: inline-block; text-align: center;" style="display:none;">0</span></p>
+        <pre id="badge-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3️⃣ Test Quick Add</h2>
+        <button onclick="testQuickAdd()">Test Quick Add</button>
+        <pre id="quick-add-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4️⃣ Clear Cart</h2>
+        <button onclick="clearCart()" style="background: #ba1a1a;">Clear All Cart Data</button>
+        <p id="clear-status"></p>
+    </div>
+
+    <div class="test-section">
+        <h2>5️⃣ Navigation Test</h2>
+        <button onclick="window.location.href='index.html'">Go to Homepage</button>
+        <button onclick="window.location.href='collections.html'">Go to Collections</button>
+        <button onclick="window.location.href='product.html'">Go to Product</button>
+        <button onclick="window.location.href='cart.html'">Go to Cart</button>
+        <button onclick="window.location.href='flow.html'">Go to Checkout</button>
+    </div>
+
+    <script src="shopping-bag-app/cartLogic.js"></script>
+    <script>
+        function log(elementId, text) {
+            document.getElementById(elementId).innerText += text + '\n';
+        }
+
+        function testGetCart() {
+            document.getElementById('cart-output').innerText = '';
+            try {
+                const cart = window.getCart();
+                if(Array.isArray(cart)) {
+                    log('cart-output', '✅ getCart() working\nItems in cart: ' + cart.length);
+                    log('cart-output', 'Cart data:\n' + JSON.stringify(cart, null, 2));
+                } else {
+                    log('cart-output', '❌ getCart() failed - not an array');
+                }
+            } catch(e) {
+                log('cart-output', '❌ Error: ' + e.message);
+            }
+        }
+
+        function testAddToCart() {
+            document.getElementById('cart-output').innerText = '';
+            try {
+                const product = {
+                    name: 'Test Product',
+                    price: 99.99,
+                    size: 'M',
+                    image: 'https://placehold.co/400x400'
+                };
+                window.addToCart(product);
+                const cart = window.getCart();
+                log('cart-output', '✅ addToCart() working\nCart now has ' + cart.length + ' item(s)');
+                log('cart-output', JSON.stringify(cart[cart.length-1], null, 2));
+            } catch(e) {
+                log('cart-output', '❌ Error: ' + e.message);
+            }
+        }
+
+        function testGetCartTotals() {
+            document.getElementById('cart-output').innerText = '';
+            try {
+                const totals = window.getCartTotals();
+                log('cart-output', '✅ getCartTotals() working');
+                log('cart-output', 'Subtotal: $' + totals.subtotal.toFixed(2));
+                log('cart-output', 'Tax: $' + totals.tax.toFixed(2));
+                log('cart-output', 'Shipping: ' + (totals.shipping === 0 ? 'Free' : '$' + totals.shipping.toFixed(2)));
+                log('cart-output', 'Total: $' + totals.total.toFixed(2));
+            } catch(e) {
+                log('cart-output', '❌ Error: ' + e.message);
+            }
+        }
+
+        function testUpdateQuantity() {
+            document.getElementById('cart-output').innerText = '';
+            try {
+                const cart = window.getCart();
+                if(cart.length > 0) {
+                    const id = cart[0].id;
+                    window.updateQuantity(id, 1);
+                    const updated = window.getCart().find(i => i.id === id);
+                    log('cart-output', '✅ updateQuantity() working');
+                    log('cart-output', 'Item quantity: ' + updated.quantity);
+                } else {
+                    log('cart-output', 'ℹ️ No items in cart to update');
+                }
+            } catch(e) {
+                log('cart-output', '❌ Error: ' + e.message);
+            }
+        }
+
+        function testRemoveFromCart() {
+            document.getElementById('cart-output').innerText = '';
+            try {
+                const cart = window.getCart();
+                if(cart.length > 0) {
+                    const id = cart[0].id;
+                    window.removeFromCart(id);
+                    const newCart = window.getCart();
+                    log('cart-output', '✅ removeFromCart() working');
+                    log('cart-output', 'Cart now has ' + newCart.length + ' item(s)');
+                } else {
+                    log('cart-output', 'ℹ️ No items in cart to remove');
+                }
+            } catch(e) {
+                log('cart-output', '❌ Error: ' + e.message);
+            }
+        }
+
+        function testUpdateBadges() {
+            document.getElementById('badge-output').innerText = '';
+            try {
+                window.updateCartBadges();
+                const badge = document.getElementById('cart-badge');
+                log('badge-output', '✅ updateCartBadges() working');
+                log('badge-output', 'Badge value: ' + badge.innerText);
+                log('badge-output', 'Badge display: ' + badge.style.display);
+            } catch(e) {
+                log('badge-output', '❌ Error: ' + e.message);
+            }
+        }
+
+        function testQuickAdd() {
+            document.getElementById('quick-add-output').innerText = '';
+            try {
+                const btn = document.createElement('button');
+                btn.innerText = 'Add Product';
+                const mockEvent = {
+                    preventDefault: () => {},
+                    stopPropagation: () => {},
+                    currentTarget: btn
+                };
+                window.handleQuickAdd(mockEvent, 'Test Item', '79.99', 'https://placehold.co/200x200');
+                const cart = getCart();
+                log('quick-add-output', '✅ handleQuickAdd() working');
+                log('quick-add-output', 'Cart has ' + cart.length + ' item(s)');
+                log('quick-add-output', 'Last item: ' + JSON.stringify(cart[cart.length-1], null, 2));
+            } catch(e) {
+                log('quick-add-output', '❌ Error: ' + e.message);
+            }
+        }
+
+        function clearCart() {
+            try {
+                localStorage.removeItem('kinetic_muse_cart');
+                window.updateCartBadges();
+                document.getElementById('clear-status').innerHTML = '<span class="success">✅ Cart cleared!</span>';
+                document.getElementById('clear-status').innerHTML += '<br>All items removed from storage.';
+            } catch(e) {
+                document.getElementById('clear-status').innerHTML = '<span class="error">❌ Error: ' + e.message + '</span>';
+            }
+        }
+
+        // Run all tests on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Test page loaded. Ready to test functions.');
+            window.updateCartBadges();
+        });
+    </script>
+</body>
+</html>

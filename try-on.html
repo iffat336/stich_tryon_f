@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Try-On - KINETIC MUSE</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Manrope',sans-serif;background:linear-gradient(135deg,#f7f4ef 0%,#e8ecec 46%,#d8d0c3 100%);color:#111}
+    .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24}
+    .serif{font-family:'Noto Serif',serif}
+    .panel{background:rgba(255,255,255,.82);backdrop-filter:blur(18px);border:1px solid rgba(17,17,17,.08);box-shadow:0 24px 60px rgba(17,17,17,.08)}
+    .hero-panel{background:linear-gradient(135deg,rgba(17,17,17,.96),rgba(46,53,52,.94));color:#fff;box-shadow:0 28px 80px rgba(17,17,17,.18)}
+    .metric-card{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);backdrop-filter:blur(12px)}
+    .stage{position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(145deg,#fbfaf6,#e4e8e5 52%,#d6cabb);border:1px solid rgba(17,17,17,.08)}
+    .stage:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(17,17,17,.04) 1px,transparent 1px),linear-gradient(180deg,rgba(17,17,17,.035) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,transparent,black 12%,black 82%,transparent);pointer-events:none}
+    .viewport{position:relative;width:min(100%,560px);aspect-ratio:4/5;margin:0 auto;overflow:hidden;border-radius:28px;border:1px solid rgba(17,17,17,.08);background:linear-gradient(180deg,#f8f5ef,#dfe4e1 56%,#cfc4b6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),0 30px 70px rgba(17,17,17,.16)}
+    .viewport img,.viewport svg,.overlay,.guides{position:absolute;inset:0;width:100%;height:100%}
+    .overlay{pointer-events:auto;transform-origin:center center;cursor:grab;touch-action:none}
+    .overlay.dragging{cursor:grabbing}
+    .viewport-glow{position:absolute;inset:-8%;background:radial-gradient(circle at top,rgba(255,255,255,.56),transparent 48%),radial-gradient(circle at bottom,rgba(17,17,17,.1),transparent 44%);pointer-events:none}
+    .viewport-vignette{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.1),transparent 20%,transparent 72%,rgba(17,17,17,.1));pointer-events:none}
+    .scan-line{position:absolute;left:8%;right:8%;top:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(159,61,47,.72),transparent);box-shadow:0 0 18px rgba(159,61,47,.28);animation:scan 4.8s ease-in-out infinite;z-index:3;pointer-events:none}
+    @keyframes scan{0%,100%{transform:translateY(0);opacity:.12}45%{transform:translateY(320px);opacity:.8}70%{transform:translateY(130px);opacity:.24}}
+    .product-shadow{position:absolute;left:50%;bottom:8%;width:42%;height:9%;border-radius:999px;background:radial-gradient(circle,rgba(17,17,17,.28),rgba(17,17,17,0) 72%);transform:translateX(-50%);pointer-events:none;filter:blur(10px);transition:.18s}
+    .split-divider{position:absolute;top:6%;bottom:6%;width:2px;background:rgba(255,255,255,.96);box-shadow:0 0 0 1px rgba(17,17,17,.08),0 12px 28px rgba(17,17,17,.14);pointer-events:none;z-index:4}
+    .split-divider.hidden{display:none}
+    .stage-pill{position:absolute;z-index:5;border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.84);backdrop-filter:blur(12px);padding:.45rem .8rem;border-radius:999px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.16em;pointer-events:none}
+    .stage-pill.left{left:14px;top:14px}
+    .stage-pill.right{right:14px;top:14px}
+    .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;color:rgba(17,17,17,.55)}
+    .dropzone{border:1.5px dashed rgba(17,17,17,.18);background:rgba(255,255,255,.78);transition:.18s}.dropzone:hover{border-color:rgba(159,61,47,.5);transform:translateY(-1px)}
+    .chip,.size-btn,.product-card{transition:.18s}.chip,.size-btn{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.72)}
+    .chip.active,.size-btn.active,.product-card.active{border-color:rgba(159,61,47,.52);background:rgba(159,61,47,.08)}
+    .product-card:hover{transform:translateY(-2px);box-shadow:0 16px 30px rgba(17,17,17,.08)}
+    input[type="range"]{accent-color:#9f3d2f}
+    .stage-chip{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.78);transition:.18s;white-space:nowrap}
+    .stage-chip.active{background:#111;color:#fff;border-color:#111}
+    .fit-chip{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.78);transition:.18s}
+    .fit-chip.active{background:#9f3d2f;color:#fff;border-color:#9f3d2f}
+    .view-chip{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.78);transition:.18s}
+    .view-chip.active{background:#111;color:#fff;border-color:#111}
+    .guides{pointer-events:none;opacity:.92;transition:.18s}
+    .guides.hidden{opacity:0}
+    .guide-line{position:absolute;background:rgba(159,61,47,.38)}
+    .guide-line.center-x{left:50%;top:0;width:1px;height:100%;transform:translateX(-.5px)}
+    .guide-line.center-y{top:42%;left:0;width:100%;height:1px}
+    .guide-frame{position:absolute;left:15%;right:15%;top:12%;bottom:10%;border:1px dashed rgba(17,17,17,.18);border-radius:28px}
+    .handle{position:absolute;width:18px;height:18px;border-radius:999px;border:2px solid #fff;background:#111;box-shadow:0 6px 18px rgba(17,17,17,.16)}
+    .handle-scale{right:10%;bottom:12%;cursor:nwse-resize}
+    .handle-rotate{left:50%;top:7%;transform:translateX(-50%);cursor:grab}
+    .product-card img{transition:transform .28s ease}
+    .product-card:hover img{transform:scale(1.04)}
+    .summary-image{aspect-ratio:3/4;overflow:hidden;border-radius:20px;background:#f4efe8}
+    .summary-image img{height:100%;width:100%;object-fit:cover}
+  </style>
+</head>
+<body>
+  <nav class="sticky top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 sm:px-6 py-4">
+      <div><a href="index.html" class="serif text-2xl font-bold">KINETIC MUSE</a><p class="text-xs uppercase tracking-[0.25em] text-black/40">Photo Try-On Studio</p></div>
+      <div class="hidden md:flex items-center gap-3 text-sm">
+        <a href="index.html" class="rounded-full px-4 py-2 hover:bg-black/5">Home</a>
+        <a href="collections.html" class="rounded-full px-4 py-2 hover:bg-black/5">Collections</a>
+        <a href="wishlist.html" class="rounded-full px-4 py-2 hover:bg-black/5">Wishlist</a>
+        <button onclick="window.location.href='cart.html'" class="relative rounded-full border border-black/10 px-4 py-2 hover:bg-black hover:text-white">Bag<span id="cart-badge" class="absolute -right-2 -top-2 hidden h-5 min-w-5 items-center justify-center rounded-full bg-black px-1 text-[10px] font-bold text-white">0</span></button>
+      </div>
+    </div>
+    <div class="md:hidden border-t border-black/5 px-4 py-3">
+      <div class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm">
+        <a href="index.html" class="rounded-full border border-black/10 px-4 py-2">Home</a>
+        <a href="collections.html" class="rounded-full border border-black/10 px-4 py-2">Collections</a>
+        <a href="wishlist.html" class="rounded-full border border-black/10 px-4 py-2">Wishlist</a>
+        <a href="cart.html" class="rounded-full border border-black/10 px-4 py-2">Bag</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="mx-auto max-w-7xl px-6 py-10">
+    <section class="hero-panel mb-10 overflow-hidden rounded-[34px] p-6 md:p-9">
+      <div class="grid gap-8 lg:grid-cols-[1.12fr_0.88fr] lg:items-end">
+        <div>
+          <p class="mb-3 text-xs uppercase tracking-[0.35em] text-white/45">Interactive Fitting Lab</p>
+          <h1 class="serif max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">A sharper virtual try-on studio for every look in the collection.</h1>
+          <p class="mt-5 max-w-2xl text-sm leading-7 text-white/62">Live overlay, fit intelligence, split comparison, and product-aware sizing work together before the item reaches the bag.</p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <div class="metric-card rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.24em] text-white/45">Catalog Sync</p><p id="hero-count" class="serif mt-2 text-3xl font-bold">18</p></div>
+          <div class="metric-card rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.24em] text-white/45">Preview Modes</p><p class="serif mt-2 text-3xl font-bold">3</p></div>
+          <div class="metric-card rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.24em] text-white/45">Fit Controls</p><p class="serif mt-2 text-3xl font-bold">Live</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)]">
+      <aside class="space-y-6">
+        <div class="panel rounded-[28px] p-6">
+          <h2 class="serif text-2xl font-bold">1. Upload Your Photo</h2>
+          <p class="mt-2 text-sm text-black/60">Use a straight front-facing photo. It stays in the browser only.</p>
+          <label for="photo-upload" class="dropzone mt-5 block cursor-pointer rounded-3xl p-5">
+            <p class="font-semibold">Choose a photo</p>
+            <p class="mt-1 text-sm text-black/55">JPG, PNG, or WebP. Portrait photos work best.</p>
+          </label>
+          <input id="photo-upload" type="file" accept="image/*" class="hidden">
+          <div id="photo-status" class="mt-4 rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-sm text-black/60">No photo loaded yet. The mannequin preview is active.</div>
+          <div class="mt-4 flex gap-3">
+            <button id="remove-photo-btn" type="button" class="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">Remove Photo</button>
+            <button id="reset-overlay-btn" type="button" class="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">Reset Overlay</button>
+          </div>
+        </div>
+
+        <div class="panel rounded-[28px] p-6">
+          <h2 class="serif text-2xl font-bold">2. Measurements</h2>
+          <div class="mt-5 space-y-5">
+            <div><div class="mb-2 flex justify-between text-sm"><label for="chest-input">Chest</label><span id="chest-display">36"</span></div><input type="range" id="chest-input" min="28" max="48" value="36"></div>
+            <div><div class="mb-2 flex justify-between text-sm"><label for="waist-input">Waist</label><span id="waist-display">32"</span></div><input type="range" id="waist-input" min="24" max="42" value="32"></div>
+            <div><div class="mb-2 flex justify-between text-sm"><label for="height-input">Height</label><span id="height-display">66"</span></div><input type="range" id="height-input" min="58" max="78" value="66"></div>
+          </div>
+          <div class="mt-6">
+            <p class="mb-3 text-sm font-medium">Body profile</p>
+            <div class="grid grid-cols-3 gap-2 text-sm">
+              <label class="chip active flex cursor-pointer items-center justify-center rounded-2xl px-3 py-3"><input type="radio" name="body-type" value="slim" class="hidden" checked>Athletic</label>
+              <label class="chip flex cursor-pointer items-center justify-center rounded-2xl px-3 py-3"><input type="radio" name="body-type" value="average" class="hidden">Balanced</label>
+              <label class="chip flex cursor-pointer items-center justify-center rounded-2xl px-3 py-3"><input type="radio" name="body-type" value="curvy" class="hidden">Curvy</label>
+            </div>
+          </div>
+          <div class="mt-6">
+            <p class="mb-3 text-sm font-medium">Fit mood</p>
+            <div id="fit-mode-controls" class="grid grid-cols-3 gap-2 text-sm">
+              <button type="button" class="fit-chip rounded-2xl px-3 py-3" data-fit-mode="fitted">Fitted</button>
+              <button type="button" class="fit-chip active rounded-2xl px-3 py-3" data-fit-mode="balanced">Balanced</button>
+              <button type="button" class="fit-chip rounded-2xl px-3 py-3" data-fit-mode="relaxed">Relaxed</button>
+            </div>
+          </div>
+          <div class="mt-6">
+            <p class="mb-3 text-sm font-medium">Quick alignment</p>
+            <div id="overlay-preset-controls" class="grid grid-cols-3 gap-2 text-sm">
+              <button type="button" class="fit-chip rounded-2xl px-3 py-3" data-overlay-preset="close">Close Crop</button>
+              <button type="button" class="fit-chip active rounded-2xl px-3 py-3" data-overlay-preset="balanced">Balanced</button>
+              <button type="button" class="fit-chip rounded-2xl px-3 py-3" data-overlay-preset="dramatic">Dramatic</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel rounded-[28px] p-6">
+          <h2 class="serif text-2xl font-bold">3. Fine Tune Overlay</h2>
+          <div class="mt-5 space-y-5">
+            <div><div class="mb-2 flex justify-between text-sm"><label for="overlay-scale">Scale</label><span id="overlay-scale-display">100%</span></div><input type="range" id="overlay-scale" min="70" max="145" value="100"></div>
+            <div><div class="mb-2 flex justify-between text-sm"><label for="overlay-y">Vertical</label><span id="overlay-y-display">0</span></div><input type="range" id="overlay-y" min="-90" max="110" value="0"></div>
+            <div><div class="mb-2 flex justify-between text-sm"><label for="overlay-x">Horizontal</label><span id="overlay-x-display">0</span></div><input type="range" id="overlay-x" min="-110" max="110" value="0"></div>
+            <div><div class="mb-2 flex justify-between text-sm"><label for="overlay-rotate">Tilt</label><span id="overlay-rotate-display">0deg</span></div><input type="range" id="overlay-rotate" min="-25" max="25" value="0"></div>
+            <div><div class="mb-2 flex justify-between text-sm"><label for="overlay-opacity">Opacity</label><span id="overlay-opacity-display">88%</span></div><input type="range" id="overlay-opacity" min="50" max="100" value="88"></div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="space-y-8">
+        <div class="stage panel p-6 md:p-8">
+          <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div><p class="text-xs uppercase tracking-[0.25em] text-black/40">Live Preview</p><h2 class="serif text-3xl font-bold">Try-On Stage</h2></div>
+            <div class="flex flex-wrap gap-2">
+              <button id="auto-fit-btn" type="button" class="stage-chip rounded-full px-4 py-2 text-sm">Auto Fit</button>
+              <button id="toggle-guides-btn" type="button" class="stage-chip active rounded-full px-4 py-2 text-sm">Guides On</button>
+              <button id="mirror-photo-btn" type="button" class="stage-chip rounded-full px-4 py-2 text-sm">Mirror Photo</button>
+              <button id="toggle-avatar-btn" type="button" class="stage-chip active rounded-full px-4 py-2 text-sm">Avatar On</button>
+              <button id="center-overlay-btn" type="button" class="stage-chip rounded-full px-4 py-2 text-sm">Center Garment</button>
+            </div>
+          </div>
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div id="view-mode-controls" class="flex flex-wrap gap-2 text-sm">
+              <button type="button" class="view-chip active rounded-full px-4 py-2" data-view-mode="overlay">Overlay</button>
+              <button type="button" class="view-chip rounded-full px-4 py-2" data-view-mode="split">Split Compare</button>
+              <button type="button" class="view-chip rounded-full px-4 py-2" data-view-mode="garment">Garment Focus</button>
+            </div>
+            <div id="stage-guidance" class="rounded-full border border-black/10 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-black/55">Photo Ready Guidance</div>
+          </div>
+          <div class="viewport" id="try-on-viewport">
+            <div class="viewport-glow"></div>
+            <img id="uploaded-photo" alt="Uploaded try-on preview" class="hidden">
+            <div id="photo-placeholder" class="placeholder"><div><p class="text-lg font-semibold text-black/70">Add your photo to switch from mannequin view to a real visual overlay.</p><p class="mt-2 text-sm">Until then, a neutral model helps you align the garment.</p></div></div>
+            <svg id="avatar-svg" viewBox="0 0 320 520" aria-hidden="true"></svg>
+            <div id="stage-status-pill" class="stage-pill left">Overlay Mode</div>
+            <div id="garment-status-pill" class="stage-pill right">Model Base</div>
+            <div class="scan-line"></div>
+            <div id="alignment-guides" class="guides">
+              <div class="guide-line center-x"></div>
+              <div class="guide-line center-y"></div>
+              <div class="guide-frame"></div>
+            </div>
+            <div id="product-shadow" class="product-shadow"></div>
+            <div id="garment-wrapper" class="overlay" tabindex="0" aria-label="Garment try-on overlay controls">
+              <svg id="garment-svg" viewBox="0 0 320 520" aria-label="Garment try-on overlay"></svg>
+              <button id="overlay-rotate-handle" type="button" class="handle handle-rotate" aria-label="Rotate garment"></button>
+              <button id="overlay-scale-handle" type="button" class="handle handle-scale" aria-label="Resize garment"></button>
+            </div>
+            <div id="split-divider" class="split-divider hidden"></div>
+            <div class="viewport-vignette"></div>
+          </div>
+          <div class="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_1fr]">
+            <div class="rounded-[20px] border border-black/10 bg-white/70 p-4 text-sm text-black/60">Drag the garment directly on the stage to position it. Use the top handle to rotate, the bottom-right handle to resize, or your mouse wheel to zoom.</div>
+            <div class="rounded-[20px] border border-black/10 bg-white/70 p-4">
+              <div class="mb-2 flex items-center justify-between text-sm"><label for="compare-slider">Preview Blend</label><span id="compare-display">100%</span></div>
+              <input id="compare-slider" type="range" min="0" max="100" value="100">
+            </div>
+            <div id="split-slider-shell" class="hidden rounded-[20px] border border-black/10 bg-white/70 p-4">
+              <div class="mb-2 flex items-center justify-between text-sm"><label for="split-slider">Split Position</label><span id="split-display">54%</span></div>
+              <input id="split-slider" type="range" min="24" max="76" value="54">
+            </div>
+          </div>
+          <div class="mt-6 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
+            <div class="rounded-[24px] border border-black/10 bg-white/75 p-5"><p class="text-xs uppercase tracking-[0.25em] text-black/40">Selected Look</p><div id="selected-product-summary" class="mt-3 space-y-2"><p class="text-lg font-semibold">Loading product...</p></div></div>
+            <div class="rounded-[24px] border border-black/10 bg-[rgba(159,61,47,0.06)] p-5">
+              <p class="text-xs uppercase tracking-[0.25em] text-black/40">Recommended Size</p>
+              <div class="mt-3 flex items-end gap-3"><span id="recommended-size" class="serif text-4xl font-bold">M</span><span id="fit-confidence" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-black/55">Balanced fit</span></div>
+              <p id="fit-explainer" class="mt-3 text-sm text-black/60">We adjust this from your chest, waist, and selected silhouette.</p>
+              <div id="size-comparison" class="mt-4 grid grid-cols-4 gap-2"></div>
+            </div>
+          </div>
+          <div class="mt-4 grid gap-4 md:grid-cols-[0.95fr_1.05fr]">
+            <div class="rounded-[24px] border border-black/10 bg-white/75 p-5">
+              <p class="text-xs uppercase tracking-[0.25em] text-black/40">Fit Meter</p>
+              <div class="mt-4 h-3 overflow-hidden rounded-full bg-black/[0.08]">
+                <div id="fit-meter-bar" class="h-full rounded-full bg-[#9f3d2f]" style="width:72%"></div>
+              </div>
+              <div class="mt-3 flex items-end justify-between gap-3">
+                <p id="fit-meter-label" class="text-sm font-semibold text-black/70">Balanced preview confidence</p>
+                <p id="fit-meter-score" class="serif text-2xl font-bold">72</p>
+              </div>
+              <p id="fit-meter-copy" class="mt-3 text-sm leading-7 text-black/60">Your current measurements and overlay position create a solid first-pass fit estimate.</p>
+            </div>
+            <div class="rounded-[24px] border border-black/10 bg-white/75 p-5">
+              <p class="text-xs uppercase tracking-[0.25em] text-black/40">Styling Notes</p>
+              <div id="styling-notes" class="mt-4 space-y-3 text-sm text-black/60"></div>
+            </div>
+          </div>
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button id="add-to-bag-btn" type="button" class="rounded-full bg-black px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] text-white hover:opacity-90">Add Recommended Size To Bag</button>
+            <button id="browse-collection-btn" type="button" class="rounded-full border border-black/10 px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] hover:bg-black hover:text-white">Browse Collection</button>
+          </div>
+        </div>
+
+        <div class="panel rounded-[28px] p-6 md:p-8">
+          <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div><p class="text-xs uppercase tracking-[0.25em] text-black/40">Catalog Match</p><h2 class="serif text-3xl font-bold">Choose A Product To Try</h2></div>
+            <p class="max-w-xl text-sm text-black/60">These are real products from your catalog. Pick one, adjust the overlay, then add the recommended size directly to the cart.</p>
+          </div>
+          <div class="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <div class="relative">
+              <input id="try-on-search" type="text" placeholder="Search products inside try-on" class="w-full rounded-full border border-black/10 bg-white px-5 py-3 outline-none focus:border-black/30">
+            </div>
+            <div id="try-on-category-filters" class="flex flex-wrap gap-2">
+              <button type="button" class="stage-chip active rounded-full px-4 py-2 text-sm" data-tryon-category="all">All</button>
+              <button type="button" class="stage-chip rounded-full px-4 py-2 text-sm" data-tryon-category="t-shirts">T-Shirts</button>
+              <button type="button" class="stage-chip rounded-full px-4 py-2 text-sm" data-tryon-category="trousers">Trousers</button>
+              <button type="button" class="stage-chip rounded-full px-4 py-2 text-sm" data-tryon-category="shorts">Shorts</button>
+              <button type="button" class="stage-chip rounded-full px-4 py-2 text-sm" data-tryon-category="tops">Tops</button>
+              <button type="button" class="stage-chip rounded-full px-4 py-2 text-sm" data-tryon-category="bottoms">Bottoms</button>
+              <button type="button" class="stage-chip rounded-full px-4 py-2 text-sm" data-tryon-category="layers">Layers</button>
+            </div>
+          </div>
+          <div id="try-on-product-grid" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="products.js?v=catalog-3"></script>  
+  <script src="cart-enhanced.js"></script>
+  <script src="try-on-simple.js?v=polish-1"></script>
+</body>
+</html>

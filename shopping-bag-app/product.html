@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .noto-serif { font-family: 'Noto Serif', serif; }
+        .manrope { font-family: 'Manrope', sans-serif; }
+        .backdrop-blur-20px { backdrop-filter: blur(20px); }
+        .ghost-border { border-bottom: 1px solid rgba(196, 199, 199, 0.15); }
+        .tonal-shift-no-border { border: none; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-primary": "#ffffff",
+                "primary-fixed-dim": "#bac3ff",
+                "background": "#fcf9f8",
+                "surface-variant": "#e5e2e1",
+                "surface-container": "#f0eded",
+                "outline": "#747878",
+                "on-tertiary-fixed": "#211a13",
+                "inverse-primary": "#bac3ff",
+                "surface-dim": "#dcd9d9",
+                "surface-container-lowest": "#ffffff",
+                "on-surface": "#1c1b1b",
+                "on-error": "#ffffff",
+                "secondary": "#5f5e5e",
+                "surface-bright": "#fcf9f8",
+                "error-container": "#ffdad6",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "on-background": "#1c1b1b",
+                "on-surface-variant": "#444748",
+                "tertiary-fixed": "#eee0d3",
+                "on-error-container": "#93000a",
+                "on-secondary-fixed-variant": "#474746",
+                "secondary-fixed": "#e5e2e1",
+                "secondary-fixed-dim": "#c8c6c5",
+                "tertiary-container": "#211a13",
+                "tertiary-fixed-dim": "#d1c4b8",
+                "surface-container-high": "#eae7e7",
+                "inverse-on-surface": "#f3f0ef",
+                "on-tertiary-container": "#8d8277",
+                "primary-container": "#00105c",
+                "secondary-container": "#e2dfde",
+                "on-primary-container": "#6a7ce2",
+                "on-secondary-container": "#636262",
+                "surface": "#fcf9f8",
+                "primary": "#000000",
+                "surface-tint": "#4355b9",
+                "inverse-surface": "#313030",
+                "on-primary-fixed-variant": "#293ca0",
+                "outline-variant": "#c4c7c7",
+                "on-tertiary-fixed-variant": "#4e453c",
+                "on-primary-fixed": "#00105c",
+                "surface-container-low": "#f6f3f2",
+                "tertiary": "#000000",
+                "primary-fixed": "#dee0ff",
+                "on-secondary": "#ffffff",
+                "surface-container-highest": "#e5e2e1",
+                "on-secondary-fixed": "#1b1c1c"
+              },
+              fontFamily: {
+                "headline": ["Noto Serif"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface manrope text-on-surface selection:bg-surface-tint/20">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl shadow-sm shadow-black/5 flex justify-between items-center px-10 py-6">
+<div class="text-2xl font-serif italic tracking-tighter text-primary noto-serif">KINETIC MUSE</div>
+<div class="hidden md:flex gap-10 items-center">
+<a class="text-primary font-semibold border-b border-primary/20 transition-all duration-300" href="collections.html">Collections</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300" href="try-on.html">Virtual Try-On</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300" href="#">Performance</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300" href="#">Editorial</a>
+<a class="text-secondary hover:text-primary transition-colors duration-300" href="#">Story</a>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden lg:flex items-center bg-surface-container-low px-4 py-2 rounded-full">
+<span class="material-symbols-outlined text-secondary scale-75">search</span>
+<span class="text-secondary text-xs ml-2 manrope font-light">Search the Muse</span>
+</div>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-80 transition-opacity" data-icon="person">person</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-80 transition-opacity" data-icon="shopping_bag" onclick="window.location.href='cart.html'">shopping_bag</span>
+<span id="cart-badge" class="absolute -top-1 -right-1 bg-surface-tint text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full" style="display:none;">0</span>
+</div>
+</nav>
+<main class="pt-32 pb-24 max-w-[1440px] mx-auto px-10">
+<!-- Product Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+<!-- Left: Thumbnail Gallery (Sticky) -->
+<div class="lg:col-span-1 hidden lg:flex flex-col gap-4 sticky top-32 h-fit">
+<div class="aspect-[3/4] w-full bg-surface-container cursor-pointer overflow-hidden border border-primary/10">
+<img class="w-full h-full object-cover" data-alt="close-up of emerald green silk with intricate gold embroidery and traditional threadwork detail" src="https://images.pexels.com/photos/3622613/pexels-photo-3622613.jpeg?auto=compress&cs=tinysrgb&w=600"/>
+</div>
+<div class="aspect-[3/4] w-full bg-surface-container cursor-pointer overflow-hidden opacity-50 hover:opacity-100 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="model wearing emerald green Pakistani kurta with gold embroidery, traditional styling" src="https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=600"/>
+</div>
+<div class="aspect-[3/4] w-full bg-surface-container cursor-pointer overflow-hidden opacity-50 hover:opacity-100 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="detailed view of hand embroidered kurta showing traditional gold threadwork and beadwork patterns" src="https://images.pexels.com/photos/5704849/pexels-photo-5704849.jpeg?auto=compress&cs=tinysrgb&w=600"/>
+</div>
+</div>
+<!-- Middle: Main Image -->
+<div class="lg:col-span-7">
+<div class="aspect-[3/4] w-full bg-surface-container-low overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="hero shot of emerald green Pakistani kurta in studio lighting highlighting the embroidery details" src="https://images.pexels.com/photos/3622611/pexels-photo-3622611.jpeg?auto=compress&cs=tinysrgb&w=600"/>
+<div class="absolute bottom-8 left-8 bg-surface/70 backdrop-blur-xl px-6 py-3 text-[10px] uppercase tracking-[0.2em] manrope font-medium">
+                        Pakistani Heritage / Tiara Collection
+                    </div>
+</div>
+</div>
+<!-- Right: Product Details -->
+<div class="lg:col-span-4 flex flex-col">
+<div class="mb-10">
+<h1 class="noto-serif text-4xl font-bold tracking-tight mb-2 text-primary">TIARA EMBROIDERED KURTA</h1>
+<p class="manrope text-lg text-secondary font-light tracking-wide">$189.00</p>
+</div>
+<div class="mb-12">
+<p class="manrope text-sm text-on-surface leading-relaxed font-light mb-8">
+                        A stunning piece of contemporary Pakistani craftsmanship. The Tiara emerald green kurta features intricate gold threadwork embroidery across the chest and sleeves. Perfect for celebrations, formal occasions, or everyday elegance. Blending traditional artistry with modern silhouettes. 
+                    </p>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between items-center mb-4">
+<span class="text-[10px] uppercase tracking-[0.15em] font-bold">Select Size</span>
+<a class="text-[10px] uppercase tracking-[0.15em] font-medium underline underline-offset-4 opacity-60 hover:opacity-100 transition-opacity" href="#">Size Guide</a>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<button onclick="window.handleSizeSelect(event)" class="size-btn py-3 text-xs manrope font-medium bg-surface-container-lowest border border-outline-variant/15 hover:border-primary transition-all">XS</button>
+<button onclick="window.handleSizeSelect(event)" class="size-btn py-3 text-xs manrope font-bold bg-primary text-white border border-primary">S</button>
+<button onclick="window.handleSizeSelect(event)" class="size-btn py-3 text-xs manrope font-medium bg-surface-container-lowest border border-outline-variant/15 hover:border-primary transition-all">M</button>
+<button onclick="window.handleSizeSelect(event)" class="size-btn py-3 text-xs manrope font-medium bg-surface-container-lowest border border-outline-variant/15 hover:border-primary transition-all">L</button>
+</div>
+</div>
+<button id="add-to-bag" class="w-full py-5 bg-gradient-to-br from-primary to-primary-container text-white text-[11px] font-bold uppercase tracking-[0.2em] shadow-xl shadow-primary/10 hover:shadow-primary/20 hover:opacity-90 transition-all rounded-sm" onclick="window.handleDynamicAddToBag()">
+    Add to Bag
+</button>
+<button class="w-full py-5 border border-primary text-primary text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-all rounded-sm mt-3" onclick="window.location.href='try-on.html'">
+    Virtual Try-On
+</button>
+</div>
+</div>
+<div class="mt-auto space-y-4 pt-8 ghost-border">
+<details class="group cursor-pointer" onclick="window.location.href='product.html'">
+<summary class="flex justify-between items-center list-none py-4">
+<span class="text-xs font-bold uppercase tracking-widest">Product Details</span>
+<span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<div class="pb-6 text-sm text-secondary font-light manrope leading-relaxed">
+                            Crafted from pure silk blend with traditional hand embroidery. Features intricate gold zari work, traditional V-neckline with embroidered placket, and flowing silhouette. Each piece is individually embroidered by skilled artisans.
+                        </div>
+</details>
+<details class="group cursor-pointer" onclick="window.location.href='product.html'">
+<summary class="flex justify-between items-center list-none py-4">
+<span class="text-xs font-bold uppercase tracking-widest">Care Instructions</span>
+<span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<div class="pb-6 text-sm text-secondary font-light manrope leading-relaxed">
+                            Dry clean only to preserve embroidery. Store on padded hangers away from direct sunlight. Avoid hanging with heavy items. Professional steam cleaning recommended for best results.
+                        </div>
+</details>
+</div>
+</div>
+</div>
+<!-- Performance Section -->
+<section class="mt-40 bg-surface-container px-20 py-24 relative overflow-hidden">
+<div class="max-w-4xl mx-auto relative z-10 text-center">
+<h2 class="noto-serif text-3xl italic mb-16 tracking-tight">Technical Mastery</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-16">
+<div class="flex flex-col items-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-lowest flex items-center justify-center mb-6 shadow-sm">
+<span class="material-symbols-outlined text-primary scale-125" data-icon="air">air</span>
+</div>
+<h4 class="manrope text-[11px] font-bold uppercase tracking-[0.15em] mb-4">Aer-Flux Breathable</h4>
+<p class="manrope text-xs text-secondary leading-loose font-light">Engineered air-flow maps that accelerate moisture evaporation during peak performance.</p>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-lowest flex items-center justify-center mb-6 shadow-sm">
+<span class="material-symbols-outlined text-primary scale-125" data-icon="dynamic_form">dynamic_form</span>
+</div>
+<h4 class="manrope text-[11px] font-bold uppercase tracking-[0.15em] mb-4">Omni-Stretch Pro</h4>
+<p class="manrope text-xs text-secondary leading-loose font-light">True 4-way stretch memory that maintains shape and compression through intense movement cycles.</p>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-lowest flex items-center justify-center mb-6 shadow-sm">
+<span class="material-symbols-outlined text-primary scale-125" data-icon="eco">eco</span>
+</div>
+<h4 class="manrope text-[11px] font-bold uppercase tracking-[0.15em] mb-4">Eco-Muse Textile</h4>
+<p class="manrope text-xs text-secondary leading-loose font-light">Constructed with high-grade ocean waste polymers, reducing carbon impact by 45% per unit.</p>
+</div>
+</div>
+</div>
+<!-- Decorative Element -->
+<div class="absolute -right-20 -top-20 opacity-5 select-none pointer-events-none">
+<h1 class="text-[300px] noto-serif italic font-bold">KINETIC</h1>
+</div>
+</section>
+<!-- Complete The Look -->
+<section class="mt-40">
+<h3 class="noto-serif text-2xl font-bold tracking-tight mb-12">Complete The Look</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Product Card 1 -->
+<div class="group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="aspect-[3/4] bg-surface-container-low overflow-hidden mb-6">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="minimalist sports bra in onyx black with architectural strap design studio shot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOJTCtGXEilxe8dg6rXGOeoKEWmC3fXeStdei5NdQgv5dr4SP_GS2jLDtabSSmI9Vda8sC7ROiSTEVceDsqSGXEPMpKyJiF79_4KkQXeon-Hx1mEJh7HrdPate74YrX8kiDzcYw-Y7AanzAvg8IBza24QGqE1_50iMCHyC0G5q4JGI_Yt-ujIVdGxB5ERPanxiIk3EZ3VFC-AQfvbrgnhhCgFgkzcBPSBjpSnkKQ-g-Br9AsTWEcRtKj04l8qVTF_yuQmdUReCMZM"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h5 class="manrope text-sm font-medium mb-1">KINETIC IMPACT BRA</h5>
+<p class="manrope text-xs text-secondary font-light tracking-wide">$78.00</p>
+</div>
+<span class="material-symbols-outlined text-secondary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="add">add</span>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="aspect-[3/4] bg-surface-container-low overflow-hidden mb-6">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="unstructured lightweight technical windbreaker in chalk white color minimalist aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl_Wz57FPSfsDayiQtINdh90s6ctRzyfbrz2sOopQg4PEWPzWDNq69B5TD1lHpVihv0S8wPVsNr2lIRja216gRcXJhtBHpggVVL60sTyTtG6xMhpESOawdpSwVqc_-ovQC-gFRl5s62fs9ojnT3LmF64CYMpTYI0kIePCMyvWWbCg5dw0rL1g3bCj6KAvdJ3KMKaVRh7lPTZeTBayHlsGUp6N1mDJRTbrNsqCd73qZePzSl-CdMCjuHwJfwlLgCnlaD4ubpyVciHg"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h5 class="manrope text-sm font-medium mb-1">AER-SHELL WINDBREAKER</h5>
+<p class="manrope text-xs text-secondary font-light tracking-wide">$210.00</p>
+</div>
+<span class="material-symbols-outlined text-secondary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="add">add</span>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group cursor-pointer" onclick="window.location.href='product.html'">
+<div class="aspect-[3/4] bg-surface-container-low overflow-hidden mb-6">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="ultra-modern minimalist black running shoes with sculptural sole design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV5WnMxyMuaU9FuYxfsSiar9biUcfIEYPlJyxtEXhWVUtW1suPRiqCSExJyuulkALw0guQA6L2Ljh00ASjDTu888a5X1r9hFrbuMUYJd51ILMjtxfyfRghjk7Z9-UVl6IEQZM7DQjhPGf_J7RkEBMlv5OFV18EXMXK1-Zgz-ucvKn3w3-cpt_PjSFbRoS-1eS_3Dpmt5so0-ggohaeQIYBcA-F5T10F49l0Dv-wCXG3_tXEwshaWW9iI44C4rxpy40qifhrVG7zTA"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h5 class="manrope text-sm font-medium mb-1">FLUX-MOTION RUNNER</h5>
+<p class="manrope text-xs text-secondary font-light tracking-wide">$185.00</p>
+</div>
+<span class="material-symbols-outlined text-secondary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="add">add</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-24 bg-surface-container dark:bg-zinc-900 tonal-shift-no-border">
+<div class="max-w-7xl mx-auto px-10 py-20 flex flex-col md:flex-row justify-between gap-12">
+<div class="space-y-6">
+<div class="text-xl font-serif text-primary noto-serif">KINETIC MUSE</div>
+<p class="max-w-xs manrope text-sm text-secondary font-light leading-relaxed">
+                    A fusion of high-fashion editorial aesthetics and elite athletic performance. Redefining the digital storefront as a curated experience.
+                </p>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-secondary hover:text-primary transition-colors cursor-pointer">brand_awareness</span>
+<span class="material-symbols-outlined text-secondary hover:text-primary transition-colors cursor-pointer">public</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-16">
+<div class="space-y-4">
+<h6 class="text-[10px] font-bold uppercase tracking-[0.2em] mb-6">Discover</h6>
+<ul class="space-y-3 manrope text-sm">
+<li><a class="text-secondary hover:text-primary transition-colors" href="#">Journal</a></li>
+<li><a class="text-secondary hover:text-primary transition-colors" href="#">Sustainability</a></li>
+<li><a class="text-secondary hover:text-primary transition-colors" href="#">Concierge</a></li>
+<li><a class="text-secondary hover:text-primary transition-colors" href="#">Shipping &amp; Returns</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h6 class="text-[10px] font-bold uppercase tracking-[0.2em] mb-6">Join The Muse</h6>
+<div class="flex ghost-border pb-2">
+<input class="bg-transparent border-none text-xs focus:ring-0 w-full placeholder:text-secondary/50" placeholder="Email Address" type="email"/>
+<button class="material-symbols-outlined text-primary scale-75">arrow_forward</button>
+</div>
+<p class="text-[10px] text-secondary/70 manrope mt-4">Join our inner circle for early access and editorial drops.</p>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-10 py-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-[10px] tracking-widest text-secondary font-medium">© 2024 KINETIC MUSE. ALL RIGHTS RESERVED.</p>
+<div class="flex gap-8 text-[10px] tracking-widest text-secondary uppercase font-medium">
+<a class="hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms</a>
+<a class="hover:text-primary transition-colors" href="#">Accessibility</a>
+</div>
+</div>
+</footer>
+<script src="cartLogic.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addBtn = document.getElementById('add-to-bag');
+        if(addBtn) {
+            addBtn.addEventListener('click', () => {
+                const product = {
+                    name: 'TIARA EMBROIDERED KURTA',
+                    price: 189.00,
+                    size: 'S', // Defaulting to S based on UI selection
+                    image: 'https://images.unsplash.com/photo-1606991281159-c3e60b1b32d4?w=500&h=650&fit=crop'
+                };
+                addToCart(product);
+                // Visual feedback
+                const originalText = addBtn.innerText;
+                addBtn.innerText = 'ADDED TO BAG!';
+                addBtn.classList.add('bg-secondary');
+                setTimeout(() => {
+                    addBtn.innerText = originalText;
+                    addBtn.classList.remove('bg-secondary');
+                }, 2000);
+            });
+        }
+    });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('span[data-icon="add"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const card = btn.closest('.group');
+            if(!card) return;
+            const nameEl = card.querySelector('h4, h5');
+            const priceEl = card.querySelector('p');
+            const imgEl = card.querySelector('img');
+            
+            const name = nameEl ? nameEl.innerText : 'KINETIC ITEM';
+            const price = priceEl ? parseFloat(priceEl.innerText.replace(/[^0-9.]/g, '')) : 100.00;
+            const image = imgEl ? imgEl.src : '';
+            
+            window.handleQuickAdd(e, name, price, image);
+        });
+    });
+});
+</script>
+</body></html>

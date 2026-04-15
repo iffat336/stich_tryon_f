@@ -1,0 +1,12 @@
+# Netlify ignore file
+node_modules/
+.git/
+.gitignore
+.DS_Store
+package-lock.json
+yarn.lock
+.env
+.env.local
+.vscode/
+.idea/
+*.log

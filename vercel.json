@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/collections", "destination": "/collections.html" },
+    { "source": "/product", "destination": "/product.html" },
+    { "source": "/try-on", "destination": "/try-on.html" },
+    { "source": "/cart", "destination": "/cart.html" },
+    { "source": "/flow", "destination": "/flow.html" },
+    { "source": "/wishlist", "destination": "/wishlist.html" },
+    { "source": "/tryon", "destination": "/try-on.html" }
+  ]
+}

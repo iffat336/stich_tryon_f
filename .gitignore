@@ -1,0 +1,14 @@
+node_modules/
+shopping-bag-app/node_modules/
+
+*.log
+server.stdout.log
+server.stderr.log
+
+.env
+.env.*
+
+dist/
+build/
+.vercel/
+.netlify/

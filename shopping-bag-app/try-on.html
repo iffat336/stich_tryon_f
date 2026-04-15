@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Try-On - KINETIC MUSE</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .noto-serif { font-family: 'Noto Serif', serif; }
+        .manrope { font-family: 'Manrope', sans-serif; }
+        
+        .avatar-container {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        svg.avatar {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .size-comparison {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .size-preview {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .size-preview:hover {
+            border-color: #000;
+            transform: scale(1.05);
+        }
+        
+        .size-preview.active {
+            border-color: #4355b9;
+            background: #f0f2ff;
+        }
+        
+        .size-preview svg {
+            width: 60px;
+            height: 100px;
+            margin: 0 auto;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .measurement-display {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body class="bg-surface">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <h1 class="noto-serif text-2xl font-bold">KINETIC MUSE</h1>
+            <div class="flex items-center gap-4">
+                <button onclick="window.location.href='index.html'" class="manrope text-sm">Home</button>
+                <button onclick="window.location.href='collections.html'" class="manrope text-sm">Collections</button>
+                <button onclick="window.location.href='cart.html'" class="relative">
+                    <span class="material-symbols-outlined">shopping_bag</span>
+                    <span id="cart-badge" class="absolute -top-2 -right-2 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-bold" style="display:none;">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-12">
+        <h2 class="noto-serif text-4xl font-bold mb-2">Virtual Try-On</h2>
+        <p class="text-gray-600 mb-8">Enter your measurements to see how items fit your body</p>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <!-- Left: Measurements & Options -->
+            <div class="lg:col-span-1 space-y-8">
+                <!-- Measurements Section -->
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <h3 class="noto-serif text-xl font-bold mb-6">Your Measurements</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block manrope text-sm font-medium mb-2">Chest Size (inches)</label>
+                            <input type="range" id="chest-input" min="28" max="48" value="36" class="w-full">
+                            <div class="text-center manrope text-sm font-bold text-primary mt-2" id="chest-display">36"</div>
+                        </div>
+
+                        <div>
+                            <label class="block manrope text-sm font-medium mb-2">Height (inches)</label>
+                            <input type="range" id="height-input" min="60" max="78" value="66" class="w-full">
+                            <div class="text-center manrope text-sm font-bold text-primary mt-2" id="height-display">66"</div>
+                        </div>
+
+                        <div>
+                            <label class="block manrope text-sm font-medium mb-2">Waist (inches)</label>
+                            <input type="range" id="waist-input" min="24" max="42" value="32" class="w-full">
+                            <div class="text-center manrope text-sm font-bold text-primary mt-2" id="waist-display">32"</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avatar Type Section -->
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <h3 class="noto-serif text-xl font-bold mb-4">Body Type</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-gray-50">
+                            <input type="radio" name="body-type" value="slim" checked class="w-4 h-4">
+                            <span class="manrope">Athletic/Slim</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-gray-50">
+                            <input type="radio" name="body-type" value="average">
+                            <span class="manrope">Average</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-gray-50">
+                            <input type="radio" name="body-type" value="curvy">
+                            <span class="manrope">Curvy</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Product Selection -->
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <h3 class="noto-serif text-xl font-bold mb-4">Product Type</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-gray-50">
+                            <input type="radio" name="product-type" value="kurta" checked class="w-4 h-4">
+                            <span class="manrope">Kurta</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-gray-50">
+                            <input type="radio" name="product-type" value="shirt">
+                            <span class="manrope">Shirt</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-gray-50">
+                            <input type="radio" name="product-type" value="leggings">
+                            <span class="manrope">Leggings</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Size Recommendation -->
+                <div class="bg-blue-50 rounded-lg p-6 shadow-sm border border-blue-200">
+                    <h3 class="noto-serif text-lg font-bold mb-3">Recommended Size</h3>
+                    <div class="manrope">
+                        <div class="measurement-display">
+                            <div class="text-2xl font-bold text-primary mb-2" id="recommended-size">M</div>
+                            <div class="text-xs text-gray-600">Based on your chest: <span id="rec-chest">36</span>"</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Avatar & Preview -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg p-8 shadow-sm">
+                    <div class="flex justify-center mb-8">
+                        <div class="avatar-container">
+                            <svg id="avatar-svg" class="avatar" viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Avatar will be drawn here by JavaScript -->
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Size Comparison -->
+                    <h4 class="noto-serif text-lg font-bold mb-4">See How Sizes Fit</h4>
+                    <div class="size-comparison" id="size-comparison">
+                        <!-- Size previews will be inserted here -->
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 mt-8">
+                        <button onclick="addRecommendedToCart()" class="flex-1 bg-primary text-white py-3 rounded-lg manrope font-bold hover:opacity-90 transition">
+                            Add Recommended Size to Cart
+                        </button>
+                        <button onclick="window.location.href='collections.html'" class="flex-1 border border-primary text-primary py-3 rounded-lg manrope font-bold hover:bg-primary hover:text-white transition">
+                            Browse Collection
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="shopping-bag-app/cartLogic.js"></script>
+    <script src="shopping-bag-app/try-on-simple.js"></script>
+</body>
+</html>

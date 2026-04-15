@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | KINETIC MUSE</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: linear-gradient(180deg, #fcf8f3 0%, #efe2d4 100%);
+            color: #171717;
+        }
+        .font-display {
+            font-family: 'Noto Serif', serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 22px 60px rgba(17, 17, 17, 0.08);
+        }
+        .checkout-field {
+            border: 1px solid rgba(17, 17, 17, 0.12);
+            background: rgba(255, 255, 255, 0.86);
+        }
+        .step.active {
+            background: #111111;
+            color: #ffffff;
+        }
+        .step.done {
+            background: #2d6a4f;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sticky top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-xl">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+            <div>
+                <a href="index.html" class="font-display text-2xl font-bold italic tracking-tight">KINETIC MUSE</a>
+                <p class="text-xs uppercase tracking-[0.25em] text-black/40">Checkout Flow</p>
+            </div>
+            <div class="hidden items-center gap-3 md:flex">
+                <a href="collections.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Collections</a>
+                <a href="try-on.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Try-On</a>
+                <a href="cart.html" class="rounded-full px-4 py-2 text-sm hover:bg-black/5">Bag</a>
+                <button onclick="window.location.href='cart.html'" class="relative rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">
+                    Cart
+                    <span id="cart-badge" class="absolute -right-2 -top-2 hidden h-5 min-w-5 items-center justify-center rounded-full bg-black px-1 text-[10px] font-bold text-white">0</span>
+                </button>
+            </div>
+        </div>
+        <div class="border-t border-black/5 px-4 py-3 md:hidden">
+            <div class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm">
+                <a href="index.html" class="rounded-full border border-black/10 px-4 py-2">Home</a>
+                <a href="collections.html" class="rounded-full border border-black/10 px-4 py-2">Collections</a>
+                <a href="try-on.html" class="rounded-full border border-black/10 px-4 py-2">Try-On</a>
+                <a href="wishlist.html" class="rounded-full border border-black/10 px-4 py-2">Wishlist</a>
+                <a href="cart.html" class="rounded-full border border-black/10 px-4 py-2">Bag</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-6 py-10">
+        <section class="mb-10 grid gap-4 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+            <div>
+                <p class="mb-3 text-xs uppercase tracking-[0.35em] text-black/45">Secure Checkout</p>
+                <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl">The checkout is now fed by the same shared bag data, so totals and order lines stay trustworthy.</h1>
+            </div>
+            <div class="glass-panel rounded-[28px] border border-black/10 p-5 text-sm text-black/65">
+                Fill in shipping and payment details, review the exact bag contents, and complete the order. On success the live cart clears cleanly.
+            </div>
+        </section>
+
+        <section class="mb-10 flex items-center gap-3">
+            <div class="step active flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold">1</div>
+            <div class="h-px flex-1 bg-black/10"></div>
+            <div class="step active flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold">2</div>
+            <div class="h-px flex-1 bg-black/10"></div>
+            <div id="complete-step" class="step flex h-11 w-11 items-center justify-center rounded-full bg-black/10 text-sm font-bold text-black/55">3</div>
+        </section>
+
+        <section class="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+            <div class="space-y-8">
+                <form id="checkout-form" class="glass-panel rounded-[32px] border border-black/10 p-6 md:p-8">
+                    <div class="grid gap-8">
+                        <section>
+                            <div class="mb-5">
+                                <p class="text-xs uppercase tracking-[0.22em] text-black/45">Shipping Address</p>
+                                <h2 class="font-display mt-2 text-3xl font-bold tracking-tight">Where should we send it?</h2>
+                            </div>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30" name="firstName" placeholder="First name" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30" name="lastName" placeholder="Last name" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30 md:col-span-2" type="email" name="email" placeholder="Email address" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30 md:col-span-2" name="address" placeholder="Street address" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30" name="city" placeholder="City" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30" name="state" placeholder="State / Province" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30" name="zip" placeholder="Postal code" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30" name="country" placeholder="Country" required>
+                            </div>
+                        </section>
+
+                        <section>
+                            <div class="mb-5">
+                                <p class="text-xs uppercase tracking-[0.22em] text-black/45">Payment</p>
+                                <h2 class="font-display mt-2 text-3xl font-bold tracking-tight">How are we charging it?</h2>
+                            </div>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30 md:col-span-2" name="cardName" placeholder="Cardholder name" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30 md:col-span-2" name="cardNumber" placeholder="Card number" inputmode="numeric" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30" name="expiry" placeholder="MM / YY" required>
+                                <input class="checkout-field rounded-2xl px-4 py-4 outline-none focus:border-black/30" name="cvv" placeholder="CVV" inputmode="numeric" required>
+                            </div>
+                            <label class="mt-5 flex items-center gap-3 text-sm text-black/65">
+                                <input type="checkbox" class="h-4 w-4" required>
+                                I agree to the checkout terms and confirm my bag details are correct.
+                            </label>
+                        </section>
+
+                        <button type="submit" id="place-order-btn" class="rounded-full bg-black px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] text-white hover:opacity-90">Complete Order</button>
+                    </div>
+                </form>
+
+                <div id="order-success" class="hidden glass-panel rounded-[32px] border border-black/10 p-8">
+                    <p class="text-xs uppercase tracking-[0.22em] text-black/45">Order Complete</p>
+                    <h2 class="font-display mt-3 text-3xl font-bold tracking-tight">Your order has been placed.</h2>
+                    <p class="mt-4 max-w-2xl text-base leading-8 text-black/65">The bag was cleared successfully, and the current checkout summary is now final. Use the links below to continue browsing or return to the try-on studio.</p>
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a href="collections.html" class="rounded-full bg-black px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] text-white hover:opacity-90">Browse More</a>
+                        <a href="try-on.html" class="rounded-full border border-black/10 px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] hover:bg-black hover:text-white">Open Try-On</a>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="space-y-6 xl:sticky xl:top-28 xl:self-start">
+                <div class="glass-panel rounded-[32px] border border-black/10 p-6">
+                    <div class="flex items-end justify-between gap-4">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.22em] text-black/45">Order Summary</p>
+                            <h2 class="font-display mt-2 text-3xl font-bold tracking-tight">Review Your Bag</h2>
+                        </div>
+                        <a href="cart.html" class="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">Edit Bag</a>
+                    </div>
+                    <div id="checkout-items" class="mt-6 space-y-4"></div>
+                    <div class="mt-6 space-y-4 border-t border-black/10 pt-6 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-black/55">Items</span>
+                            <span id="checkout-item-count" class="font-semibold">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-black/55">Subtotal</span>
+                            <span id="checkout-subtotal" class="font-semibold">$0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-black/55">Shipping</span>
+                            <span id="checkout-shipping" class="font-semibold">$0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-black/55">Tax</span>
+                            <span id="checkout-tax" class="font-semibold">$0.00</span>
+                        </div>
+                        <div class="flex justify-between border-t border-black/10 pt-4 text-lg font-bold">
+                            <span class="font-display">Total</span>
+                            <span id="checkout-total">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-[32px] border border-black/10 p-6">
+                    <p class="text-xs uppercase tracking-[0.22em] text-black/45">Confidence Check</p>
+                    <p class="mt-4 text-sm leading-7 text-black/65">Try-on selections and bag actions now use the same catalog-backed data. That means the size, name, and price you saw upstream should match what you see here.</p>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <script src="products.js?v=catalog-3"></script>
+    <script src="cart-enhanced.js"></script>
+    <script>
+        function formatCurrency(value) {
+            return `$${Number(value).toFixed(2)}`;
+        }
+
+        function checkoutItemMarkup(item) {
+            return `
+                <article class="rounded-[24px] border border-black/10 bg-white/70 p-4">
+                    <div class="flex gap-4">
+                        <img src="${item.image}" alt="${item.name}" class="h-24 w-20 rounded-[18px] object-cover">
+                        <div class="flex min-w-0 flex-1 items-start justify-between gap-4">
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.22em] text-black/45">${item.category}</p>
+                                <p class="mt-1 text-base font-semibold">${item.name}</p>
+                                <p class="mt-1 text-sm text-black/55">Size ${item.size} · Qty ${item.quantity}</p>
+                            </div>
+                            <p class="font-semibold">${formatCurrency(item.price * item.quantity)}</p>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderCheckoutSummary() {
+            const cart = getCart();
+            const totals = getCartTotals();
+            const itemsContainer = document.getElementById('checkout-items');
+
+            if (!cart.length) {
+                itemsContainer.innerHTML = `
+                    <div class="rounded-[24px] border border-dashed border-black/15 bg-white/60 p-8 text-center">
+                        <p class="text-sm text-black/55">Your bag is empty. Add something before checking out.</p>
+                        <a href="collections.html" class="mt-4 inline-flex rounded-full bg-black px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] text-white hover:opacity-90">Browse Collections</a>
+                    </div>
+                `;
+            } else {
+                itemsContainer.innerHTML = cart.map(checkoutItemMarkup).join('');
+            }
+
+            document.getElementById('checkout-item-count').textContent = `${totals.itemCount} item${totals.itemCount === 1 ? '' : 's'}`;
+            document.getElementById('checkout-subtotal').textContent = formatCurrency(totals.subtotal);
+            document.getElementById('checkout-shipping').textContent = totals.shipping === 0 && !totals.isEmpty ? 'Free' : formatCurrency(totals.shipping);
+            document.getElementById('checkout-tax').textContent = formatCurrency(totals.tax);
+            document.getElementById('checkout-total').textContent = formatCurrency(totals.total);
+
+            const disabled = totals.isEmpty;
+            const button = document.getElementById('place-order-btn');
+            button.disabled = disabled;
+            button.classList.toggle('opacity-40', disabled);
+        }
+
+        function completeOrder(event) {
+            event.preventDefault();
+            if (!getCart().length) return;
+
+            clearCart();
+            document.getElementById('complete-step').classList.add('done');
+            document.getElementById('checkout-form').classList.add('hidden');
+            document.getElementById('order-success').classList.remove('hidden');
+            renderCheckoutSummary();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCheckoutSummary();
+            updateCartBadge();
+            document.getElementById('checkout-form').addEventListener('submit', completeOrder);
+            window.addEventListener('cartUpdated', renderCheckoutSummary);
+            window.addEventListener('cartCleared', renderCheckoutSummary);
+        });
+    </script>
+</body>
+</html>
