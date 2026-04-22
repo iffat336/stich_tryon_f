@@ -15,7 +15,11 @@ const state = {
     tryOnSearch: '',
     fitMode: 'balanced',
     overlayPreset: 'balanced',
-    viewMode: 'overlay'
+    viewMode: 'overlay',
+    orbitPreset: 'front',
+    sceneOrbit: 0,
+    sceneDepth: 26,
+    sceneLift: 6
   }
 };
 
@@ -26,6 +30,13 @@ const interaction = {
   startY: 0,
   startOverlay: null,
   startAngle: 0
+};
+
+const ORBIT_PRESETS = {
+  front: { orbit: 0, depth: 26, lift: 6 },
+  left: { orbit: -16, depth: 30, lift: 8 },
+  right: { orbit: 16, depth: 30, lift: 8 },
+  runway: { orbit: 10, depth: 38, lift: 12 }
 };
 
 function clamp(value, min, max) {
@@ -96,6 +107,59 @@ function fitModeScale() {
   return 1;
 }
 
+function fitCheckItems(product) {
+  const type = productType(product);
+  const ideal = smartOverlayValues(product);
+  const xDelta = Math.abs(state.overlay.x - ideal.x);
+  const yDelta = Math.abs(state.overlay.y - ideal.y);
+  const scaleDelta = Math.abs(state.overlay.scale - ideal.scale);
+  const rotateDelta = Math.abs(state.overlay.rotate - ideal.rotate);
+  const upperLabel = type === 'bottom' ? 'Waist line' : 'Shoulders';
+  const lowerLabel = type === 'bottom' ? 'Leg fall' : type === 'top' ? 'Hem line' : 'Length';
+
+  if (!state.photoDataUrl) {
+    return [
+      {
+        title: 'Photo',
+        tone: 'soft',
+        copy: 'Add a clear front-facing picture to unlock the easiest fitting check.'
+      },
+      {
+        title: upperLabel,
+        tone: 'soft',
+        copy: `Use the guide model first, then upload your picture to check the ${upperLabel.toLowerCase()} more accurately.`
+      },
+      {
+        title: lowerLabel,
+        tone: 'soft',
+        copy: `Once your picture is added, use Split Compare to judge the ${lowerLabel.toLowerCase()} cleanly.`
+      }
+    ];
+  }
+
+  return [
+    {
+      title: 'Photo',
+      tone: 'good',
+      copy: `${state.photoName || 'Your picture'} is loaded and ready for a cleaner fit check.`
+    },
+    {
+      title: upperLabel,
+      tone: xDelta <= 14 && rotateDelta <= 5 ? 'good' : 'warn',
+      copy: xDelta <= 14 && rotateDelta <= 5
+        ? `The ${upperLabel.toLowerCase()} are sitting in a balanced position.`
+        : `Nudge the look left or right a little to settle the ${upperLabel.toLowerCase()}.`
+    },
+    {
+      title: lowerLabel,
+      tone: yDelta <= 18 && scaleDelta <= 10 ? 'good' : 'warn',
+      copy: yDelta <= 18 && scaleDelta <= 10
+        ? `The ${lowerLabel.toLowerCase()} reads cleanly against your current frame.`
+        : `Adjust scale or vertical position to refine the ${lowerLabel.toLowerCase()}.`
+    }
+  ];
+}
+
 function syncOverlayInputs() {
   [
     ['overlay-scale', state.overlay.scale],
@@ -107,6 +171,29 @@ function syncOverlayInputs() {
     const input = document.getElementById(id);
     if (input) input.value = value;
   });
+}
+
+function syncSceneInputs() {
+  [
+    ['scene-orbit', state.ui.sceneOrbit],
+    ['scene-depth', state.ui.sceneDepth],
+    ['scene-lift', state.ui.sceneLift]
+  ].forEach(([id, value]) => {
+    const input = document.getElementById(id);
+    if (input) input.value = value;
+  });
+}
+
+function applyOrbitPreset(preset) {
+  const values = ORBIT_PRESETS[preset];
+  if (!values) return;
+
+  state.ui.orbitPreset = preset;
+  state.ui.sceneOrbit = values.orbit;
+  state.ui.sceneDepth = values.depth;
+  state.ui.sceneLift = values.lift;
+  syncSceneInputs();
+  updateTryOn();
 }
 
 function smartOverlayValues(product) {
@@ -194,6 +281,10 @@ function stylingNotes(product) {
     notes.push('Upload a straight portrait photo next for a more believable preview and a higher confidence fit estimate.');
   }
 
+  notes.push(Math.abs(state.ui.sceneOrbit) >= 10
+    ? 'A light orbit helps you read drape and side balance, but keep it subtle when checking the final fit.'
+    : 'Keep the 3D stage close to front view when you want the most accurate shoulder and center-line read.');
+
   return notes.slice(0, 3);
 }
 
@@ -221,6 +312,42 @@ function renderInsights(product) {
   }
 }
 
+function renderPhotoPanel() {
+  const card = document.getElementById('photo-preview-card');
+  const thumb = document.getElementById('photo-preview-thumb');
+  const empty = document.getElementById('photo-preview-empty');
+  if (!card || !thumb || !empty) return;
+
+  card.classList.toggle('empty', !state.photoDataUrl);
+
+  if (state.photoDataUrl) {
+    thumb.src = state.photoDataUrl;
+    thumb.classList.remove('hidden');
+    empty.classList.add('hidden');
+  } else {
+    thumb.src = '';
+    thumb.classList.add('hidden');
+    empty.classList.remove('hidden');
+  }
+}
+
+function renderFitCheckPanel(product) {
+  const panel = document.getElementById('fit-check-panel');
+  if (!panel || !product) return;
+
+  panel.innerHTML = fitCheckItems(product)
+    .map(item => `
+      <div class="fit-check-item">
+        <span class="fit-check-dot ${item.tone}"></span>
+        <div>
+          <strong>${item.title}</strong>
+          <p>${item.copy}</p>
+        </div>
+      </div>
+    `)
+    .join('');
+}
+
 function renderAvatar() {
   const svg = document.getElementById('avatar-svg');
   if (!svg) return;
@@ -236,17 +363,19 @@ function renderAvatar() {
 
   svg.innerHTML = `
     <defs>
-      <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#efb5a0"/><stop offset="100%" stop-color="#d9937f"/></linearGradient>
-      <linearGradient id="base" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity=".95"/><stop offset="100%" stop-color="#e9ded0" stop-opacity=".88"/></linearGradient>
+      <linearGradient id="guideHead" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f1e2d7"/><stop offset="100%" stop-color="#d6b7a4"/></linearGradient>
+      <linearGradient id="guideBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity=".95"/><stop offset="100%" stop-color="#e8ddd0" stop-opacity=".9"/></linearGradient>
+      <linearGradient id="guideShadow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(17,17,17,.08)"/><stop offset="100%" stop-color="rgba(17,17,17,.02)"/></linearGradient>
     </defs>
-    <ellipse cx="160" cy="490" rx="82" ry="14" fill="rgba(17,17,17,.08)"/>
-    <circle cx="160" cy="68" r="34" fill="url(#skin)"/>
-    <rect x="149" y="95" width="22" height="22" rx="10" fill="url(#skin)"/>
-    <path d="M ${160 - shoulder / 2} 132 C ${160 - shoulder / 2 - 12} 210, ${160 - hip / 2} ${255 + torso * .18}, ${160 - waistWidth / 2} ${300 + torso * .18} L ${160 + waistWidth / 2} ${300 + torso * .18} C ${160 + hip / 2} ${255 + torso * .18}, ${160 + shoulder / 2 + 12} 210, ${160 + shoulder / 2} 132 Z" fill="url(#base)" stroke="rgba(17,17,17,.08)" stroke-width="2"/>
-    <path d="M ${160 - shoulder / 2 + 12} 148 C 92 220, 96 320, 108 364" fill="none" stroke="rgba(17,17,17,.06)" stroke-width="20" stroke-linecap="round"/>
-    <path d="M ${160 + shoulder / 2 - 12} 148 C 228 220, 224 320, 212 364" fill="none" stroke="rgba(17,17,17,.06)" stroke-width="20" stroke-linecap="round"/>
-    <path d="M 142 ${306 + torso * .16} C 138 390, 132 430, 126 480" fill="none" stroke="url(#skin)" stroke-width="24" stroke-linecap="round"/>
-    <path d="M 178 ${306 + torso * .16} C 182 390, 188 430, 194 480" fill="none" stroke="url(#skin)" stroke-width="24" stroke-linecap="round"/>
+    <ellipse cx="160" cy="492" rx="86" ry="16" fill="rgba(17,17,17,.08)"/>
+    <circle cx="160" cy="72" r="33" fill="url(#guideHead)"/>
+    <rect x="148" y="98" width="24" height="26" rx="12" fill="url(#guideHead)"/>
+    <path d="M ${160 - shoulder / 2} 136 C ${160 - shoulder / 2 - 10} 205, ${160 - hip / 2} ${254 + torso * .18}, ${160 - waistWidth / 2} ${300 + torso * .18} L ${160 + waistWidth / 2} ${300 + torso * .18} C ${160 + hip / 2} ${254 + torso * .18}, ${160 + shoulder / 2 + 10} 205, ${160 + shoulder / 2} 136 Z" fill="url(#guideBody)" stroke="rgba(17,17,17,.06)" stroke-width="2"/>
+    <path d="M ${160 - shoulder / 2 + 10} 148 C 94 212, 98 306, 108 360" fill="none" stroke="rgba(17,17,17,.05)" stroke-width="18" stroke-linecap="round"/>
+    <path d="M ${160 + shoulder / 2 - 10} 148 C 226 212, 222 306, 212 360" fill="none" stroke="rgba(17,17,17,.05)" stroke-width="18" stroke-linecap="round"/>
+    <path d="M 144 ${306 + torso * .16} C 140 390, 134 432, 128 480" fill="none" stroke="url(#guideHead)" stroke-width="22" stroke-linecap="round"/>
+    <path d="M 176 ${306 + torso * .16} C 180 390, 186 432, 192 480" fill="none" stroke="url(#guideHead)" stroke-width="22" stroke-linecap="round"/>
+    <path d="M 122 150 Q 160 136 198 150" fill="none" stroke="url(#guideShadow)" stroke-width="8" stroke-linecap="round"/>
   `;
 
   let opacity = state.photoDataUrl ? '0.18' : '1';
@@ -276,44 +405,54 @@ function garmentSvg(product) {
   let shapes = `
     <defs>
       <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${colors.fill}"/><stop offset="100%" stop-color="${colors.shadow}"/></linearGradient>
+      <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,.42)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient>
     </defs>
   `;
 
   if (type === 'top') {
     shapes += `
-      <path d="M ${c - shoulder / 2} ${top} C ${c - shoulder / 2 - 20} ${top + 35}, ${c - waistWidth / 2 - 6} ${top + 95}, ${c - waistWidth / 2} ${top + length} L ${c + waistWidth / 2} ${top + length} C ${c + waistWidth / 2 + 6} ${top + 95}, ${c + shoulder / 2 + 20} ${top + 35}, ${c + shoulder / 2} ${top} L ${c + shoulder / 2 - 16} ${top - 20} Q ${c} ${top - 4} ${c - shoulder / 2 + 16} ${top - 20} Z" fill="url(#fill)"/>
-      <path d="M ${c - shoulder / 2 + 12} ${top + 22} C ${c - shoulder / 2 - 30} ${top + 78}, ${c - shoulder / 2 - 34} ${top + 145}, ${c - shoulder / 2 - 10} ${top + 202}" fill="none" stroke="${colors.fill}" stroke-width="22" stroke-linecap="round"/>
-      <path d="M ${c + shoulder / 2 - 12} ${top + 22} C ${c + shoulder / 2 + 30} ${top + 78}, ${c + shoulder / 2 + 34} ${top + 145}, ${c + shoulder / 2 + 10} ${top + 202}" fill="none" stroke="${colors.fill}" stroke-width="22" stroke-linecap="round"/>
+      <path d="M ${c - shoulder / 2} ${top + 6} C ${c - shoulder / 2 - 12} ${top + 42}, ${c - waistWidth / 2 - 8} ${top + 100}, ${c - waistWidth / 2} ${top + length} L ${c + waistWidth / 2} ${top + length} C ${c + waistWidth / 2 + 8} ${top + 100}, ${c + shoulder / 2 + 12} ${top + 42}, ${c + shoulder / 2} ${top + 6} L ${c + shoulder / 2 - 18} ${top - 18} Q ${c} ${top - 2} ${c - shoulder / 2 + 18} ${top - 18} Z" fill="url(#fill)"/>
+      <path d="M ${c - shoulder / 2 + 8} ${top + 20} C ${c - shoulder / 2 - 24} ${top + 76}, ${c - shoulder / 2 - 26} ${top + 138}, ${c - shoulder / 2 + 4} ${top + 196}" fill="none" stroke="${colors.shadow}" stroke-width="18" stroke-linecap="round" stroke-opacity=".88"/>
+      <path d="M ${c + shoulder / 2 - 8} ${top + 20} C ${c + shoulder / 2 + 24} ${top + 76}, ${c + shoulder / 2 + 26} ${top + 138}, ${c + shoulder / 2 - 4} ${top + 196}" fill="none" stroke="${colors.shadow}" stroke-width="18" stroke-linecap="round" stroke-opacity=".88"/>
+      <path d="M ${c - 10} ${top + 30} L ${c - 4} ${top + length - 16}" stroke="${colors.accent}" stroke-width="3" stroke-linecap="round" stroke-opacity=".24"/>
+      <path d="M ${c - shoulder / 2 + 16} ${top + 18} Q ${c} ${top + 2} ${c + shoulder / 2 - 16} ${top + 18}" fill="none" stroke="rgba(255,255,255,.34)" stroke-width="6" stroke-linecap="round"/>
+      <path d="M ${c - waistWidth / 2 + 10} ${top + length - 10} L ${c + waistWidth / 2 - 10} ${top + length - 10}" stroke="rgba(255,255,255,.34)" stroke-width="4" stroke-linecap="round"/>
     `;
   }
 
   if (type === 'bottom') {
     shapes += `
-      <path d="M ${c - hip / 2} ${top} Q ${c - 12} ${top + 24} ${c - 10} ${top + 48} L ${c - 18} ${top + bottom} L ${c - 48} ${top + bottom} L ${c - 68} ${top + 52} Q ${c - hip / 2 + 8} ${top + 18} ${c - hip / 2} ${top} Z" fill="url(#fill)"/>
-      <path d="M ${c + hip / 2} ${top} Q ${c + 12} ${top + 24} ${c + 10} ${top + 48} L ${c + 18} ${top + bottom} L ${c + 48} ${top + bottom} L ${c + 68} ${top + 52} Q ${c + hip / 2 - 8} ${top + 18} ${c + hip / 2} ${top} Z" fill="url(#fill)"/>
-      <rect x="${c - hip / 2}" y="${top - 18}" width="${hip}" height="34" rx="14" fill="${colors.shadow}"/>
+      <rect x="${c - hip / 2}" y="${top - 18}" width="${hip}" height="30" rx="14" fill="${colors.shadow}"/>
+      <path d="M ${c - hip / 2} ${top} Q ${c - 16} ${top + 26} ${c - 12} ${top + 56} L ${c - 18} ${top + bottom} L ${c - 50} ${top + bottom} L ${c - 72} ${top + 54} Q ${c - hip / 2 + 6} ${top + 16} ${c - hip / 2} ${top} Z" fill="url(#fill)"/>
+      <path d="M ${c + hip / 2} ${top} Q ${c + 16} ${top + 26} ${c + 12} ${top + 56} L ${c + 18} ${top + bottom} L ${c + 50} ${top + bottom} L ${c + 72} ${top + 54} Q ${c + hip / 2 - 6} ${top + 16} ${c + hip / 2} ${top} Z" fill="url(#fill)"/>
+      <path d="M ${c} ${top + 20} L ${c} ${top + bottom - 12}" stroke="${colors.accent}" stroke-width="3" stroke-linecap="round" stroke-opacity=".24"/>
+      <path d="M ${c - hip / 2 + 12} ${top + 6} L ${c + hip / 2 - 12} ${top + 6}" stroke="rgba(255,255,255,.28)" stroke-width="4" stroke-linecap="round"/>
     `;
   }
 
   if (type === 'dress' || type === 'full') {
     shapes += `
-      <path d="M ${c - shoulder / 2} ${top} C ${c - shoulder / 2 - 26} ${top + 45}, ${c - hem / 2} ${top + 135}, ${c - hem / 2} ${top + length} L ${c + hem / 2} ${top + length} C ${c + hem / 2} ${top + 135}, ${c + shoulder / 2 + 26} ${top + 45}, ${c + shoulder / 2} ${top} L ${c + shoulder / 2 - 16} ${top - 18} Q ${c} ${top - 6} ${c - shoulder / 2 + 16} ${top - 18} Z" fill="url(#fill)"/>
-      <path d="M ${c - shoulder / 2 + 10} ${top + 16} C ${c - shoulder / 2 - 38} ${top + 72}, ${c - shoulder / 2 - 40} ${top + 145}, ${c - shoulder / 2 - 12} ${top + 208}" fill="none" stroke="${colors.fill}" stroke-width="22" stroke-linecap="round"/>
-      <path d="M ${c + shoulder / 2 - 10} ${top + 16} C ${c + shoulder / 2 + 38} ${top + 72}, ${c + shoulder / 2 + 40} ${top + 145}, ${c + shoulder / 2 + 12} ${top + 208}" fill="none" stroke="${colors.fill}" stroke-width="22" stroke-linecap="round"/>
-      <path d="M ${c} ${top + 34} L ${c} ${top + length - 30}" stroke="${colors.accent}" stroke-width="5" stroke-linecap="round" stroke-opacity=".32"/>
-      <circle cx="${c - 16}" cy="${top + 64}" r="4" fill="${colors.accent}" fill-opacity=".68"/><circle cx="${c + 16}" cy="${top + 64}" r="4" fill="${colors.accent}" fill-opacity=".68"/>
+      <path d="M ${c - shoulder / 2} ${top + 4} C ${c - shoulder / 2 - 16} ${top + 46}, ${c - hem / 2} ${top + 140}, ${c - hem / 2 + 10} ${top + length} L ${c + hem / 2 - 10} ${top + length} C ${c + hem / 2} ${top + 140}, ${c + shoulder / 2 + 16} ${top + 46}, ${c + shoulder / 2} ${top + 4} L ${c + shoulder / 2 - 18} ${top - 16} Q ${c} ${top - 2} ${c - shoulder / 2 + 18} ${top - 16} Z" fill="url(#fill)"/>
+      <path d="M ${c - shoulder / 2 + 10} ${top + 18} C ${c - shoulder / 2 - 30} ${top + 80}, ${c - shoulder / 2 - 28} ${top + 150}, ${c - shoulder / 2 + 2} ${top + 210}" fill="none" stroke="${colors.shadow}" stroke-width="18" stroke-linecap="round" stroke-opacity=".88"/>
+      <path d="M ${c + shoulder / 2 - 10} ${top + 18} C ${c + shoulder / 2 + 30} ${top + 80}, ${c + shoulder / 2 + 28} ${top + 150}, ${c + shoulder / 2 - 2} ${top + 210}" fill="none" stroke="${colors.shadow}" stroke-width="18" stroke-linecap="round" stroke-opacity=".88"/>
+      <path d="M ${c} ${top + 32} L ${c} ${top + length - 28}" stroke="${colors.accent}" stroke-width="4" stroke-linecap="round" stroke-opacity=".28"/>
+      <path d="M ${c - shoulder / 2 + 16} ${top + 16} Q ${c} ${top} ${c + shoulder / 2 - 16} ${top + 16}" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="6" stroke-linecap="round"/>
+      <path d="M ${c - hem / 2 + 20} ${top + length - 10} L ${c + hem / 2 - 20} ${top + length - 10}" stroke="rgba(255,255,255,.3)" stroke-width="4" stroke-linecap="round"/>
     `;
 
     if (type === 'full') {
       shapes += `
-        <path d="M ${c - 72} ${top + 178} Q ${c - 8} ${top + 134} ${c + 90} ${top + 110}" fill="none" stroke="${colors.accent}" stroke-width="14" stroke-linecap="round" stroke-opacity=".24"/>
-        <path d="M ${c - 28} ${top + length - 18} C ${c - 32} ${top + length + 42}, ${c - 38} ${top + length + 84}, ${c - 40} ${top + length + 128}" fill="none" stroke="${colors.shadow}" stroke-width="24" stroke-linecap="round"/>
-        <path d="M ${c + 28} ${top + length - 18} C ${c + 32} ${top + length + 42}, ${c + 38} ${top + length + 84}, ${c + 40} ${top + length + 128}" fill="none" stroke="${colors.shadow}" stroke-width="24" stroke-linecap="round"/>
+        <path d="M ${c - 68} ${top + 174} Q ${c - 4} ${top + 138} ${c + 84} ${top + 108}" fill="none" stroke="${colors.accent}" stroke-width="12" stroke-linecap="round" stroke-opacity=".18"/>
+        <path d="M ${c - 28} ${top + length - 16} C ${c - 32} ${top + length + 40}, ${c - 38} ${top + length + 80}, ${c - 40} ${top + length + 122}" fill="none" stroke="${colors.shadow}" stroke-width="22" stroke-linecap="round"/>
+        <path d="M ${c + 28} ${top + length - 16} C ${c + 32} ${top + length + 40}, ${c + 38} ${top + length + 80}, ${c + 40} ${top + length + 122}" fill="none" stroke="${colors.shadow}" stroke-width="22" stroke-linecap="round"/>
       `;
     }
   }
 
-  shapes += `<path d="M 110 100 Q 160 56 210 100" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="10"/>`;
+  shapes += `
+    <path d="M 110 102 Q 160 60 210 102" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="9"/>
+    <path d="M 112 110 Q 160 82 208 110" fill="none" stroke="url(#shine)" stroke-width="12" stroke-linecap="round"/>
+  `;
   return shapes;
 }
 
@@ -326,11 +465,15 @@ function renderGarment() {
   if (!svg || !wrapper || !product) return;
 
   svg.innerHTML = garmentSvg(product);
-  wrapper.style.transform = `translate(${state.overlay.x}px, ${state.overlay.y}px) scale(${state.overlay.scale / 100}) rotate(${state.overlay.rotate}deg)`;
+  const orbitTwist = clamp(state.ui.sceneOrbit * 0.55, -18, 18);
+  const depthTilt = clamp(4 + (state.ui.sceneDepth * 0.1), 4, 10);
+  const garmentDepth = state.ui.sceneDepth + (state.ui.viewMode === 'garment' ? 10 : 0);
+  wrapper.style.transform = `translate3d(${state.overlay.x}px, ${state.overlay.y}px, ${garmentDepth}px) scale(${state.overlay.scale / 100}) rotateX(${depthTilt}deg) rotateY(${orbitTwist}deg) rotate(${state.overlay.rotate}deg)`;
   wrapper.style.opacity = (state.overlay.opacity / 100) * (state.ui.compare / 100);
+  wrapper.style.mixBlendMode = state.photoDataUrl && state.ui.viewMode === 'overlay' ? 'multiply' : 'normal';
   wrapper.style.filter = state.ui.viewMode === 'garment'
-    ? 'drop-shadow(0 24px 24px rgba(17,17,17,.22))'
-    : 'drop-shadow(0 18px 18px rgba(17,17,17,.16))';
+    ? 'drop-shadow(0 28px 28px rgba(17,17,17,.24)) saturate(1.04)'
+    : 'drop-shadow(0 22px 22px rgba(17,17,17,.18)) saturate(1.02)';
   wrapper.style.clipPath = state.ui.viewMode === 'split'
     ? `polygon(${state.ui.split}% 0, 100% 0, 100% 100%, ${state.ui.split}% 100%)`
     : 'none';
@@ -340,13 +483,53 @@ function renderGarment() {
     const height = productType(product) === 'full' ? 11 : 9;
     shadow.style.width = `${width}%`;
     shadow.style.height = `${height}%`;
-    shadow.style.transform = `translateX(calc(-50% + ${state.overlay.x * 0.3}px)) scale(${Math.max(0.78, state.overlay.scale / 118)})`;
+    shadow.style.transform = `translateX(calc(-50% + ${state.overlay.x * 0.3}px)) translateZ(${-Math.max(6, state.ui.sceneDepth * 0.35)}px) scale(${Math.max(0.78, state.overlay.scale / 118)})`;
     shadow.style.opacity = state.ui.viewMode === 'garment' ? '0.34' : '0.24';
   }
 
   if (divider) {
     divider.classList.toggle('hidden', state.ui.viewMode !== 'split');
     divider.style.left = `${state.ui.split}%`;
+  }
+}
+
+function renderScene3D() {
+  const scene = document.getElementById('viewport-scene');
+  const photo = document.getElementById('uploaded-photo');
+  const avatar = document.getElementById('avatar-svg');
+  const guides = document.getElementById('alignment-guides');
+  const placeholder = document.getElementById('photo-placeholder');
+
+  if (!scene) return;
+
+  const orbit = state.ui.sceneOrbit;
+  const depth = state.ui.sceneDepth;
+  const lift = state.ui.sceneLift;
+  const tilt = clamp(8 + (depth * 0.12), 7, 14);
+  const zoom = 1 + (depth / 260);
+
+  scene.style.transform = `translateY(${lift}px) rotateX(${tilt}deg) rotateY(${orbit}deg) scale(${zoom})`;
+  scene.style.filter = `saturate(${(1 + depth / 220).toFixed(2)})`;
+
+  if (photo) {
+    const mirror = state.ui.mirrorPhoto ? 'scaleX(-1) ' : '';
+    photo.style.transform = `${mirror}translateZ(${-depth}px) scale(${(1 + depth / 240).toFixed(3)})`;
+    photo.style.filter = state.ui.viewMode === 'garment'
+      ? 'contrast(1.02) saturate(.82) blur(.4px)'
+      : 'contrast(1.03) saturate(.96)';
+  }
+
+  if (placeholder) {
+    placeholder.style.transform = `translateZ(${-Math.max(10, depth * 0.55)}px)`;
+  }
+
+  if (avatar) {
+    avatar.style.transform = `translateZ(${-Math.round(depth * 0.25)}px) scale(${(1 + depth / 420).toFixed(3)})`;
+    avatar.style.filter = 'drop-shadow(0 24px 30px rgba(17,17,17,.06))';
+  }
+
+  if (guides) {
+    guides.style.transform = `translateZ(${depth + 18}px)`;
   }
 }
 
@@ -385,23 +568,29 @@ function renderSummary() {
   document.getElementById('fit-explainer').textContent = `For ${product.name}, your ${state.measurements.chest}" chest and ${state.measurements.waist}" waist point to ${rec.size} with a ${state.ui.fitMode} fit preference.`;
 
   summary.innerHTML = `
-    <div class="grid gap-4 sm:grid-cols-[112px_minmax(0,1fr)]">
-      <div class="summary-image"><img src="${product.image}" alt="${product.name}"></div>
+    <div class="grid gap-5 sm:grid-cols-[124px_minmax(0,1fr)]">
+      <div class="summary-image overflow-hidden rounded-[22px] border border-black/8 shadow-[0_14px_34px_rgba(17,17,17,.06)]"><img src="${product.image}" alt="${product.name}"></div>
       <div>
         <div class="flex flex-wrap items-center gap-2">
           <p class="text-xs uppercase tracking-[0.22em] text-black/40">${productTypeLabel(product)} / ${product.line}</p>
+          <span class="rounded-full border border-black/10 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/65">${product.color}</span>
           <span class="rounded-full bg-black px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">$${product.price}</span>
         </div>
-        <h3 class="mt-2 text-2xl font-semibold">${product.name}</h3>
-        <p class="mt-1 text-sm text-black/55">${productStructureLabel(product)}</p>
-        <p class="mt-2 text-sm leading-7 text-black/60">${product.description}</p>
+        <h3 class="mt-3 text-[1.65rem] font-semibold leading-tight">${product.name}</h3>
+        <p class="mt-2 text-sm text-black/55">${productStructureLabel(product)}</p>
+        <div class="mt-3 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.18em] text-black/45">
+          <span class="rounded-full border border-black/10 bg-black/[0.03] px-3 py-2">${product.supportLevel}</span>
+          <span class="rounded-full border border-black/10 bg-black/[0.03] px-3 py-2">${product.activity}</span>
+        </div>
+        <p class="mt-4 text-sm leading-7 text-black/60">${product.description}</p>
       </div>
     </div>
-    <div class="flex flex-wrap gap-2 pt-2 text-xs uppercase tracking-[0.16em] text-black/45">${product.features.slice(0, 3).map(feature => `<span class="rounded-full border border-black/10 bg-black/[0.03] px-3 py-2">${feature}</span>`).join('')}</div>
-    <div class="flex flex-wrap gap-2 pt-3">
-      <a href="product.html?productId=${product.id}" class="rounded-full border border-black/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">View Details</a>
-      <a href="collections.html" class="rounded-full border border-black/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">More Products</a>
-      <button type="button" onclick="autoFitOverlay()" class="rounded-full border border-black/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">Auto Fit</button>
+    <div class="soft-rule my-5"></div>
+    <div class="flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-black/45">${product.features.slice(0, 3).map(feature => `<span class="rounded-full border border-black/10 bg-black/[0.03] px-3 py-2">${feature}</span>`).join('')}</div>
+    <div class="flex flex-wrap gap-2 pt-4">
+      <a href="product.html?productId=${product.id}" class="rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">View Details</a>
+      <a href="collections.html" class="rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">More Products</a>
+      <button type="button" onclick="autoFitOverlay()" class="rounded-full border border-black/10 bg-[rgba(143,95,74,.06)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">Auto Fit</button>
     </div>
   `;
 
@@ -455,17 +644,28 @@ function renderProducts() {
   visibleProducts.forEach(product => {
     const card = document.createElement('button');
     card.type = 'button';
-    card.className = `product-card rounded-[24px] border border-black/10 bg-white/75 p-4 text-left ${product.id === state.selectedProductId ? 'active' : ''}`;
+    card.className = `product-card rounded-[26px] border border-black/10 bg-white/78 p-4 text-left shadow-[0_16px_34px_rgba(17,17,17,.05)] ${product.id === state.selectedProductId ? 'active' : ''}`;
     card.innerHTML = `
-      <div class="overflow-hidden rounded-[18px] bg-[#f5efe8]"><img src="${product.image}" alt="${product.name}" class="h-60 w-full object-cover"></div>
+      <div class="overflow-hidden rounded-[20px] border border-black/8 bg-[#f5efe8]">
+        <img src="${product.image}" alt="${product.name}" class="h-60 w-full object-cover">
+      </div>
       <div class="mt-4 flex items-start justify-between gap-4">
         <div>
-          <p class="text-xs uppercase tracking-[0.22em] text-black/40">${productTypeLabel(product)} / ${product.line}</p>
-          <h3 class="mt-1 text-lg font-semibold">${product.name}</h3>
+          <div class="flex flex-wrap items-center gap-2">
+            <p class="text-xs uppercase tracking-[0.22em] text-black/40">${productTypeLabel(product)} / ${product.line}</p>
+            ${product.badge ? `<span class="rounded-full border border-black/10 bg-black/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-black/55">${product.badge}</span>` : ''}
+          </div>
+          <h3 class="mt-2 text-lg font-semibold leading-snug">${product.name}</h3>
           <p class="mt-1 text-sm text-black/55">${productStructureLabel(product)}</p>
-          <p class="mt-2 text-xs text-black/45">${product.color} / ${product.supportLevel} / $${product.price}</p>
+          <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-black/45">
+            <span class="rounded-full border border-black/10 bg-white px-3 py-1.5">${product.color}</span>
+            <span class="rounded-full border border-black/10 bg-white px-3 py-1.5">${product.supportLevel}</span>
+          </div>
         </div>
+        <span class="rounded-full bg-black px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">$${product.price}</span>
       </div>
+      <div class="soft-rule my-4"></div>
+      <p class="text-sm leading-6 text-black/58">${product.description.slice(0, 92)}${product.description.length > 92 ? '...' : ''}</p>
     `;
     card.addEventListener('click', () => {
       state.selectedProductId = product.id;
@@ -487,7 +687,10 @@ function updateDisplays() {
     'overlay-rotate-display': `${state.overlay.rotate}deg`,
     'overlay-opacity-display': `${state.overlay.opacity}%`,
     'compare-display': `${state.ui.compare}%`,
-    'split-display': `${state.ui.split}%`
+    'split-display': `${state.ui.split}%`,
+    'scene-orbit-display': `${state.ui.sceneOrbit > 0 ? '+' : ''}${state.ui.sceneOrbit}deg`,
+    'scene-depth-display': `${state.ui.sceneDepth}px`,
+    'scene-lift-display': `${state.ui.sceneLift}px`
   };
 
   Object.entries(text).forEach(([id, value]) => {
@@ -512,6 +715,10 @@ function updateDisplays() {
     button.classList.toggle('active', button.dataset.viewMode === state.ui.viewMode);
   });
 
+  document.querySelectorAll('[data-orbit-preset]').forEach(button => {
+    button.classList.toggle('active', button.dataset.orbitPreset === state.ui.orbitPreset);
+  });
+
   document.querySelectorAll('[data-tryon-category]').forEach(button => {
     button.classList.toggle('active', button.dataset.tryonCategory === state.ui.tryOnCategory);
   });
@@ -521,9 +728,10 @@ function updateDisplays() {
   document.getElementById('mirror-photo-btn')?.classList.toggle('active', state.ui.mirrorPhoto);
   document.getElementById('mirror-photo-btn')?.replaceChildren(document.createTextNode(state.ui.mirrorPhoto ? 'Mirrored' : 'Mirror Photo'));
   document.getElementById('toggle-avatar-btn')?.classList.toggle('active', state.ui.showAvatar);
-  document.getElementById('toggle-avatar-btn')?.replaceChildren(document.createTextNode(state.ui.showAvatar ? 'Avatar On' : 'Avatar Off'));
+  document.getElementById('toggle-avatar-btn')?.replaceChildren(document.createTextNode(state.ui.showAvatar ? 'Guide On' : 'Guide Off'));
   document.getElementById('alignment-guides')?.classList.toggle('hidden', !state.ui.guides);
   document.getElementById('split-slider-shell')?.classList.toggle('hidden', state.ui.viewMode !== 'split');
+  document.getElementById('scan-line')?.classList.toggle('hidden', !!state.photoDataUrl);
 
   const searchInput = document.getElementById('try-on-search');
   if (searchInput && searchInput.value !== state.ui.tryOnSearch) {
@@ -533,31 +741,33 @@ function updateDisplays() {
   const photoStatus = document.getElementById('photo-status');
   if (photoStatus) {
     photoStatus.textContent = state.photoDataUrl
-      ? `${state.photoName || 'Photo ready'} loaded. Auto Fit can realign the garment any time.`
-      : 'No photo loaded yet. The mannequin preview is active.';
+      ? `${state.photoName || 'Photo ready'} is loaded. The 3D stage is active, Split Compare is ready, and Auto Fit can refine the drape any time.`
+      : 'No picture loaded yet. Add one to unlock the clearest personal 3D fitting view.';
   }
 
   const stageGuidance = document.getElementById('stage-guidance');
   if (stageGuidance) {
-    stageGuidance.textContent = state.ui.viewMode === 'split'
-      ? 'Split mode helps compare original photo against the current drape.'
-      : state.ui.viewMode === 'garment'
-        ? 'Garment focus dims the base so you can inspect shape and placement.'
-        : 'Overlay mode gives the most natural full preview.';
+    stageGuidance.textContent = !state.photoDataUrl
+      ? 'Add your picture for the clearest 3D fit check.'
+      : state.ui.viewMode === 'split'
+        ? '3D Split Compare makes shoulder and length checks easier.'
+        : state.ui.viewMode === 'garment'
+          ? '3D Garment Focus lets you inspect shape without distractions.'
+          : '3D Overlay gives the most natural layered preview.';
   }
 
   const statusPill = document.getElementById('stage-status-pill');
   if (statusPill) {
     statusPill.textContent = state.ui.viewMode === 'split'
-      ? 'Split Compare'
+      ? '3D Split'
       : state.ui.viewMode === 'garment'
-        ? 'Garment Focus'
-        : 'Overlay Mode';
+        ? '3D Garment'
+        : '3D Overlay';
   }
 
   const garmentPill = document.getElementById('garment-status-pill');
   if (garmentPill) {
-    garmentPill.textContent = state.photoDataUrl ? 'Photo Loaded' : 'Model Base';
+    garmentPill.textContent = state.photoDataUrl ? '3D Photo Base' : '3D Guide Base';
   }
 
   const heroCount = document.getElementById('hero-count');
@@ -580,18 +790,21 @@ function updatePhoto() {
     placeholder.classList.remove('hidden');
   }
 
-  img.style.transform = state.ui.mirrorPhoto ? 'scaleX(-1)' : 'none';
   img.style.opacity = state.ui.viewMode === 'garment' ? '.2' : '1';
 }
 
 function updateTryOn() {
+  const product = selectedProduct();
   renderAvatar();
   renderGarment();
   renderSummary();
   renderSizes();
   renderProducts();
+  renderPhotoPanel();
+  renderFitCheckPanel(product);
   updateDisplays();
   updatePhoto();
+  renderScene3D();
 }
 
 function readPhoto(event) {
@@ -603,6 +816,8 @@ function readPhoto(event) {
     state.photoDataUrl = reader.result;
     state.photoName = file.name;
     state.ui.overlayPreset = 'balanced';
+    state.ui.viewMode = 'split';
+    state.ui.showAvatar = false;
     state.overlay = smartOverlayValues(selectedProduct());
     syncOverlayInputs();
     updateTryOn();
@@ -623,6 +838,8 @@ function handlePhotoDrop(event) {
     state.photoDataUrl = reader.result;
     state.photoName = file.name;
     state.ui.overlayPreset = 'balanced';
+    state.ui.viewMode = 'split';
+    state.ui.showAvatar = false;
     state.overlay = smartOverlayValues(selectedProduct());
     const upload = document.getElementById('photo-upload');
     if (upload) upload.value = '';
@@ -808,6 +1025,15 @@ document.addEventListener('DOMContentLoaded', () => {
   bindRange('compare-slider', state.ui, 'compare');
   bindRange('split-slider', state.ui, 'split');
 
+  ['scene-orbit', 'scene-depth', 'scene-lift'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', event => {
+      const key = id === 'scene-orbit' ? 'sceneOrbit' : id === 'scene-depth' ? 'sceneDepth' : 'sceneLift';
+      state.ui[key] = Number(event.target.value);
+      state.ui.orbitPreset = 'custom';
+      updateTryOn();
+    });
+  });
+
   document.querySelectorAll('input[name="body-type"]').forEach(input => {
     input.addEventListener('change', event => {
       state.measurements.bodyType = event.target.value;
@@ -833,6 +1059,12 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', () => {
       state.ui.viewMode = button.dataset.viewMode;
       updateTryOn();
+    });
+  });
+
+  document.querySelectorAll('[data-orbit-preset]').forEach(button => {
+    button.addEventListener('click', () => {
+      applyOrbitPreset(button.dataset.orbitPreset);
     });
   });
 
@@ -866,6 +1098,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('remove-photo-btn')?.addEventListener('click', () => {
     state.photoDataUrl = '';
     state.photoName = '';
+    state.ui.viewMode = 'overlay';
+    state.ui.showAvatar = true;
     if (upload) upload.value = '';
     state.overlay = smartOverlayValues(selectedProduct());
     syncOverlayInputs();
@@ -905,5 +1139,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   state.overlay = smartOverlayValues(selectedProduct());
   syncOverlayInputs();
+  syncSceneInputs();
   updateTryOn();
 });

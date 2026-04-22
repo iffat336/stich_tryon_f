@@ -8,43 +8,66 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;300;400;600;800&display=swap" rel="stylesheet">
   <style>
-    body{font-family:'Manrope',sans-serif;background:linear-gradient(135deg,#f7f4ef 0%,#e8ecec 46%,#d8d0c3 100%);color:#111}
+    :root{--accent:#8f5f4a;--accent-deep:#694230;--accent-glow:#c88a68;--sage:#798579;--accent-soft:rgba(143,95,74,.1);--panel:rgba(255,255,255,.82);--panel-strong:rgba(255,255,255,.9);--panel-border:rgba(17,17,17,.08);--ink:#161514;--muted:rgba(22,21,20,.58)}
+    body{font-family:'Manrope',sans-serif;background:
+      radial-gradient(circle at top left,rgba(255,240,224,.78),transparent 22%),
+      radial-gradient(circle at top,#fbf6f0 0%,rgba(251,246,240,.92) 18%,transparent 46%),
+      radial-gradient(circle at 80% 18%,rgba(200,138,104,.12),transparent 16%),
+      radial-gradient(circle at bottom right,rgba(121,133,121,.16),transparent 24%),
+      linear-gradient(180deg,#f3efe8 0%,#edf0eb 38%,#ddd4c6 100%);color:var(--ink)}
     .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24}
     .serif{font-family:'Noto Serif',serif}
-    .panel{background:rgba(255,255,255,.82);backdrop-filter:blur(18px);border:1px solid rgba(17,17,17,.08);box-shadow:0 24px 60px rgba(17,17,17,.08)}
-    .hero-panel{background:linear-gradient(135deg,rgba(17,17,17,.96),rgba(46,53,52,.94));color:#fff;box-shadow:0 28px 80px rgba(17,17,17,.18)}
-    .metric-card{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);backdrop-filter:blur(12px)}
-    .stage{position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(145deg,#fbfaf6,#e4e8e5 52%,#d6cabb);border:1px solid rgba(17,17,17,.08)}
-    .stage:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(17,17,17,.04) 1px,transparent 1px),linear-gradient(180deg,rgba(17,17,17,.035) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,transparent,black 12%,black 82%,transparent);pointer-events:none}
-    .viewport{position:relative;width:min(100%,560px);aspect-ratio:4/5;margin:0 auto;overflow:hidden;border-radius:28px;border:1px solid rgba(17,17,17,.08);background:linear-gradient(180deg,#f8f5ef,#dfe4e1 56%,#cfc4b6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),0 30px 70px rgba(17,17,17,.16)}
-    .viewport img,.viewport svg,.overlay,.guides{position:absolute;inset:0;width:100%;height:100%}
-    .overlay{pointer-events:auto;transform-origin:center center;cursor:grab;touch-action:none}
+    .panel{background:var(--panel);backdrop-filter:blur(20px);border:1px solid var(--panel-border);box-shadow:0 20px 50px rgba(17,17,17,.07)}
+    .hero-panel{position:relative;background:linear-gradient(140deg,rgba(22,21,20,.99),rgba(63,53,47,.96) 56%,rgba(111,81,64,.9));color:#fff;box-shadow:0 34px 90px rgba(17,17,17,.18)}
+    .hero-panel:before{content:"";position:absolute;inset:0;background:
+      radial-gradient(circle at 18% 20%,rgba(255,255,255,.16),transparent 24%),
+      radial-gradient(circle at 82% 24%,rgba(214,188,166,.12),transparent 22%),
+      radial-gradient(circle at 76% 72%,rgba(200,138,104,.12),transparent 18%),
+      linear-gradient(180deg,rgba(255,255,255,.04),transparent 24%,transparent 76%,rgba(0,0,0,.08));pointer-events:none}
+    .metric-card{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);backdrop-filter:blur(12px)}
+    .stage{position:relative;overflow:hidden;border-radius:32px;background:linear-gradient(145deg,rgba(252,249,244,.92),rgba(234,238,233,.95) 52%,rgba(221,211,198,.96));border:1px solid rgba(17,17,17,.08)}
+    .stage:before{content:"";position:absolute;inset:0;background:
+      radial-gradient(circle at top,rgba(255,255,255,.44),transparent 42%),
+      linear-gradient(180deg,rgba(255,255,255,.18),transparent 24%,transparent 80%,rgba(17,17,17,.04));pointer-events:none}
+    .viewport{position:relative;width:min(100%,560px);aspect-ratio:4/5;margin:0 auto;overflow:hidden;border-radius:32px;border:1px solid rgba(17,17,17,.08);background:linear-gradient(180deg,#f7f2ec 0%,#ecefe8 50%,#d7cbbd 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.58),0 26px 60px rgba(17,17,17,.14);perspective:1600px;perspective-origin:50% 22%;isolation:isolate}
+    .viewport img,.viewport svg,.overlay,.guides,.viewport-scene,.scene-layer,.scene-aura,.scene-floor{position:absolute;inset:0;width:100%;height:100%}
+    .viewport-scene{transform-style:preserve-3d;transition:transform .42s cubic-bezier(.22,1,.36,1),filter .3s ease;will-change:transform}
+    .scene-layer{transform-style:preserve-3d;transition:transform .35s ease,opacity .2s ease,filter .3s ease}
+    .scene-aura{position:absolute;inset:-16%;background:radial-gradient(circle at 50% 22%,rgba(255,255,255,.56),transparent 34%),radial-gradient(circle at 50% 100%,rgba(121,133,121,.16),transparent 30%),radial-gradient(circle at 16% 20%,rgba(200,138,104,.12),transparent 18%);transform:translateZ(-80px);pointer-events:none;filter:blur(10px)}
+    .scene-floor{position:absolute;top:auto;left:12%;right:12%;bottom:4%;height:16%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.58),rgba(255,255,255,.04) 60%,transparent 76%);transform:translateZ(-40px) rotateX(82deg);pointer-events:none;filter:blur(2px)}
+    #uploaded-photo{object-fit:cover;object-position:center top;filter:contrast(1.03) saturate(.94)}
+    .overlay{pointer-events:auto;transform-origin:center center;cursor:grab;touch-action:none;transform-style:preserve-3d;transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .2s ease,filter .3s ease,clip-path .25s ease}
     .overlay.dragging{cursor:grabbing}
-    .viewport-glow{position:absolute;inset:-8%;background:radial-gradient(circle at top,rgba(255,255,255,.56),transparent 48%),radial-gradient(circle at bottom,rgba(17,17,17,.1),transparent 44%);pointer-events:none}
+    .overlay:before{content:"";position:absolute;inset:8% 12% 10%;border-radius:40% 40% 30% 30% / 20% 20% 24% 24%;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 34%,rgba(17,17,17,.06));mix-blend-mode:screen;pointer-events:none;opacity:.55;transform:translateZ(18px)}
+    .overlay:after{content:"";position:absolute;left:18%;right:18%;top:10%;bottom:16%;border-radius:48px;background:radial-gradient(circle at 32% 18%,rgba(255,255,255,.22),transparent 22%),radial-gradient(circle at 72% 66%,rgba(17,17,17,.1),transparent 26%);pointer-events:none;opacity:.72;mix-blend-mode:overlay}
+    .viewport-glow{position:absolute;inset:-8%;background:radial-gradient(circle at top,rgba(255,255,255,.68),transparent 48%),radial-gradient(circle at bottom,rgba(17,17,17,.08),transparent 46%);pointer-events:none}
     .viewport-vignette{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.1),transparent 20%,transparent 72%,rgba(17,17,17,.1));pointer-events:none}
-    .scan-line{position:absolute;left:8%;right:8%;top:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(159,61,47,.72),transparent);box-shadow:0 0 18px rgba(159,61,47,.28);animation:scan 4.8s ease-in-out infinite;z-index:3;pointer-events:none}
+    .scan-line{position:absolute;left:10%;right:10%;top:16%;height:1px;background:linear-gradient(90deg,transparent,rgba(143,95,74,.54),transparent);box-shadow:0 0 14px rgba(143,95,74,.22);animation:scan 5.4s ease-in-out infinite;z-index:3;pointer-events:none}
+    .scan-line.hidden{display:none}
     @keyframes scan{0%,100%{transform:translateY(0);opacity:.12}45%{transform:translateY(320px);opacity:.8}70%{transform:translateY(130px);opacity:.24}}
-    .product-shadow{position:absolute;left:50%;bottom:8%;width:42%;height:9%;border-radius:999px;background:radial-gradient(circle,rgba(17,17,17,.28),rgba(17,17,17,0) 72%);transform:translateX(-50%);pointer-events:none;filter:blur(10px);transition:.18s}
+    .product-shadow{position:absolute;left:50%;bottom:8%;width:42%;height:9%;border-radius:999px;background:radial-gradient(circle,rgba(17,17,17,.28),rgba(17,17,17,0) 72%);transform:translateX(-50%);pointer-events:none;filter:blur(10px);transition:.18s;transform-origin:center center}
     .split-divider{position:absolute;top:6%;bottom:6%;width:2px;background:rgba(255,255,255,.96);box-shadow:0 0 0 1px rgba(17,17,17,.08),0 12px 28px rgba(17,17,17,.14);pointer-events:none;z-index:4}
     .split-divider.hidden{display:none}
     .stage-pill{position:absolute;z-index:5;border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.84);backdrop-filter:blur(12px);padding:.45rem .8rem;border-radius:999px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.16em;pointer-events:none}
     .stage-pill.left{left:14px;top:14px}
     .stage-pill.right{right:14px;top:14px}
     .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;color:rgba(17,17,17,.55)}
-    .dropzone{border:1.5px dashed rgba(17,17,17,.18);background:rgba(255,255,255,.78);transition:.18s}.dropzone:hover{border-color:rgba(159,61,47,.5);transform:translateY(-1px)}
+    .placeholder::before{content:"";position:absolute;inset:12%;border-radius:30px;border:1px dashed rgba(17,17,17,.12);pointer-events:none}
+    .dropzone{border:1.5px dashed rgba(17,17,17,.18);background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(247,243,237,.9));transition:.18s}
+    .dropzone:hover{border-color:rgba(143,95,74,.52);transform:translateY(-1px);box-shadow:0 10px 24px rgba(17,17,17,.06)}
     .chip,.size-btn,.product-card{transition:.18s}.chip,.size-btn{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.72)}
-    .chip.active,.size-btn.active,.product-card.active{border-color:rgba(159,61,47,.52);background:rgba(159,61,47,.08)}
+    .chip.active,.size-btn.active,.product-card.active{border-color:rgba(143,95,74,.52);background:rgba(143,95,74,.08)}
     .product-card:hover{transform:translateY(-2px);box-shadow:0 16px 30px rgba(17,17,17,.08)}
-    input[type="range"]{accent-color:#9f3d2f}
+    input[type="range"]{accent-color:var(--accent)}
     .stage-chip{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.78);transition:.18s;white-space:nowrap}
     .stage-chip.active{background:#111;color:#fff;border-color:#111}
     .fit-chip{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.78);transition:.18s}
-    .fit-chip.active{background:#9f3d2f;color:#fff;border-color:#9f3d2f}
+    .fit-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
     .view-chip{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.78);transition:.18s}
     .view-chip.active{background:#111;color:#fff;border-color:#111}
     .guides{pointer-events:none;opacity:.92;transition:.18s}
     .guides.hidden{opacity:0}
-    .guide-line{position:absolute;background:rgba(159,61,47,.38)}
+    .guide-line{position:absolute;background:rgba(143,95,74,.34)}
     .guide-line.center-x{left:50%;top:0;width:1px;height:100%;transform:translateX(-.5px)}
     .guide-line.center-y{top:42%;left:0;width:100%;height:1px}
     .guide-frame{position:absolute;left:15%;right:15%;top:12%;bottom:10%;border:1px dashed rgba(17,17,17,.18);border-radius:28px}
@@ -55,12 +78,99 @@
     .product-card:hover img{transform:scale(1.04)}
     .summary-image{aspect-ratio:3/4;overflow:hidden;border-radius:20px;background:#f4efe8}
     .summary-image img{height:100%;width:100%;object-fit:cover}
+    .upload-preview{position:relative;overflow:hidden;border-radius:28px;border:1px solid rgba(17,17,17,.08);background:linear-gradient(160deg,#f9f5ef,#ebece5 52%,#ddd1c2);aspect-ratio:5/4}
+    .upload-preview.empty{display:flex;align-items:center;justify-content:center}
+    .upload-preview img{height:100%;width:100%;object-fit:cover;object-position:center top}
+    .upload-preview-badge{position:absolute;left:16px;top:16px;border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.9);padding:.45rem .75rem;border-radius:999px;font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+    .photo-tip{border:1px solid rgba(17,17,17,.08);background:rgba(255,255,255,.68);border-radius:22px;padding:1rem}
+    .photo-tip strong{display:block;font-size:.84rem;letter-spacing:.08em;text-transform:uppercase}
+    .fit-check-grid{display:grid;gap:1rem}
+    .fit-check-item{display:flex;gap:.9rem;align-items:flex-start;border:1px solid rgba(17,17,17,.08);background:rgba(255,255,255,.72);border-radius:22px;padding:1rem 1rem 1.05rem}
+    .fit-check-item strong{display:block;font-size:.8rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(17,17,17,.48)}
+    .fit-check-item p{margin-top:.25rem;font-size:.95rem;line-height:1.5;color:rgba(17,17,17,.72)}
+    .fit-check-dot{width:.8rem;height:.8rem;border-radius:999px;margin-top:.35rem;flex:0 0 auto;background:#b8aea0;box-shadow:0 0 0 6px rgba(184,174,160,.16)}
+    .fit-check-dot.good{background:#2d6a4f;box-shadow:0 0 0 6px rgba(45,106,79,.12)}
+    .fit-check-dot.warn{background:var(--accent);box-shadow:0 0 0 6px rgba(143,95,74,.12)}
+    .fit-check-dot.soft{background:#90978b;box-shadow:0 0 0 6px rgba(144,151,139,.12)}
+    .section-kicker{font-size:.72rem;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:rgba(17,17,17,.42)}
+    .control-card{position:relative;overflow:hidden;border-radius:30px}
+    .control-card:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 18%,transparent 82%,rgba(17,17,17,.02));pointer-events:none}
+    .control-copy{color:var(--muted);line-height:1.7}
+    .soft-rule{height:1px;background:linear-gradient(90deg,rgba(17,17,17,0),rgba(17,17,17,.12),rgba(17,17,17,0))}
+    .hero-bullets{display:grid;gap:.85rem;margin-top:1.8rem}
+    .hero-bullet{display:flex;align-items:flex-start;gap:.85rem}
+    .hero-bullet span{display:flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);font-size:.82rem;font-weight:700;flex:0 0 auto}
+    .hero-bullet p{color:rgba(255,255,255,.66);line-height:1.6}
+    .hero-rail{margin-top:2rem;display:grid;gap:1rem}
+    .hero-rail-card{border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06));border-radius:24px;padding:1rem 1.1rem}
+    .hero-rail-card strong{display:block;font-size:.76rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+    .hero-rail-card p{margin-top:.6rem;color:rgba(255,255,255,.84);line-height:1.55}
+    .studio-note{display:grid;gap:1rem;align-items:start}
+    .floating-note{border:1px solid rgba(17,17,17,.08);background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.66));backdrop-filter:blur(18px);border-radius:26px;padding:1.2rem 1.25rem;box-shadow:0 16px 36px rgba(17,17,17,.05)}
+    .floating-note strong{display:block;font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(17,17,17,.48)}
+    .floating-note p{margin-top:.5rem;color:var(--muted);line-height:1.65}
+    .control-title{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+    .control-badge{border:1px solid rgba(17,17,17,.1);background:rgba(255,255,255,.68);border-radius:999px;padding:.38rem .75rem;font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(17,17,17,.52)}
+    .stage-toolbar{padding:1rem;border-radius:24px;border:1px solid rgba(17,17,17,.08);background:rgba(255,255,255,.48)}
+    .editor-note{border:1px solid rgba(17,17,17,.08);background:rgba(255,255,255,.66);border-radius:24px;padding:1rem 1.1rem}
+    .editor-note strong{display:block;font-size:.76rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(17,17,17,.48)}
+    .editor-note p{margin-top:.45rem;color:var(--muted);line-height:1.65}
+    .depth-shell{border:1px solid rgba(17,17,17,.08);background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(244,239,232,.68));border-radius:28px;padding:1.15rem 1.2rem 1.25rem}
+    .orbit-chip{border:1px solid rgba(17,17,17,.12);background:rgba(255,255,255,.76);transition:.18s}
+    .orbit-chip.active{background:#111;color:#fff;border-color:#111}
+    .depth-slider{display:grid;gap:.65rem}
+    .depth-slider .value{font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(17,17,17,.42)}
+    .summary-shell,.size-shell,.insight-shell{border-radius:26px;border:1px solid rgba(17,17,17,.08)}
+    .summary-shell{background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.68))}
+    .size-shell{background:linear-gradient(180deg,rgba(143,95,74,.11),rgba(143,95,74,.07))}
+    .insight-shell{background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.68))}
+    .catalog-shell{position:relative;overflow:hidden}
+    .catalog-shell:before{content:"";position:absolute;inset:auto 0 0 0;height:120px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.16));pointer-events:none}
+    .catalog-toolbar{display:grid;gap:1rem;align-items:end}
+    .catalog-search{position:relative}
+    .catalog-search:before{content:"search";font-family:'Material Symbols Outlined';position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:1.15rem;color:rgba(17,17,17,.34)}
+    .catalog-search input{padding-left:3rem}
+    .nav-brand{display:flex;align-items:center;gap:.9rem}
+    .nav-mark{display:grid;place-items:center;width:2.8rem;height:2.8rem;border-radius:1rem;background:linear-gradient(145deg,var(--accent-glow),var(--accent-deep));box-shadow:0 16px 36px rgba(111,81,64,.28);color:#fff;font-size:.82rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+    .hero-eyebrow{display:inline-flex;align-items:center;gap:.7rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);padding:.55rem .9rem;border-radius:999px}
+    .hero-eyebrow:before{content:"";width:.55rem;height:.55rem;border-radius:999px;background:linear-gradient(145deg,#f6d1b9,var(--accent-glow));box-shadow:0 0 0 7px rgba(200,138,104,.14)}
+    .hero-grid{display:grid;gap:1.25rem}
+    .hero-showcase{position:relative;min-height:100%;padding:1.4rem;border-radius:30px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.04));overflow:hidden}
+    .hero-showcase:before{content:"";position:absolute;inset:-24% auto auto 58%;width:280px;height:280px;border-radius:999px;background:radial-gradient(circle,rgba(200,138,104,.36),transparent 62%);filter:blur(12px)}
+    .hero-showcase:after{content:"";position:absolute;inset:auto auto 10% -8%;width:220px;height:220px;border-radius:999px;background:radial-gradient(circle,rgba(121,133,121,.22),transparent 64%);filter:blur(18px)}
+    .hero-ring{position:absolute;border:1px solid rgba(255,255,255,.14);border-radius:999px}
+    .hero-ring.r1{right:1.2rem;top:1.4rem;width:12rem;height:12rem}
+    .hero-ring.r2{right:3.4rem;top:3.6rem;width:8rem;height:8rem}
+    .hero-preview-stack{position:relative;display:grid;gap:1rem;z-index:1}
+    .hero-preview-main{position:relative;overflow:hidden;border-radius:26px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));padding:1rem}
+    .hero-preview-main:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 34%,transparent 76%,rgba(0,0,0,.08));pointer-events:none}
+    .hero-preview-mini{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .hero-mini-card{border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:1rem;background:rgba(255,255,255,.08);backdrop-filter:blur(14px)}
+    .hero-mini-card strong,.hero-preview-main strong{display:block;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+    .hero-preview-main p,.hero-mini-card p{margin-top:.55rem;color:rgba(255,255,255,.82);line-height:1.55}
+    .hero-silhouette{position:relative;margin-top:1rem;aspect-ratio:4/5;border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.02));overflow:hidden}
+    .hero-silhouette:before{content:"";position:absolute;inset:auto 18% 12% 18%;height:12%;border-radius:999px;background:radial-gradient(circle,rgba(0,0,0,.32),transparent 70%);filter:blur(12px)}
+    .hero-silhouette:after{content:"";position:absolute;left:50%;top:8%;width:46%;height:78%;transform:translateX(-50%);border-radius:38% 38% 30% 30% / 16% 16% 18% 18%;background:
+      linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.08)),
+      linear-gradient(180deg,rgba(200,138,104,.34),rgba(121,133,121,.16) 54%,rgba(0,0,0,.08));box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 28px 60px rgba(0,0,0,.18)}
+    .hero-stage-line{position:absolute;left:16%;right:16%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.46),transparent)}
+    .hero-stage-line.l1{top:24%}
+    .hero-stage-line.l2{top:50%}
+    .hero-stage-line.l3{top:76%}
+    .accent-button{background:linear-gradient(145deg,var(--accent-glow),var(--accent-deep));box-shadow:0 18px 32px rgba(111,81,64,.24)}
+    .accent-button:hover{filter:saturate(1.06);transform:translateY(-1px)}
+    .ghost-button{background:rgba(255,255,255,.72)}
+    .hero-action-row{display:flex;flex-wrap:wrap;gap:.85rem;margin-top:1.6rem}
+    @media (min-width:1280px){.sticky-panel{position:sticky;top:6.5rem}}
   </style>
 </head>
 <body>
-  <nav class="sticky top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-xl">
+  <nav class="sticky top-0 z-50 border-b border-black/5 bg-white/78 backdrop-blur-xl">
     <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 sm:px-6 py-4">
-      <div><a href="index.html" class="serif text-2xl font-bold">KINETIC MUSE</a><p class="text-xs uppercase tracking-[0.25em] text-black/40">Photo Try-On Studio</p></div>
+      <div class="nav-brand">
+        <div class="nav-mark">KM</div>
+        <div><a href="index.html" class="serif text-2xl font-bold">KINETIC MUSE</a><p class="text-xs uppercase tracking-[0.25em] text-black/40">Photo Try-On Studio</p></div>
+      </div>
       <div class="hidden md:flex items-center gap-3 text-sm">
         <a href="index.html" class="rounded-full px-4 py-2 hover:bg-black/5">Home</a>
         <a href="collections.html" class="rounded-full px-4 py-2 hover:bg-black/5">Collections</a>
@@ -78,41 +188,128 @@
     </div>
   </nav>
 
-  <main class="mx-auto max-w-7xl px-6 py-10">
-    <section class="hero-panel mb-10 overflow-hidden rounded-[34px] p-6 md:p-9">
-      <div class="grid gap-8 lg:grid-cols-[1.12fr_0.88fr] lg:items-end">
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+    <section class="hero-panel mb-8 overflow-hidden rounded-[36px] p-6 md:p-9">
+      <div class="relative z-10 grid gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-end">
         <div>
-          <p class="mb-3 text-xs uppercase tracking-[0.35em] text-white/45">Interactive Fitting Lab</p>
-          <h1 class="serif max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">A sharper virtual try-on studio for every look in the collection.</h1>
-          <p class="mt-5 max-w-2xl text-sm leading-7 text-white/62">Live overlay, fit intelligence, split comparison, and product-aware sizing work together before the item reaches the bag.</p>
+          <div class="hero-eyebrow">
+            <span class="text-xs font-semibold uppercase tracking-[0.35em] text-white/62">Elegant Fit Studio</span>
+          </div>
+          <h1 class="serif mt-5 max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">A more eye-catching try-on studio with fashion-editorial energy.</h1>
+          <p class="mt-5 max-w-2xl text-sm leading-7 text-white/62">Upload a clean portrait, compare the fit with less noise, and judge shape, length, and balance in a simpler, more elegant view.</p>
+          <div class="hero-action-row">
+            <button onclick="document.getElementById('photo-upload').click()" class="accent-button rounded-full px-6 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white transition">Start With Photo</button>
+            <button onclick="document.getElementById('try-on-search').focus()" class="ghost-button rounded-full border border-white/20 px-6 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-white/16">Browse Looks</button>
+          </div>
+          <div class="hero-bullets max-w-2xl">
+            <div class="hero-bullet"><span>1</span><p>Add a straight portrait and let the stage shift into a more personal fitting preview.</p></div>
+            <div class="hero-bullet"><span>2</span><p>Use a softer stage, quieter controls, and split compare to judge balance more naturally.</p></div>
+            <div class="hero-bullet"><span>3</span><p>Choose a product, refine the drape, and move into bag with more confidence.</p></div>
+          </div>
         </div>
-        <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-          <div class="metric-card rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.24em] text-white/45">Catalog Sync</p><p id="hero-count" class="serif mt-2 text-3xl font-bold">18</p></div>
-          <div class="metric-card rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.24em] text-white/45">Preview Modes</p><p class="serif mt-2 text-3xl font-bold">3</p></div>
-          <div class="metric-card rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.24em] text-white/45">Fit Controls</p><p class="serif mt-2 text-3xl font-bold">Live</p></div>
+        <div class="hero-grid">
+          <div class="hero-showcase">
+            <div class="hero-ring r1"></div>
+            <div class="hero-ring r2"></div>
+            <div class="hero-preview-stack">
+              <div class="hero-preview-main">
+                <strong>Visual Stage</strong>
+                <p>A brighter, more dramatic studio frame that still keeps the fit readable.</p>
+                <div class="hero-silhouette">
+                  <div class="hero-stage-line l1"></div>
+                  <div class="hero-stage-line l2"></div>
+                  <div class="hero-stage-line l3"></div>
+                </div>
+              </div>
+              <div class="hero-preview-mini">
+                <div class="hero-mini-card">
+                  <strong>Catalog Sync</strong>
+                  <p id="hero-count" class="serif mt-2 text-3xl font-bold">18</p>
+                </div>
+                <div class="hero-mini-card">
+                  <strong>Preview Modes</strong>
+                  <p class="serif mt-2 text-3xl font-bold">3</p>
+                </div>
+                <div class="hero-mini-card">
+                  <strong>Fit Controls</strong>
+                  <p class="mt-2 text-lg font-semibold">Live</p>
+                </div>
+                <div class="hero-mini-card">
+                  <strong>Studio Mood</strong>
+                  <p class="mt-2 text-lg font-semibold">Refined</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)]">
-      <aside class="space-y-6">
-        <div class="panel rounded-[28px] p-6">
-          <h2 class="serif text-2xl font-bold">1. Upload Your Photo</h2>
-          <p class="mt-2 text-sm text-black/60">Use a straight front-facing photo. It stays in the browser only.</p>
+    <div class="mb-8 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+      <div class="floating-note">
+        <strong>Studio Direction</strong>
+        <p>This version keeps the interface quieter and more editorial, so the user's picture, garment shape, and fit cues become the main focus.</p>
+      </div>
+      <div class="floating-note">
+        <strong>Best Result</strong>
+        <p>Upload a bright front-facing photo, use Auto Fit first, then switch to Split Compare to judge shoulder placement, waist alignment, and overall length.</p>
+      </div>
+    </div>
+
+    <section class="grid gap-8 xl:grid-cols-[380px_minmax(0,1fr)]">
+      <aside class="sticky-panel space-y-6">
+        <div class="panel control-card rounded-[30px] p-6">
+          <div class="control-title">
+            <div>
+              <p class="section-kicker">Step 01</p>
+              <h2 class="serif mt-2 text-2xl font-bold">Add Your Picture</h2>
+            </div>
+            <span class="control-badge">Private</span>
+          </div>
+          <p class="control-copy mt-3 text-sm">Use a clear front-facing picture so the dress fitting check is easier to read. Your image stays in this browser only.</p>
+          <div id="photo-preview-card" class="upload-preview empty mt-5">
+            <div class="upload-preview-badge">Preview</div>
+            <img id="photo-preview-thumb" alt="Selected portrait preview" class="hidden">
+            <div id="photo-preview-empty" class="px-6 text-center">
+              <p class="text-lg font-semibold text-black/72">Your picture will appear here.</p>
+              <p class="mt-2 text-sm leading-7 text-black/55">Choose a bright straight portrait with your upper body visible for the cleanest fit check.</p>
+            </div>
+          </div>
           <label for="photo-upload" class="dropzone mt-5 block cursor-pointer rounded-3xl p-5">
-            <p class="font-semibold">Choose a photo</p>
-            <p class="mt-1 text-sm text-black/55">JPG, PNG, or WebP. Portrait photos work best.</p>
+            <p class="font-semibold">Add picture</p>
+            <p class="mt-1 text-sm text-black/55">JPG, PNG, or WebP. Good light, straight shoulders, and a full torso work best.</p>
           </label>
           <input id="photo-upload" type="file" accept="image/*" class="hidden">
           <div id="photo-status" class="mt-4 rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-sm text-black/60">No photo loaded yet. The mannequin preview is active.</div>
+          <div class="mt-4 grid gap-3 sm:grid-cols-3">
+            <div class="photo-tip">
+              <strong>Straight Pose</strong>
+              <p class="mt-2 text-sm leading-6 text-black/58">Keep shoulders square to the camera so the look sits more naturally.</p>
+            </div>
+            <div class="photo-tip">
+              <strong>Soft Light</strong>
+              <p class="mt-2 text-sm leading-6 text-black/58">Clear daylight or even room light helps you judge the garment edge better.</p>
+            </div>
+            <div class="photo-tip">
+              <strong>Clean Frame</strong>
+              <p class="mt-2 text-sm leading-6 text-black/58">Show head to hip for tops and a little lower for bottoms or longer looks.</p>
+            </div>
+          </div>
           <div class="mt-4 flex gap-3">
             <button id="remove-photo-btn" type="button" class="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">Remove Photo</button>
             <button id="reset-overlay-btn" type="button" class="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black hover:text-white">Reset Overlay</button>
           </div>
         </div>
 
-        <div class="panel rounded-[28px] p-6">
-          <h2 class="serif text-2xl font-bold">2. Measurements</h2>
+        <div class="panel control-card rounded-[30px] p-6">
+          <div class="control-title">
+            <div>
+              <p class="section-kicker">Step 02</p>
+              <h2 class="serif mt-2 text-2xl font-bold">Measurements</h2>
+            </div>
+            <span class="control-badge">Fit Base</span>
+          </div>
+          <p class="control-copy mt-3 text-sm">These controls help the stage find a more believable starting shape before you fine tune the garment.</p>
           <div class="mt-5 space-y-5">
             <div><div class="mb-2 flex justify-between text-sm"><label for="chest-input">Chest</label><span id="chest-display">36"</span></div><input type="range" id="chest-input" min="28" max="48" value="36"></div>
             <div><div class="mb-2 flex justify-between text-sm"><label for="waist-input">Waist</label><span id="waist-display">32"</span></div><input type="range" id="waist-input" min="24" max="42" value="32"></div>
@@ -144,8 +341,15 @@
           </div>
         </div>
 
-        <div class="panel rounded-[28px] p-6">
-          <h2 class="serif text-2xl font-bold">3. Fine Tune Overlay</h2>
+        <div class="panel control-card rounded-[30px] p-6">
+          <div class="control-title">
+            <div>
+              <p class="section-kicker">Step 03</p>
+              <h2 class="serif mt-2 text-2xl font-bold">Fine Tune Overlay</h2>
+            </div>
+            <span class="control-badge">Precision</span>
+          </div>
+          <p class="control-copy mt-3 text-sm">Use these controls after Auto Fit when you want a cleaner shoulder line, waist position, or overall drape.</p>
           <div class="mt-5 space-y-5">
             <div><div class="mb-2 flex justify-between text-sm"><label for="overlay-scale">Scale</label><span id="overlay-scale-display">100%</span></div><input type="range" id="overlay-scale" min="70" max="145" value="100"></div>
             <div><div class="mb-2 flex justify-between text-sm"><label for="overlay-y">Vertical</label><span id="overlay-y-display">0</span></div><input type="range" id="overlay-y" min="-90" max="110" value="0"></div>
@@ -159,59 +363,112 @@
       <div class="space-y-8">
         <div class="stage panel p-6 md:p-8">
           <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div><p class="text-xs uppercase tracking-[0.25em] text-black/40">Live Preview</p><h2 class="serif text-3xl font-bold">Try-On Stage</h2></div>
+            <div><p class="text-xs uppercase tracking-[0.25em] text-black/40">Live Preview</p><h2 class="serif text-3xl font-bold">3D Fit Stage</h2></div>
             <div class="flex flex-wrap gap-2">
               <button id="auto-fit-btn" type="button" class="stage-chip rounded-full px-4 py-2 text-sm">Auto Fit</button>
               <button id="toggle-guides-btn" type="button" class="stage-chip active rounded-full px-4 py-2 text-sm">Guides On</button>
               <button id="mirror-photo-btn" type="button" class="stage-chip rounded-full px-4 py-2 text-sm">Mirror Photo</button>
-              <button id="toggle-avatar-btn" type="button" class="stage-chip active rounded-full px-4 py-2 text-sm">Avatar On</button>
-              <button id="center-overlay-btn" type="button" class="stage-chip rounded-full px-4 py-2 text-sm">Center Garment</button>
+              <button id="toggle-avatar-btn" type="button" class="stage-chip active rounded-full px-4 py-2 text-sm">Guide On</button>
+              <button id="center-overlay-btn" type="button" class="stage-chip rounded-full px-4 py-2 text-sm">Center Look</button>
             </div>
           </div>
-          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div class="stage-toolbar mb-4 flex flex-wrap items-center justify-between gap-3">
             <div id="view-mode-controls" class="flex flex-wrap gap-2 text-sm">
               <button type="button" class="view-chip active rounded-full px-4 py-2" data-view-mode="overlay">Overlay</button>
               <button type="button" class="view-chip rounded-full px-4 py-2" data-view-mode="split">Split Compare</button>
               <button type="button" class="view-chip rounded-full px-4 py-2" data-view-mode="garment">Garment Focus</button>
             </div>
-            <div id="stage-guidance" class="rounded-full border border-black/10 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-black/55">Photo Ready Guidance</div>
+            <div id="stage-guidance" class="rounded-full border border-black/10 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-black/55">Best With A Straight Portrait</div>
           </div>
           <div class="viewport" id="try-on-viewport">
             <div class="viewport-glow"></div>
-            <img id="uploaded-photo" alt="Uploaded try-on preview" class="hidden">
-            <div id="photo-placeholder" class="placeholder"><div><p class="text-lg font-semibold text-black/70">Add your photo to switch from mannequin view to a real visual overlay.</p><p class="mt-2 text-sm">Until then, a neutral model helps you align the garment.</p></div></div>
-            <svg id="avatar-svg" viewBox="0 0 320 520" aria-hidden="true"></svg>
+            <div id="viewport-scene" class="viewport-scene">
+              <div class="scene-aura"></div>
+              <img id="uploaded-photo" alt="Uploaded try-on preview" class="scene-layer hidden">
+              <div id="photo-placeholder" class="placeholder scene-layer"><div><p class="text-lg font-semibold text-black/70">Add your picture to move into a dimensional fitting view.</p><p class="mt-2 text-sm">Until then, the soft guide model helps you place the look.</p></div></div>
+              <svg id="avatar-svg" class="scene-layer" viewBox="0 0 320 520" aria-hidden="true"></svg>
+              <div id="product-shadow" class="product-shadow scene-layer"></div>
+              <div id="garment-wrapper" class="overlay scene-layer" tabindex="0" aria-label="Garment try-on overlay controls">
+                <svg id="garment-svg" viewBox="0 0 320 520" aria-label="Garment try-on overlay"></svg>
+                <button id="overlay-rotate-handle" type="button" class="handle handle-rotate" aria-label="Rotate garment"></button>
+                <button id="overlay-scale-handle" type="button" class="handle handle-scale" aria-label="Resize garment"></button>
+              </div>
+              <div id="alignment-guides" class="guides scene-layer">
+                <div class="guide-line center-x"></div>
+                <div class="guide-line center-y"></div>
+                <div class="guide-frame"></div>
+              </div>
+              <div class="scene-floor"></div>
+            </div>
             <div id="stage-status-pill" class="stage-pill left">Overlay Mode</div>
             <div id="garment-status-pill" class="stage-pill right">Model Base</div>
-            <div class="scan-line"></div>
-            <div id="alignment-guides" class="guides">
-              <div class="guide-line center-x"></div>
-              <div class="guide-line center-y"></div>
-              <div class="guide-frame"></div>
-            </div>
-            <div id="product-shadow" class="product-shadow"></div>
-            <div id="garment-wrapper" class="overlay" tabindex="0" aria-label="Garment try-on overlay controls">
-              <svg id="garment-svg" viewBox="0 0 320 520" aria-label="Garment try-on overlay"></svg>
-              <button id="overlay-rotate-handle" type="button" class="handle handle-rotate" aria-label="Rotate garment"></button>
-              <button id="overlay-scale-handle" type="button" class="handle handle-scale" aria-label="Resize garment"></button>
-            </div>
+            <div id="scan-line" class="scan-line"></div>
             <div id="split-divider" class="split-divider hidden"></div>
             <div class="viewport-vignette"></div>
           </div>
+          <div id="fit-check-panel" class="fit-check-grid mt-5 md:grid-cols-3">
+            <div class="fit-check-item"><span class="fit-check-dot soft"></span><div><strong>Photo</strong><p>Add a picture to unlock the clearest fit check.</p></div></div>
+            <div class="fit-check-item"><span class="fit-check-dot soft"></span><div><strong>Shoulders</strong><p>Use the guide lines to match the upper shape first.</p></div></div>
+            <div class="fit-check-item"><span class="fit-check-dot soft"></span><div><strong>Length</strong><p>Check where the hem or waist line settles before sizing up.</p></div></div>
+          </div>
           <div class="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_1fr]">
-            <div class="rounded-[20px] border border-black/10 bg-white/70 p-4 text-sm text-black/60">Drag the garment directly on the stage to position it. Use the top handle to rotate, the bottom-right handle to resize, or your mouse wheel to zoom.</div>
-            <div class="rounded-[20px] border border-black/10 bg-white/70 p-4">
+            <div class="editor-note">
+              <strong>Quick Read</strong>
+              <p>For the cleanest result, upload your picture, tap Auto Fit, then use Split Compare to judge shoulder match, waist position, and overall fall.</p>
+            </div>
+            <div class="editor-note">
+              <strong>Preview Blend</strong>
               <div class="mb-2 flex items-center justify-between text-sm"><label for="compare-slider">Preview Blend</label><span id="compare-display">100%</span></div>
               <input id="compare-slider" type="range" min="0" max="100" value="100">
             </div>
-            <div id="split-slider-shell" class="hidden rounded-[20px] border border-black/10 bg-white/70 p-4">
+            <div id="split-slider-shell" class="editor-note hidden">
+              <strong>Split Position</strong>
               <div class="mb-2 flex items-center justify-between text-sm"><label for="split-slider">Split Position</label><span id="split-display">54%</span></div>
               <input id="split-slider" type="range" min="24" max="76" value="54">
             </div>
           </div>
+          <div class="depth-shell mt-4">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-black/40">3D Try-On</p>
+                <h3 class="serif mt-2 text-2xl font-bold">Orbit The Fitting Stage</h3>
+                <p class="mt-2 max-w-2xl text-sm leading-7 text-black/58">Use a light orbit and a little depth to judge drape and silhouette in a more dimensional, premium-looking preview.</p>
+              </div>
+              <span class="rounded-full border border-black/10 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-black/55">Perspective Active</span>
+            </div>
+            <div id="orbit-preset-controls" class="mt-4 flex flex-wrap gap-2 text-sm">
+              <button type="button" class="orbit-chip active rounded-full px-4 py-2" data-orbit-preset="front">Front</button>
+              <button type="button" class="orbit-chip rounded-full px-4 py-2" data-orbit-preset="left">Left 3/4</button>
+              <button type="button" class="orbit-chip rounded-full px-4 py-2" data-orbit-preset="right">Right 3/4</button>
+              <button type="button" class="orbit-chip rounded-full px-4 py-2" data-orbit-preset="runway">Runway</button>
+            </div>
+            <div class="mt-4 grid gap-4 md:grid-cols-3">
+              <div class="depth-slider">
+                <div class="flex items-center justify-between text-sm">
+                  <label for="scene-orbit">Orbit</label>
+                  <span id="scene-orbit-display" class="value">0deg</span>
+                </div>
+                <input id="scene-orbit" type="range" min="-24" max="24" value="0">
+              </div>
+              <div class="depth-slider">
+                <div class="flex items-center justify-between text-sm">
+                  <label for="scene-depth">Depth</label>
+                  <span id="scene-depth-display" class="value">26px</span>
+                </div>
+                <input id="scene-depth" type="range" min="10" max="42" value="26">
+              </div>
+              <div class="depth-slider">
+                <div class="flex items-center justify-between text-sm">
+                  <label for="scene-lift">Lift</label>
+                  <span id="scene-lift-display" class="value">6px</span>
+                </div>
+                <input id="scene-lift" type="range" min="-6" max="20" value="6">
+              </div>
+            </div>
+          </div>
           <div class="mt-6 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
-            <div class="rounded-[24px] border border-black/10 bg-white/75 p-5"><p class="text-xs uppercase tracking-[0.25em] text-black/40">Selected Look</p><div id="selected-product-summary" class="mt-3 space-y-2"><p class="text-lg font-semibold">Loading product...</p></div></div>
-            <div class="rounded-[24px] border border-black/10 bg-[rgba(159,61,47,0.06)] p-5">
+            <div class="summary-shell p-5"><p class="text-xs uppercase tracking-[0.25em] text-black/40">Selected Look</p><div id="selected-product-summary" class="mt-3 space-y-2"><p class="text-lg font-semibold">Loading product...</p></div></div>
+            <div class="size-shell p-5">
               <p class="text-xs uppercase tracking-[0.25em] text-black/40">Recommended Size</p>
               <div class="mt-3 flex items-end gap-3"><span id="recommended-size" class="serif text-4xl font-bold">M</span><span id="fit-confidence" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-black/55">Balanced fit</span></div>
               <p id="fit-explainer" class="mt-3 text-sm text-black/60">We adjust this from your chest, waist, and selected silhouette.</p>
@@ -219,7 +476,7 @@
             </div>
           </div>
           <div class="mt-4 grid gap-4 md:grid-cols-[0.95fr_1.05fr]">
-            <div class="rounded-[24px] border border-black/10 bg-white/75 p-5">
+            <div class="insight-shell p-5">
               <p class="text-xs uppercase tracking-[0.25em] text-black/40">Fit Meter</p>
               <div class="mt-4 h-3 overflow-hidden rounded-full bg-black/[0.08]">
                 <div id="fit-meter-bar" class="h-full rounded-full bg-[#9f3d2f]" style="width:72%"></div>
@@ -230,24 +487,24 @@
               </div>
               <p id="fit-meter-copy" class="mt-3 text-sm leading-7 text-black/60">Your current measurements and overlay position create a solid first-pass fit estimate.</p>
             </div>
-            <div class="rounded-[24px] border border-black/10 bg-white/75 p-5">
+            <div class="insight-shell p-5">
               <p class="text-xs uppercase tracking-[0.25em] text-black/40">Styling Notes</p>
               <div id="styling-notes" class="mt-4 space-y-3 text-sm text-black/60"></div>
             </div>
           </div>
           <div class="mt-6 flex flex-col gap-3 sm:flex-row">
-            <button id="add-to-bag-btn" type="button" class="rounded-full bg-black px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] text-white hover:opacity-90">Add Recommended Size To Bag</button>
-            <button id="browse-collection-btn" type="button" class="rounded-full border border-black/10 px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] hover:bg-black hover:text-white">Browse Collection</button>
+            <button id="add-to-bag-btn" type="button" class="accent-button rounded-full px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] text-white transition">Add Recommended Size To Bag</button>
+            <button id="browse-collection-btn" type="button" class="rounded-full border border-black/10 bg-white/72 px-6 py-4 text-sm font-bold uppercase tracking-[0.22em] transition hover:bg-black hover:text-white">Browse Collection</button>
           </div>
         </div>
 
-        <div class="panel rounded-[28px] p-6 md:p-8">
+        <div class="panel catalog-shell rounded-[30px] p-6 md:p-8">
           <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div><p class="text-xs uppercase tracking-[0.25em] text-black/40">Catalog Match</p><h2 class="serif text-3xl font-bold">Choose A Product To Try</h2></div>
             <p class="max-w-xl text-sm text-black/60">These are real products from your catalog. Pick one, adjust the overlay, then add the recommended size directly to the cart.</p>
           </div>
-          <div class="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <div class="relative">
+          <div class="catalog-toolbar mb-5 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <div class="catalog-search">
               <input id="try-on-search" type="text" placeholder="Search products inside try-on" class="w-full rounded-full border border-black/10 bg-white px-5 py-3 outline-none focus:border-black/30">
             </div>
             <div id="try-on-category-filters" class="flex flex-wrap gap-2">
@@ -268,6 +525,6 @@
 
   <script src="products.js?v=catalog-3"></script>  
   <script src="cart-enhanced.js"></script>
-  <script src="try-on-simple.js?v=polish-1"></script>
+  <script src="try-on-simple.js?v=tryon-3d-1"></script>
 </body>
 </html>
