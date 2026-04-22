@@ -15,6 +15,13 @@ function createProduct(product) {
     composition: '',
     bestFor: ['Studio', 'Training'],
     story: '',
+    overlayAsset: product.slug ? `try-on-assets/${product.slug}.png` : '',
+    overlayPlacement: {
+      scaleAdjust: 0,
+      xAdjust: 0,
+      yAdjust: 0,
+      rotateAdjust: 0
+    },
     ...product
   };
 }

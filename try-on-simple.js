@@ -4,11 +4,19 @@ const state = {
   photoDataUrl: '',
   photoName: '',
   measurements: { chest: 36, waist: 32, height: 66, bodyType: 'slim' },
+  pose: {
+    status: 'idle',
+    detected: false,
+    message: 'Upload a clear portrait to scan shoulders and torso.',
+    landmarks: null,
+    body: null
+  },
   overlay: { scale: 100, x: 0, y: 0, rotate: 0, opacity: 88 },
   ui: {
     compare: 100,
     split: 54,
     guides: true,
+    fitClarity: true,
     mirrorPhoto: false,
     showAvatar: true,
     tryOnCategory: 'all',
@@ -39,8 +47,131 @@ const ORBIT_PRESETS = {
   runway: { orbit: 10, depth: 38, lift: 12 }
 };
 
+const garmentAssetState = {};
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function resetPoseState(message = 'Upload a clear portrait to scan shoulders and torso.') {
+  state.pose = {
+    status: 'idle',
+    detected: false,
+    message,
+    landmarks: null,
+    body: null
+  };
+}
+
+function photoLayoutMetrics() {
+  const viewport = document.getElementById('try-on-viewport');
+  const photo = document.getElementById('uploaded-photo');
+  if (!viewport || !photo || !photo.naturalWidth || !photo.naturalHeight) return null;
+
+  const viewportWidth = viewport.clientWidth || 320;
+  const viewportHeight = viewport.clientHeight || 520;
+  const scale = Math.max(viewportWidth / photo.naturalWidth, viewportHeight / photo.naturalHeight);
+  const renderWidth = photo.naturalWidth * scale;
+  const renderHeight = photo.naturalHeight * scale;
+
+  return {
+    viewportWidth,
+    viewportHeight,
+    renderWidth,
+    renderHeight,
+    offsetX: (viewportWidth - renderWidth) / 2,
+    offsetY: 0
+  };
+}
+
+function posePointToViewport(point, metrics) {
+  return {
+    x: metrics.offsetX + (point.x * metrics.renderWidth),
+    y: metrics.offsetY + (point.y * metrics.renderHeight)
+  };
+}
+
+function viewportPointToSvg(point, metrics) {
+  return {
+    x: (point.x / metrics.viewportWidth) * 320,
+    y: (point.y / metrics.viewportHeight) * 520
+  };
+}
+
+function blendPoint(a, b, t) {
+  return {
+    x: a.x + ((b.x - a.x) * t),
+    y: a.y + ((b.y - a.y) * t)
+  };
+}
+
+async function waitForPoseAnalyzer(timeoutMs = 5000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const analyzer = window.TryOnPose?.analyzeImageElement;
+    if (analyzer) return analyzer;
+    await new Promise(resolve => setTimeout(resolve, 120));
+  }
+  return null;
+}
+
+function productAssetState(product) {
+  if (!product?.overlayAsset) return 'missing';
+  return garmentAssetState[product.id] || 'pending';
+}
+
+function productAssetMessage(product) {
+  const assetState = productAssetState(product);
+  if (assetState === 'loaded') return `Exact ${product.name} PNG is active on your photo.`;
+  if (assetState === 'missing') return `${product.name} still needs a transparent PNG asset, so the app is showing the smart preview instead of the real selected garment.`;
+  return `Loading the exact ${product.name} PNG asset for this try-on.`;
+}
+
+function renderFitGuideOverlay(product) {
+  const svg = document.getElementById('fit-guide-svg');
+  if (!svg) return;
+
+  const show = !!state.photoDataUrl && !!state.pose.detected && !!state.ui.fitClarity;
+  svg.classList.toggle('active', show);
+  if (!show || !product) {
+    svg.innerHTML = '';
+    return;
+  }
+
+  const metrics = photoLayoutMetrics();
+  if (!metrics) {
+    svg.innerHTML = '';
+    return;
+  }
+
+  const type = productType(product);
+  const landmarks = state.pose.landmarks;
+  const leftShoulder = viewportPointToSvg(posePointToViewport(landmarks.leftShoulder, metrics), metrics);
+  const rightShoulder = viewportPointToSvg(posePointToViewport(landmarks.rightShoulder, metrics), metrics);
+  const leftHip = viewportPointToSvg(posePointToViewport(landmarks.leftHip, metrics), metrics);
+  const rightHip = viewportPointToSvg(posePointToViewport(landmarks.rightHip, metrics), metrics);
+  const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+  const waistY = (leftHip.y + rightHip.y) / 2;
+  const hemY = type === 'bottom' ? Math.min(492, waistY + 146) : type === 'layer' ? waistY + 70 : type === 'top' ? waistY + 48 : waistY + 120;
+  const leftEdge = Math.max(16, Math.min(leftShoulder.x, leftHip.x) - 26);
+  const rightEdge = Math.min(304, Math.max(rightShoulder.x, rightHip.x) + 26);
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="fitGlow" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="rgba(143,95,74,0)"/>
+        <stop offset="50%" stop-color="rgba(143,95,74,.9)"/>
+        <stop offset="100%" stop-color="rgba(143,95,74,0)"/>
+      </linearGradient>
+    </defs>
+    <line x1="${leftShoulder.x}" y1="${shoulderY}" x2="${rightShoulder.x}" y2="${shoulderY}" stroke="rgba(143,95,74,.95)" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="${leftEdge}" y1="${waistY}" x2="${rightEdge}" y2="${waistY}" stroke="rgba(40,40,40,.34)" stroke-width="1.5" stroke-dasharray="5 6" stroke-linecap="round"/>
+    <line x1="${leftEdge}" y1="${hemY}" x2="${rightEdge}" y2="${hemY}" stroke="url(#fitGlow)" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="${leftShoulder.x}" cy="${leftShoulder.y}" r="3.4" fill="#8f5f4a"/>
+    <circle cx="${rightShoulder.x}" cy="${rightShoulder.y}" r="3.4" fill="#8f5f4a"/>
+    <circle cx="${leftHip.x}" cy="${leftHip.y}" r="3.2" fill="rgba(17,17,17,.45)"/>
+    <circle cx="${rightHip.x}" cy="${rightHip.y}" r="3.2" fill="rgba(17,17,17,.45)"/>
+  `;
 }
 
 function getProductIdFromUrl() {
@@ -141,8 +272,10 @@ function fitCheckItems(product) {
   return [
     {
       title: 'Photo',
-      tone: 'good',
-      copy: `${state.photoName || 'Your picture'} is loaded and ready for a cleaner fit check.`
+      tone: state.pose.detected ? 'good' : 'warn',
+      copy: state.pose.detected
+        ? `${state.photoName || 'Your picture'} is loaded and the body scan found your shoulders and torso for a better wear preview.`
+        : `${state.photoName || 'Your picture'} is loaded, but the body scan could not confidently read your pose yet.`
     },
     {
       title: upperLabel,
@@ -185,6 +318,51 @@ function syncSceneInputs() {
   });
 }
 
+function poseOverlayValues(product, fallback) {
+  if (!state.photoDataUrl || !state.pose.detected || !state.pose.landmarks || !state.pose.body) {
+    return fallback;
+  }
+
+  const metrics = photoLayoutMetrics();
+  if (!metrics) return fallback;
+
+  const type = productType(product);
+  const shouldersMid = posePointToViewport(state.pose.landmarks.shouldersMid, metrics);
+  const hipsMid = posePointToViewport(state.pose.landmarks.hipsMid, metrics);
+  const shoulderSpanPx = state.pose.body.shoulderSpan * metrics.renderWidth;
+  const torsoHeightPx = state.pose.body.torsoHeight * metrics.renderHeight;
+
+  let scale = fallback.scale;
+  let x = fallback.x;
+  let y = fallback.y;
+
+  if (type === 'top') {
+    scale = clamp(Math.round((shoulderSpanPx / 1.1) + 2), 84, 132);
+    x = Math.round(shouldersMid.x - (metrics.viewportWidth / 2));
+    y = Math.round(shouldersMid.y - ((136 * scale) / 100));
+  } else if (type === 'layer') {
+    scale = clamp(Math.round((shoulderSpanPx / 1.02) + 8), 92, 142);
+    x = Math.round(shouldersMid.x - (metrics.viewportWidth / 2));
+    y = Math.round(shouldersMid.y - ((132 * scale) / 100));
+  } else if (type === 'bottom') {
+    scale = clamp(Math.round(((torsoHeightPx + shoulderSpanPx) / 2.1)), 88, 140);
+    x = Math.round(hipsMid.x - (metrics.viewportWidth / 2));
+    y = Math.round(hipsMid.y - ((236 * scale) / 100));
+  } else if (type === 'dress' || type === 'full') {
+    scale = clamp(Math.round(((shoulderSpanPx / 1.02) + (torsoHeightPx / 2.8))), 96, 145);
+    x = Math.round(shouldersMid.x - (metrics.viewportWidth / 2));
+    y = Math.round(shouldersMid.y - ((132 * scale) / 100));
+  }
+
+  return {
+    scale,
+    x: clamp(x, -110, 110),
+    y: clamp(y, -90, 110),
+    rotate: 0,
+    opacity: clamp(Math.round((state.photoDataUrl ? 88 : fallback.opacity)), 50, 100)
+  };
+}
+
 function applyOrbitPreset(preset) {
   const values = ORBIT_PRESETS[preset];
   if (!values) return;
@@ -219,14 +397,17 @@ function smartOverlayValues(product) {
   const base = baseByType[type] || baseByType.top;
   const fitScale = state.ui.fitMode === 'relaxed' ? 3 : state.ui.fitMode === 'fitted' ? -2 : 0;
   const bodyShift = state.measurements.bodyType === 'curvy' ? 4 : state.measurements.bodyType === 'slim' ? -2 : 0;
+  const placement = product.overlayPlacement || {};
 
-  return {
-    scale: clamp(Math.round(base.scale + fitScale + chestFactor + photoOffset + presetFactor.scale), 70, 145),
-    x: 0,
-    y: clamp(Math.round(base.y + heightFactor + bodyShift + presetFactor.y), -90, 110),
-    rotate: 0,
+  const fallback = {
+    scale: clamp(Math.round(base.scale + fitScale + chestFactor + photoOffset + presetFactor.scale + (placement.scaleAdjust || 0)), 70, 145),
+    x: clamp(Math.round(placement.xAdjust || 0), -110, 110),
+    y: clamp(Math.round(base.y + heightFactor + bodyShift + presetFactor.y + (placement.yAdjust || 0)), -90, 110),
+    rotate: clamp(Math.round(placement.rotateAdjust || 0), -25, 25),
     opacity: clamp(Math.round((state.photoDataUrl ? 84 : 90) + presetFactor.opacity), 50, 100)
   };
+
+  return poseOverlayValues(product, fallback);
 }
 
 function autoFitOverlay() {
@@ -288,6 +469,12 @@ function stylingNotes(product) {
   notes.push(Math.abs(state.ui.sceneOrbit) >= 10
     ? 'A light orbit helps you read drape and side balance, but keep it subtle when checking the final fit.'
     : 'Keep the 3D stage close to front view when you want the most accurate shoulder and center-line read.');
+
+  if (state.photoDataUrl) {
+    notes.push(state.pose.detected
+      ? 'Body-aware fitting is active, so changing products now snaps the garment closer to your real shoulders and torso.'
+      : 'Use a straight, front-facing photo with visible shoulders so the body-aware fitting can lock onto your shape.');
+  }
 
   return notes.slice(0, 3);
 }
@@ -390,6 +577,127 @@ function renderAvatar() {
   svg.style.opacity = state.ui.showAvatar ? opacity : '0';
 }
 
+function poseGarmentTemplate(product, colors) {
+  if (!state.pose.detected || !state.pose.landmarks) return '';
+
+  const type = productType(product);
+  if (!['top', 'layer', 'dress', 'full'].includes(type)) return '';
+
+  const metrics = photoLayoutMetrics();
+  if (!metrics) return '';
+
+  const landmarks = state.pose.landmarks;
+  const leftShoulder = viewportPointToSvg(posePointToViewport(landmarks.leftShoulder, metrics), metrics);
+  const rightShoulder = viewportPointToSvg(posePointToViewport(landmarks.rightShoulder, metrics), metrics);
+  const leftHip = viewportPointToSvg(posePointToViewport(landmarks.leftHip, metrics), metrics);
+  const rightHip = viewportPointToSvg(posePointToViewport(landmarks.rightHip, metrics), metrics);
+  const leftElbow = viewportPointToSvg(posePointToViewport(landmarks.leftElbow, metrics), metrics);
+  const rightElbow = viewportPointToSvg(posePointToViewport(landmarks.rightElbow, metrics), metrics);
+  const leftWrist = viewportPointToSvg(posePointToViewport(landmarks.leftWrist, metrics), metrics);
+  const rightWrist = viewportPointToSvg(posePointToViewport(landmarks.rightWrist, metrics), metrics);
+  const nose = viewportPointToSvg(posePointToViewport(landmarks.nose, metrics), metrics);
+  const shortSleeve = product.subcategory === 't-shirts';
+  const jacketLayer = product.subcategory === 'jackets';
+  const longlineTop = product.subcategory === 'tops';
+
+  const shoulderSpan = Math.abs(rightShoulder.x - leftShoulder.x);
+  const torsoHeight = Math.abs(((leftHip.y + rightHip.y) / 2) - ((leftShoulder.y + rightShoulder.y) / 2));
+  const neckY = Math.min(leftShoulder.y, rightShoulder.y) - Math.max(8, shoulderSpan * 0.04);
+  const leftNeck = { x: leftShoulder.x + (shoulderSpan * 0.16), y: neckY };
+  const rightNeck = { x: rightShoulder.x - (shoulderSpan * 0.16), y: neckY };
+  const leftUnderArm = blendPoint(leftShoulder, leftHip, 0.22);
+  const rightUnderArm = blendPoint(rightShoulder, rightHip, 0.22);
+  const leftWaist = blendPoint(leftShoulder, leftHip, 0.72);
+  const rightWaist = blendPoint(rightShoulder, rightHip, 0.72);
+  const hemDrop = type === 'full'
+    ? torsoHeight * 1.3
+    : type === 'dress'
+      ? torsoHeight * 0.92
+      : type === 'layer'
+        ? torsoHeight * 0.34
+        : longlineTop
+          ? torsoHeight * 0.36
+          : torsoHeight * 0.24;
+  const leftHem = { x: leftHip.x - (shoulderSpan * (type === 'layer' ? 0.12 : 0.03)), y: leftHip.y + hemDrop };
+  const rightHem = { x: rightHip.x + (shoulderSpan * (type === 'layer' ? 0.12 : 0.03)), y: rightHip.y + hemDrop };
+
+  const leftForearm = shortSleeve
+    ? blendPoint(leftShoulder, leftElbow, 0.72)
+    : landmarks.leftWrist.visibility > 0.2
+      ? blendPoint(leftElbow, leftWrist, 0.8)
+      : { x: leftElbow.x - shoulderSpan * 0.08, y: leftElbow.y + torsoHeight * 0.18 };
+  const rightForearm = shortSleeve
+    ? blendPoint(rightShoulder, rightElbow, 0.72)
+    : landmarks.rightWrist.visibility > 0.2
+      ? blendPoint(rightElbow, rightWrist, 0.8)
+      : { x: rightElbow.x + shoulderSpan * 0.08, y: rightElbow.y + torsoHeight * 0.18 };
+  const sleeveInset = Math.max(8, shoulderSpan * 0.07);
+  const leftCuffOuter = { x: leftForearm.x - sleeveInset, y: leftForearm.y + sleeveInset * 0.6 };
+  const leftCuffInner = { x: leftForearm.x + sleeveInset * 0.32, y: leftForearm.y - sleeveInset * 0.1 };
+  const rightCuffInner = { x: rightForearm.x - sleeveInset * 0.32, y: rightForearm.y - sleeveInset * 0.1 };
+  const rightCuffOuter = { x: rightForearm.x + sleeveInset, y: rightForearm.y + sleeveInset * 0.6 };
+
+  const shoulderLeftOuter = { x: leftShoulder.x - shoulderSpan * 0.08, y: leftShoulder.y + 3 };
+  const shoulderRightOuter = { x: rightShoulder.x + shoulderSpan * 0.08, y: rightShoulder.y + 3 };
+  const chestMidY = ((leftShoulder.y + rightShoulder.y) / 2) + torsoHeight * 0.14;
+  const frontOpeningLeft = { x: ((leftNeck.x + rightNeck.x) / 2) - 3, y: chestMidY - 4 };
+  const frontOpeningRight = { x: ((leftNeck.x + rightNeck.x) / 2) + 3, y: chestMidY - 4 };
+
+  let bodyPath = `
+    M ${shoulderLeftOuter.x} ${shoulderLeftOuter.y}
+    C ${leftShoulder.x - shoulderSpan * 0.05} ${leftShoulder.y + torsoHeight * 0.08}, ${leftUnderArm.x - shoulderSpan * 0.06} ${leftUnderArm.y - 4}, ${leftUnderArm.x} ${leftUnderArm.y}
+    C ${leftWaist.x - shoulderSpan * 0.04} ${leftWaist.y}, ${leftHem.x - shoulderSpan * 0.04} ${leftHem.y - torsoHeight * 0.12}, ${leftHem.x} ${leftHem.y}
+    L ${rightHem.x} ${rightHem.y}
+    C ${rightHem.x + shoulderSpan * 0.04} ${rightHem.y - torsoHeight * 0.12}, ${rightWaist.x + shoulderSpan * 0.04} ${rightWaist.y}, ${rightUnderArm.x} ${rightUnderArm.y}
+    C ${rightUnderArm.x + shoulderSpan * 0.06} ${rightUnderArm.y - 4}, ${rightShoulder.x + shoulderSpan * 0.05} ${rightShoulder.y + torsoHeight * 0.08}, ${shoulderRightOuter.x} ${shoulderRightOuter.y}
+    Q ${rightNeck.x + shoulderSpan * 0.03} ${neckY - shoulderSpan * 0.05} ${rightNeck.x} ${rightNeck.y}
+    Q ${(nose.x || (leftNeck.x + rightNeck.x) / 2)} ${neckY - shoulderSpan * 0.03} ${leftNeck.x} ${leftNeck.y}
+    Q ${leftNeck.x - shoulderSpan * 0.03} ${neckY - shoulderSpan * 0.05} ${shoulderLeftOuter.x} ${shoulderLeftOuter.y}
+    Z
+  `;
+
+  let leftSleevePath = `
+    M ${shoulderLeftOuter.x} ${shoulderLeftOuter.y}
+    C ${leftElbow.x - shoulderSpan * 0.22} ${leftElbow.y - torsoHeight * 0.02}, ${leftCuffOuter.x - sleeveInset * 0.8} ${leftCuffOuter.y - 4}, ${leftCuffOuter.x} ${leftCuffOuter.y}
+    L ${leftCuffInner.x} ${leftCuffInner.y}
+    C ${leftElbow.x - shoulderSpan * 0.02} ${leftElbow.y - torsoHeight * 0.02}, ${leftUnderArm.x - shoulderSpan * 0.04} ${leftUnderArm.y + torsoHeight * 0.04}, ${leftUnderArm.x} ${leftUnderArm.y}
+    Z
+  `;
+
+  let rightSleevePath = `
+    M ${shoulderRightOuter.x} ${shoulderRightOuter.y}
+    C ${rightElbow.x + shoulderSpan * 0.22} ${rightElbow.y - torsoHeight * 0.02}, ${rightCuffOuter.x + sleeveInset * 0.8} ${rightCuffOuter.y - 4}, ${rightCuffOuter.x} ${rightCuffOuter.y}
+    L ${rightCuffInner.x} ${rightCuffInner.y}
+    C ${rightElbow.x + shoulderSpan * 0.02} ${rightElbow.y - torsoHeight * 0.02}, ${rightUnderArm.x + shoulderSpan * 0.04} ${rightUnderArm.y + torsoHeight * 0.04}, ${rightUnderArm.x} ${rightUnderArm.y}
+    Z
+  `;
+
+  if (type === 'layer') {
+    return `
+      <path d="${leftSleevePath}" fill="url(#fill)" opacity=".98"/>
+      <path d="${rightSleevePath}" fill="url(#fill)" opacity=".98"/>
+      <path d="${bodyPath}" fill="url(#fill)"/>
+      <path d="M ${frontOpeningLeft.x} ${leftNeck.y + 6} L ${frontOpeningLeft.x} ${leftHem.y - 10}" stroke="rgba(255,255,255,.48)" stroke-width="3.8" stroke-linecap="round"/>
+      <path d="M ${frontOpeningRight.x} ${rightNeck.y + 6} L ${frontOpeningRight.x} ${rightHem.y - 10}" stroke="${colors.shadow}" stroke-width="2.2" stroke-linecap="round" stroke-opacity=".34"/>
+      <path d="M ${leftNeck.x + 8} ${leftNeck.y - 1} Q ${(nose.x || (leftNeck.x + rightNeck.x) / 2) - shoulderSpan * 0.16} ${neckY - shoulderSpan * 0.34} ${(nose.x || (leftNeck.x + rightNeck.x) / 2) - shoulderSpan * 0.04} ${neckY + 2}" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="11" stroke-linecap="round"/>
+      <path d="M ${rightNeck.x - 8} ${rightNeck.y - 1} Q ${(nose.x || (leftNeck.x + rightNeck.x) / 2) + shoulderSpan * 0.16} ${neckY - shoulderSpan * 0.34} ${(nose.x || (leftNeck.x + rightNeck.x) / 2) + shoulderSpan * 0.04} ${neckY + 2}" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="11" stroke-linecap="round"/>
+      <path d="M ${leftNeck.x - 2} ${leftNeck.y + 2} Q ${(nose.x || (leftNeck.x + rightNeck.x) / 2) - shoulderSpan * 0.1} ${neckY - shoulderSpan * 0.18} ${(nose.x || (leftNeck.x + rightNeck.x) / 2)} ${neckY + 2}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M ${rightNeck.x + 2} ${rightNeck.y + 2} Q ${(nose.x || (leftNeck.x + rightNeck.x) / 2) + shoulderSpan * 0.1} ${neckY - shoulderSpan * 0.18} ${(nose.x || (leftNeck.x + rightNeck.x) / 2)} ${neckY + 2}" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M ${leftUnderArm.x + shoulderSpan * 0.1} ${chestMidY} Q ${(leftHem.x + rightHem.x) / 2} ${chestMidY + torsoHeight * 0.08} ${rightUnderArm.x - shoulderSpan * 0.1} ${chestMidY}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M ${leftHem.x + shoulderSpan * 0.1} ${leftHem.y - 5} L ${rightHem.x - shoulderSpan * 0.1} ${rightHem.y - 5}" stroke="rgba(255,255,255,.24)" stroke-width="3.5" stroke-linecap="round"/>
+    `;
+  }
+
+  return `
+    <path d="${leftSleevePath}" fill="url(#fill)" opacity=".98"/>
+    <path d="${rightSleevePath}" fill="url(#fill)" opacity=".98"/>
+    <path d="${bodyPath}" fill="url(#fill)"/>
+    <path d="M ${leftNeck.x + 2} ${leftNeck.y + 3} Q ${(nose.x || (leftNeck.x + rightNeck.x) / 2)} ${neckY - shoulderSpan * 0.06} ${rightNeck.x - 2} ${rightNeck.y + 3}" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M ${(leftNeck.x + rightNeck.x) / 2} ${leftNeck.y + 12} L ${(leftHem.x + rightHem.x) / 2} ${Math.min(leftHem.y, rightHem.y) - 10}" stroke="${colors.accent}" stroke-width="2.2" stroke-linecap="round" stroke-opacity=".2"/>
+    <path d="M ${leftHem.x + shoulderSpan * 0.08} ${leftHem.y - 5} L ${rightHem.x - shoulderSpan * 0.08} ${rightHem.y - 5}" stroke="rgba(255,255,255,.22)" stroke-width="3.5" stroke-linecap="round"/>
+  `;
+}
+
 function garmentSvg(product) {
   const colors = palette(product.color);
   const type = productType(product);
@@ -412,6 +720,16 @@ function garmentSvg(product) {
       <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,.42)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient>
     </defs>
   `;
+
+  const poseTemplate = poseGarmentTemplate(product, colors);
+  if (poseTemplate) {
+    shapes += poseTemplate;
+    shapes += `
+      <path d="M 110 102 Q 160 60 210 102" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="7"/>
+      <path d="M 112 110 Q 160 82 208 110" fill="none" stroke="url(#shine)" stroke-width="10" stroke-linecap="round"/>
+    `;
+    return shapes;
+  }
 
   if (type === 'top') {
     shapes += `
@@ -475,22 +793,78 @@ function garmentSvg(product) {
 
 function renderGarment() {
   const svg = document.getElementById('garment-svg');
+  const image = document.getElementById('garment-image');
   const wrapper = document.getElementById('garment-wrapper');
   const product = selectedProduct();
   const shadow = document.getElementById('product-shadow');
   const divider = document.getElementById('split-divider');
-  if (!svg || !wrapper || !product) return;
+  if (!svg || !image || !wrapper || !product) return;
 
-  svg.innerHTML = garmentSvg(product);
-  const orbitTwist = clamp(state.ui.sceneOrbit * 0.55, -18, 18);
-  const depthTilt = clamp(4 + (state.ui.sceneDepth * 0.1), 4, 10);
-  const garmentDepth = state.ui.sceneDepth + (state.ui.viewMode === 'garment' ? 10 : 0);
+  if (image.dataset.bound !== 'true') {
+    image.addEventListener('load', () => {
+      const productId = Number(image.dataset.productId || 0);
+      if (productId) {
+        garmentAssetState[productId] = 'loaded';
+        updateTryOn();
+      }
+    });
+
+    image.addEventListener('error', () => {
+      const productId = Number(image.dataset.productId || 0);
+      if (productId) {
+        garmentAssetState[productId] = 'missing';
+        image.classList.add('hidden');
+        updateTryOn();
+      }
+    });
+
+    image.dataset.bound = 'true';
+  }
+
+  const asset = product.overlayAsset || '';
+  const assetState = productAssetState(product);
+
+  if (asset && image.dataset.asset !== asset && assetState !== 'missing') {
+    garmentAssetState[product.id] = 'pending';
+    image.dataset.productId = String(product.id);
+    image.dataset.asset = asset;
+    image.src = asset;
+  }
+
+  const useExactAsset = !!asset && productAssetState(product) === 'loaded';
+
+  if (useExactAsset) {
+    image.classList.remove('hidden');
+    image.classList.add('exact');
+    svg.classList.add('hidden');
+    svg.innerHTML = '';
+  } else {
+    image.classList.add('hidden');
+    image.classList.remove('exact');
+    svg.classList.remove('hidden');
+    svg.innerHTML = garmentSvg(product);
+  }
+
+  const clarityFactor = useExactAsset && state.ui.fitClarity ? 0.28 : 0.55;
+  const orbitTwist = clamp(state.ui.sceneOrbit * clarityFactor, -18, 18);
+  const depthTilt = useExactAsset && state.ui.fitClarity
+    ? clamp(2 + (state.ui.sceneDepth * 0.04), 2, 5)
+    : clamp(4 + (state.ui.sceneDepth * 0.1), 4, 10);
+  const garmentDepth = useExactAsset && state.ui.fitClarity
+    ? Math.max(8, state.ui.sceneDepth * 0.38)
+    : state.ui.sceneDepth + (state.ui.viewMode === 'garment' ? 10 : 0);
   wrapper.style.transform = `translate3d(${state.overlay.x}px, ${state.overlay.y}px, ${garmentDepth}px) scale(${state.overlay.scale / 100}) rotateX(${depthTilt}deg) rotateY(${orbitTwist}deg) rotate(${state.overlay.rotate}deg)`;
   wrapper.style.opacity = (state.overlay.opacity / 100) * (state.ui.compare / 100);
-  wrapper.style.mixBlendMode = state.photoDataUrl && state.ui.viewMode === 'overlay' ? 'multiply' : 'normal';
+  wrapper.style.mixBlendMode = state.photoDataUrl && state.ui.viewMode === 'overlay'
+    ? useExactAsset ? 'normal' : state.pose.detected ? 'darken' : 'multiply'
+    : 'normal';
   wrapper.style.filter = state.ui.viewMode === 'garment'
     ? 'drop-shadow(0 28px 28px rgba(17,17,17,.24)) saturate(1.04)'
-    : 'drop-shadow(0 22px 22px rgba(17,17,17,.18)) saturate(1.02)';
+    : useExactAsset && state.ui.fitClarity
+      ? 'drop-shadow(0 12px 18px rgba(17,17,17,.14)) contrast(1.05) saturate(1.03)'
+      : state.pose.detected
+      ? 'drop-shadow(0 18px 20px rgba(17,17,17,.16)) saturate(1.02) contrast(1.01)'
+      : 'drop-shadow(0 22px 22px rgba(17,17,17,.18)) saturate(1.02)';
   wrapper.style.clipPath = state.ui.viewMode === 'split'
     ? `polygon(${state.ui.split}% 0, 100% 0, 100% 100%, ${state.ui.split}% 100%)`
     : 'none';
@@ -522,10 +896,14 @@ function renderScene3D() {
   const orbit = state.ui.sceneOrbit;
   const depth = state.ui.sceneDepth;
   const lift = state.ui.sceneLift;
-  const tilt = clamp(8 + (depth * 0.12), 7, 14);
-  const zoom = 1 + (depth / 260);
+  const exactAssetActive = productAssetState(selectedProduct()) === 'loaded';
+  const tilt = exactAssetActive && state.ui.fitClarity
+    ? clamp(4 + (depth * 0.05), 4, 7)
+    : clamp(8 + (depth * 0.12), 7, 14);
+  const zoom = exactAssetActive && state.ui.fitClarity ? 1 + (depth / 420) : 1 + (depth / 260);
+  const orbitFactor = exactAssetActive && state.ui.fitClarity ? 0.42 : 1;
 
-  scene.style.transform = `translateY(${lift}px) rotateX(${tilt}deg) rotateY(${orbit}deg) scale(${zoom})`;
+  scene.style.transform = `translateY(${lift}px) rotateX(${tilt}deg) rotateY(${orbit * orbitFactor}deg) scale(${zoom})`;
   scene.style.filter = `saturate(${(1 + depth / 220).toFixed(2)})`;
 
   if (photo) {
@@ -533,6 +911,8 @@ function renderScene3D() {
     photo.style.transform = `${mirror}translateZ(${-depth}px) scale(${(1 + depth / 240).toFixed(3)})`;
     photo.style.filter = state.ui.viewMode === 'garment'
       ? 'contrast(1.02) saturate(.82) blur(.4px)'
+      : state.ui.fitClarity
+        ? 'contrast(1.01) saturate(.84) brightness(.98)'
       : 'contrast(1.03) saturate(.96)';
   }
 
@@ -574,15 +954,105 @@ function recommendSize(product) {
   return { size, label };
 }
 
+function sizeNumericValue(size) {
+  return ['XS', 'S', 'M', 'L', 'XL', 'XXL'].indexOf(size);
+}
+
+function sizeDistanceFromIdeal(product, size) {
+  const rec = recommendSize(product);
+  const ideal = sizeNumericValue(rec.size);
+  const current = sizeNumericValue(size);
+  const distance = ideal >= 0 && current >= 0 ? Math.abs(current - ideal) : 0;
+  const fitBias = state.ui.fitMode === 'fitted' ? -0.18 : state.ui.fitMode === 'relaxed' ? 0.18 : 0;
+
+  return distance + fitBias;
+}
+
+function sizeBodyRead(product, size) {
+  const diff = sizeDistanceFromIdeal(product, size);
+  if (diff <= 0.15) {
+    return {
+      title: `${size} looks best on body`,
+      tone: 'good',
+      copy: 'This size should keep the shoulder and waist shape clean without adding extra drag or tightness.'
+    };
+  }
+
+  if (diff <= 0.85) {
+    return {
+      title: `${size} is a possible second option`,
+      tone: 'soft',
+      copy: diff > 0
+        ? 'This should still work, but the body line may read a little closer or a little softer than the best-fit option.'
+        : 'This can still work, but it may feel a touch sharper on the body than the best balanced size.'
+    };
+  }
+
+  return {
+    title: `${size} is less ideal on body`,
+    tone: 'warn',
+    copy: 'This size is more likely to look too close or too loose through the body compared with the stronger fit option.'
+  };
+}
+
+function renderSizeClarity(product) {
+  const rec = recommendSize(product);
+  const headline = document.getElementById('size-clarity-headline');
+  const grid = document.getElementById('size-clarity-grid');
+  if (!headline || !grid) return;
+
+  const sorted = [...product.sizes].sort((a, b) => sizeDistanceFromIdeal(product, a) - sizeDistanceFromIdeal(product, b));
+  const topSizes = sorted.slice(0, Math.min(2, sorted.length));
+  const selectedRead = sizeBodyRead(product, state.selectedSize || rec.size);
+
+  headline.textContent = `${rec.size} is the strongest fit estimate for your body. ${state.selectedSize === rec.size ? 'Your current selected size matches that.' : `${state.selectedSize || rec.size} is selected right now.`}`;
+
+  grid.innerHTML = topSizes.map(size => {
+    const read = sizeBodyRead(product, size);
+    const active = size === state.selectedSize;
+    const toneClasses = read.tone === 'good'
+      ? 'border-emerald-700/20 bg-emerald-50'
+      : read.tone === 'warn'
+        ? 'border-amber-700/20 bg-amber-50'
+        : 'border-black/10 bg-black/[0.03]';
+
+    return `
+      <div class="rounded-[18px] border ${toneClasses} px-4 py-4">
+        <div class="flex items-center justify-between gap-3">
+          <p class="serif text-2xl font-bold">${size}</p>
+          <span class="rounded-full ${active ? 'bg-black text-white' : 'bg-white text-black/60'} px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">${active ? 'Selected' : 'Preview'}</span>
+        </div>
+        <p class="mt-2 text-sm font-semibold text-black/75">${read.title}</p>
+        <p class="mt-2 text-sm leading-6 text-black/58">${read.copy}</p>
+      </div>
+    `;
+  }).join('');
+
+  if (!topSizes.includes(state.selectedSize)) {
+    grid.innerHTML += `
+      <div class="rounded-[18px] border border-amber-700/20 bg-amber-50 px-4 py-4 sm:col-span-2">
+        <p class="text-sm font-semibold text-black/75">${selectedRead.title}</p>
+        <p class="mt-2 text-sm leading-6 text-black/58">${selectedRead.copy}</p>
+      </div>
+    `;
+  }
+}
+
 function renderSummary() {
   const product = selectedProduct();
   const summary = document.getElementById('selected-product-summary');
   const rec = recommendSize(product);
+  const assetState = productAssetState(product);
+  const assetChip = assetState === 'loaded'
+    ? '<span class="rounded-full border border-emerald-700/20 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-800">PNG Ready</span>'
+    : assetState === 'missing'
+      ? '<span class="rounded-full border border-amber-700/20 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-800">PNG Needed</span>'
+      : '<span class="rounded-full border border-sky-700/20 bg-sky-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-800">PNG Loading</span>';
 
   state.selectedSize = state.selectedSize && product.sizes.includes(state.selectedSize) ? state.selectedSize : rec.size;
   document.getElementById('recommended-size').textContent = state.selectedSize;
   document.getElementById('fit-confidence').textContent = rec.label;
-  document.getElementById('fit-explainer').textContent = `For ${product.name}, your ${state.measurements.chest}" chest and ${state.measurements.waist}" waist point to ${rec.size} with a ${state.ui.fitMode} fit preference.`;
+  document.getElementById('fit-explainer').textContent = `For ${product.name}, your ${state.measurements.chest}" chest and ${state.measurements.waist}" waist suggest ${rec.size} as the best body fit, with ${state.selectedSize} currently selected for preview.`;
 
   summary.innerHTML = `
     <div class="grid gap-5 sm:grid-cols-[124px_minmax(0,1fr)]">
@@ -592,6 +1062,7 @@ function renderSummary() {
           <p class="text-xs uppercase tracking-[0.22em] text-black/40">${productTypeLabel(product)} / ${product.line}</p>
           <span class="rounded-full border border-black/10 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/65">${product.color}</span>
           <span class="rounded-full bg-black px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">$${product.price}</span>
+          ${assetChip}
         </div>
         <h3 class="mt-3 text-[1.65rem] font-semibold leading-tight">${product.name}</h3>
         <p class="mt-2 text-sm text-black/55">${productStructureLabel(product)}</p>
@@ -600,6 +1071,7 @@ function renderSummary() {
           <span class="rounded-full border border-black/10 bg-black/[0.03] px-3 py-2">${product.activity}</span>
         </div>
         <p class="mt-4 text-sm leading-7 text-black/60">${product.description}</p>
+        <p class="mt-3 rounded-[18px] border border-black/10 bg-black/[0.03] px-4 py-3 text-sm leading-7 text-black/62">${productAssetMessage(product)}</p>
       </div>
     </div>
     <div class="soft-rule my-5"></div>
@@ -612,6 +1084,7 @@ function renderSummary() {
   `;
 
   renderInsights(product);
+  renderSizeClarity(product);
 }
 
 function renderSizes() {
@@ -740,6 +1213,8 @@ function updateDisplays() {
 
   document.getElementById('toggle-guides-btn')?.classList.toggle('active', state.ui.guides);
   document.getElementById('toggle-guides-btn')?.replaceChildren(document.createTextNode(state.ui.guides ? 'Guides On' : 'Guides Off'));
+  document.getElementById('toggle-clarity-btn')?.classList.toggle('active', state.ui.fitClarity);
+  document.getElementById('toggle-clarity-btn')?.replaceChildren(document.createTextNode(state.ui.fitClarity ? 'Fit Clarity' : 'Clarity Off'));
   document.getElementById('mirror-photo-btn')?.classList.toggle('active', state.ui.mirrorPhoto);
   document.getElementById('mirror-photo-btn')?.replaceChildren(document.createTextNode(state.ui.mirrorPhoto ? 'Mirrored' : 'Mirror Photo'));
   document.getElementById('toggle-avatar-btn')?.classList.toggle('active', state.ui.showAvatar);
@@ -755,20 +1230,29 @@ function updateDisplays() {
 
   const photoStatus = document.getElementById('photo-status');
   if (photoStatus) {
+    const product = selectedProduct();
     photoStatus.textContent = state.photoDataUrl
-      ? `${state.photoName || 'Photo ready'} is loaded. Your product opens in full overlay first, and you can switch to Split Compare whenever you want a side-by-side fit check.`
+      ? `${state.photoName || 'Photo ready'} is loaded. ${state.pose.message || 'Your product opens in full overlay first, and you can switch to Split Compare whenever you want a side-by-side fit check.'} ${product ? productAssetMessage(product) : ''}`
       : 'No picture loaded yet. Add one to unlock the clearest personal 3D fitting view.';
   }
 
   const stageGuidance = document.getElementById('stage-guidance');
   if (stageGuidance) {
-    stageGuidance.textContent = !state.photoDataUrl
-      ? 'Add your picture for the clearest 3D fit check.'
-      : state.ui.viewMode === 'split'
-        ? '3D Split Compare makes shoulder and length checks easier.'
-        : state.ui.viewMode === 'garment'
-          ? '3D Garment Focus lets you inspect shape without distractions.'
-          : '3D Overlay gives the most natural layered preview.';
+    if (!state.photoDataUrl) {
+      stageGuidance.textContent = 'Add your picture for the clearest 3D fit check.';
+    } else if (state.pose.status === 'scanning') {
+      stageGuidance.textContent = 'Scanning your photo for a body-aware fit...';
+    } else if (state.ui.fitClarity && productAssetState(selectedProduct()) === 'loaded') {
+      stageGuidance.textContent = 'Fit Clarity is showing shoulder, waist, and hem guides for the exact PNG garment.';
+    } else if (state.pose.detected) {
+      stageGuidance.textContent = 'Body-aware fit is active for this photo.';
+    } else if (state.ui.viewMode === 'split') {
+      stageGuidance.textContent = '3D Split Compare makes shoulder and length checks easier.';
+    } else if (state.ui.viewMode === 'garment') {
+      stageGuidance.textContent = '3D Garment Focus lets you inspect shape without distractions.';
+    } else {
+      stageGuidance.textContent = '3D Overlay gives the most natural layered preview.';
+    }
   }
 
   const statusPill = document.getElementById('stage-status-pill');
@@ -812,6 +1296,7 @@ function updateTryOn() {
   const product = selectedProduct();
   renderAvatar();
   renderGarment();
+  renderFitGuideOverlay(product);
   renderSummary();
   renderSizes();
   renderProducts();
@@ -820,6 +1305,79 @@ function updateTryOn() {
   updateDisplays();
   updatePhoto();
   renderScene3D();
+}
+
+async function ensurePhotoReady() {
+  const photo = document.getElementById('uploaded-photo');
+  if (!photo || !state.photoDataUrl) return null;
+
+  if (photo.complete && photo.naturalWidth) {
+    return photo;
+  }
+
+  return new Promise(resolve => {
+    const handleReady = () => {
+      photo.removeEventListener('load', handleReady);
+      photo.removeEventListener('error', handleReady);
+      resolve(photo);
+    };
+
+    photo.addEventListener('load', handleReady, { once: true });
+    photo.addEventListener('error', handleReady, { once: true });
+  });
+}
+
+async function analyzePhotoPose() {
+  if (!state.photoDataUrl) {
+    resetPoseState();
+    updateTryOn();
+    return;
+  }
+
+  const analyzer = await waitForPoseAnalyzer();
+  if (!analyzer) {
+    state.pose.status = 'unavailable';
+    state.pose.detected = false;
+    state.pose.message = 'Body-aware scan could not start, so the preview is using fallback fit.';
+    updateTryOn();
+    return;
+  }
+
+  state.pose.status = 'scanning';
+  state.pose.detected = false;
+  state.pose.message = 'Scanning shoulders and torso for a better wear preview...';
+  updateTryOn();
+
+  const photo = await ensurePhotoReady();
+  if (!photo || !state.photoDataUrl) return;
+
+  try {
+    const result = await analyzer(photo);
+
+    if (result?.ok) {
+      state.pose.status = 'ready';
+      state.pose.detected = true;
+      state.pose.message = 'Body scan ready. The garment will snap closer to your shoulders and torso.';
+      state.pose.landmarks = result.landmarks;
+      state.pose.body = result.body;
+      state.overlay = smartOverlayValues(selectedProduct());
+      syncOverlayInputs();
+    } else {
+      state.pose.status = 'missed';
+      state.pose.detected = false;
+      state.pose.message = result?.reason || 'The body scan could not find a clear pose in this photo.';
+      state.pose.landmarks = null;
+      state.pose.body = null;
+    }
+  } catch (error) {
+    state.pose.status = 'error';
+    state.pose.detected = false;
+    state.pose.message = 'Body-aware scan failed, so the preview is using the fallback fit.';
+    state.pose.landmarks = null;
+    state.pose.body = null;
+  }
+
+  updateTryOn();
 }
 
 function selectProductForTryOn(productId) {
@@ -855,9 +1413,12 @@ function readPhoto(event) {
     state.ui.overlayPreset = 'balanced';
     state.ui.viewMode = 'overlay';
     state.ui.showAvatar = false;
+    resetPoseState('Scanning your photo for shoulders and torso...');
     state.overlay = smartOverlayValues(selectedProduct());
     syncOverlayInputs();
+    updateTryOn();
     applyOrbitPreset('front');
+    void analyzePhotoPose();
   };
   reader.readAsDataURL(file);
 }
@@ -877,11 +1438,14 @@ function handlePhotoDrop(event) {
     state.ui.overlayPreset = 'balanced';
     state.ui.viewMode = 'overlay';
     state.ui.showAvatar = false;
+    resetPoseState('Scanning your photo for shoulders and torso...');
     state.overlay = smartOverlayValues(selectedProduct());
     const upload = document.getElementById('photo-upload');
     if (upload) upload.value = '';
     syncOverlayInputs();
+    updateTryOn();
     applyOrbitPreset('front');
+    void analyzePhotoPose();
   };
   reader.readAsDataURL(file);
 }
@@ -1135,6 +1699,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('remove-photo-btn')?.addEventListener('click', () => {
     state.photoDataUrl = '';
     state.photoName = '';
+    resetPoseState();
     state.ui.viewMode = 'overlay';
     state.ui.showAvatar = true;
     if (upload) upload.value = '';
@@ -1156,6 +1721,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('auto-fit-btn')?.addEventListener('click', autoFitOverlay);
   document.getElementById('toggle-guides-btn')?.addEventListener('click', () => {
     state.ui.guides = !state.ui.guides;
+    updateTryOn();
+  });
+  document.getElementById('toggle-clarity-btn')?.addEventListener('click', () => {
+    state.ui.fitClarity = !state.ui.fitClarity;
     updateTryOn();
   });
   document.getElementById('mirror-photo-btn')?.addEventListener('click', () => {
