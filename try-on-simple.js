@@ -48,9 +48,63 @@ const ORBIT_PRESETS = {
 };
 
 const garmentAssetState = {};
+const STORAGE_KEYS = {
+  assets: 'tryon.customAssets.v1',
+  placements: 'tryon.customPlacements.v1'
+};
+const customAssetLibrary = readStoredMap(STORAGE_KEYS.assets);
+const customPlacementLibrary = readStoredMap(STORAGE_KEYS.placements);
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function readStoredMap(key) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function persistStoredMap(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    // Ignore storage failures so the studio still works in-memory.
+  }
+}
+
+function productStorageKey(product) {
+  if (!product) return '';
+  return product.slug || String(product.id || '');
+}
+
+function productCustomAsset(product) {
+  return customAssetLibrary[productStorageKey(product)] || '';
+}
+
+function resolvedOverlayAsset(product) {
+  return productCustomAsset(product) || product?.overlayAsset || '';
+}
+
+function hasSavedPlacement(product) {
+  return !!customPlacementLibrary[productStorageKey(product)];
+}
+
+function overlayPlacementForProduct(product, { includeCustom = true } = {}) {
+  const customPlacement = includeCustom ? (customPlacementLibrary[productStorageKey(product)] || {}) : {};
+  return {
+    scaleAdjust: 0,
+    xAdjust: 0,
+    yAdjust: 0,
+    rotateAdjust: 0,
+    ...(product?.overlayPlacement || {}),
+    ...customPlacement
+  };
 }
 
 function resetPoseState(message = 'Upload a clear portrait to scan shoulders and torso.') {
@@ -116,14 +170,24 @@ async function waitForPoseAnalyzer(timeoutMs = 5000) {
 }
 
 function productAssetState(product) {
-  if (!product?.overlayAsset) return 'missing';
+  const asset = resolvedOverlayAsset(product);
+  if (!asset) return 'missing';
   return garmentAssetState[product.id] || 'pending';
 }
 
 function productAssetMessage(product) {
+  const hasCustomAsset = !!productCustomAsset(product);
   const assetState = productAssetState(product);
-  if (assetState === 'loaded') return `Exact ${product.name} PNG is active on your photo.`;
-  if (assetState === 'missing') return `${product.name} still needs a transparent PNG asset, so the app is showing the smart preview instead of the real selected garment.`;
+  if (assetState === 'loaded') {
+    return hasCustomAsset
+      ? `Your saved transparent PNG for ${product.name} is active on this photo${hasSavedPlacement(product) ? ', with saved fit tuning for this garment.' : '.'}`
+      : `Exact ${product.name} PNG is active on your photo.`;
+  }
+  if (assetState === 'missing') {
+    return hasCustomAsset
+      ? `The saved PNG for ${product.name} could not load, so the app is falling back to the smart preview.`
+      : `${product.name} still needs a transparent PNG asset, so the app is showing the smart preview instead of the real selected garment.`;
+  }
   return `Loading the exact ${product.name} PNG asset for this try-on.`;
 }
 
@@ -375,7 +439,7 @@ function applyOrbitPreset(preset) {
   updateTryOn();
 }
 
-function smartOverlayValues(product) {
+function smartOverlayValues(product, options = {}) {
   const type = productType(product);
   const heightFactor = (state.measurements.height - 66) * 0.9;
   const chestFactor = (state.measurements.chest - 36) * 0.6;
@@ -397,7 +461,7 @@ function smartOverlayValues(product) {
   const base = baseByType[type] || baseByType.top;
   const fitScale = state.ui.fitMode === 'relaxed' ? 3 : state.ui.fitMode === 'fitted' ? -2 : 0;
   const bodyShift = state.measurements.bodyType === 'curvy' ? 4 : state.measurements.bodyType === 'slim' ? -2 : 0;
-  const placement = product.overlayPlacement || {};
+  const placement = options.placement || overlayPlacementForProduct(product, { includeCustom: options.includeCustomPlacement !== false });
 
   const fallback = {
     scale: clamp(Math.round(base.scale + fitScale + chestFactor + photoOffset + presetFactor.scale + (placement.scaleAdjust || 0)), 70, 145),
@@ -537,6 +601,60 @@ function renderFitCheckPanel(product) {
       </div>
     `)
     .join('');
+}
+
+function renderAssetPanel(product) {
+  const headline = document.getElementById('asset-panel-headline');
+  const chip = document.getElementById('asset-origin-chip');
+  const copy = document.getElementById('asset-status-copy');
+  const previewImage = document.getElementById('asset-preview-image');
+  const previewEmpty = document.getElementById('asset-preview-empty');
+  const removeButton = document.getElementById('remove-asset-btn');
+  const clearFitButton = document.getElementById('clear-fit-default-btn');
+  if (!headline || !chip || !copy || !previewImage || !previewEmpty || !product) return;
+
+  const customAsset = productCustomAsset(product);
+  const resolvedAsset = resolvedOverlayAsset(product);
+  const assetState = productAssetState(product);
+  const sourceLabel = customAsset ? 'Browser Saved' : assetState === 'loaded' ? 'Project PNG' : 'PNG Needed';
+  chip.className = `rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+    customAsset
+      ? 'border border-emerald-700/20 bg-emerald-50 text-emerald-800'
+      : assetState === 'loaded'
+        ? 'border border-sky-700/20 bg-sky-50 text-sky-800'
+        : 'border border-amber-700/20 bg-amber-50 text-amber-800'
+  }`;
+
+  headline.textContent = customAsset
+    ? `This garment has its own saved transparent PNG and will use that exact cutout in the try-on stage.`
+    : `Upload a transparent front-view PNG for ${product.name} to replace the fallback preview with the exact garment.`;
+  chip.textContent = sourceLabel;
+  copy.textContent = customAsset
+    ? `${product.name} is using a browser-saved PNG asset${hasSavedPlacement(product) ? ' with saved fit tuning.' : '.'}`
+    : assetState === 'loaded'
+      ? `${product.name} is using a project PNG asset from the repo.`
+      : `No exact PNG is saved for ${product.name} yet. Upload the isolated garment cutout, then use Auto Fit and Save Current Fit for this product.`;
+
+  const showPreview = !!resolvedAsset && (assetState === 'loaded' || !!customAsset);
+  previewImage.classList.toggle('hidden', !showPreview);
+  previewEmpty.classList.toggle('hidden', showPreview);
+  if (showPreview) {
+    previewImage.src = resolvedAsset;
+  } else {
+    previewImage.src = '';
+  }
+
+  if (removeButton) {
+    removeButton.disabled = !customAsset;
+    removeButton.classList.toggle('opacity-50', !customAsset);
+    removeButton.classList.toggle('cursor-not-allowed', !customAsset);
+  }
+
+  if (clearFitButton) {
+    clearFitButton.disabled = !hasSavedPlacement(product);
+    clearFitButton.classList.toggle('opacity-50', !hasSavedPlacement(product));
+    clearFitButton.classList.toggle('cursor-not-allowed', !hasSavedPlacement(product));
+  }
 }
 
 function renderAvatar() {
@@ -791,6 +909,73 @@ function garmentSvg(product) {
   return shapes;
 }
 
+function exactAssetClipPath(product) {
+  const type = productType(product);
+  if (!state.photoDataUrl) return 'none';
+
+  const genericShape = {
+    top: 'polygon(15% 5%, 34% 4%, 42% 10%, 58% 10%, 66% 4%, 85% 5%, 92% 32%, 88% 96%, 12% 96%, 8% 32%)',
+    layer: 'polygon(12% 4%, 34% 3%, 43% 9%, 57% 9%, 66% 3%, 88% 4%, 94% 34%, 89% 98%, 11% 98%, 6% 34%)',
+    dress: 'polygon(14% 5%, 34% 4%, 42% 10%, 58% 10%, 66% 4%, 86% 5%, 93% 26%, 96% 96%, 4% 96%, 7% 26%)',
+    full: 'polygon(14% 5%, 34% 4%, 42% 10%, 58% 10%, 66% 4%, 86% 5%, 93% 24%, 97% 98%, 3% 98%, 7% 24%)',
+    bottom: 'polygon(22% 12%, 78% 12%, 88% 96%, 12% 96%)'
+  };
+
+  if (!state.pose.detected || !state.pose.landmarks) {
+    return genericShape[type] || 'none';
+  }
+
+  const metrics = photoLayoutMetrics();
+  if (!metrics) return genericShape[type] || 'none';
+
+  const leftShoulder = posePointToViewport(state.pose.landmarks.leftShoulder, metrics);
+  const rightShoulder = posePointToViewport(state.pose.landmarks.rightShoulder, metrics);
+  const leftHip = posePointToViewport(state.pose.landmarks.leftHip, metrics);
+  const rightHip = posePointToViewport(state.pose.landmarks.rightHip, metrics);
+  const shoulderSpan = Math.abs(rightShoulder.x - leftShoulder.x);
+  const shoulderTop = Math.min(leftShoulder.y, rightShoulder.y);
+  const hipsMidY = (leftHip.y + rightHip.y) / 2;
+  const typeBottom = type === 'full'
+    ? Math.min(metrics.viewportHeight - 18, hipsMidY + shoulderSpan * 2.2)
+    : type === 'dress'
+      ? Math.min(metrics.viewportHeight - 28, hipsMidY + shoulderSpan * 1.55)
+      : type === 'layer'
+        ? Math.min(metrics.viewportHeight - 36, hipsMidY + shoulderSpan * 0.78)
+        : type === 'bottom'
+          ? Math.min(metrics.viewportHeight - 18, hipsMidY + shoulderSpan * 1.9)
+          : Math.min(metrics.viewportHeight - 48, hipsMidY + shoulderSpan * 0.55);
+
+  const left = clamp(((Math.min(leftShoulder.x, leftHip.x) - shoulderSpan * 0.32) / metrics.viewportWidth) * 100, 4, 32);
+  const right = clamp(((Math.max(rightShoulder.x, rightHip.x) + shoulderSpan * 0.32) / metrics.viewportWidth) * 100, 68, 96);
+  const neckLeft = clamp((((leftShoulder.x + shoulderSpan * 0.12) / metrics.viewportWidth) * 100), left + 6, 45);
+  const neckRight = clamp((((rightShoulder.x - shoulderSpan * 0.12) / metrics.viewportWidth) * 100), 55, right - 6);
+  const top = clamp((((shoulderTop - shoulderSpan * 0.18) / metrics.viewportHeight) * 100), 3, 20);
+  const underArm = clamp((((shoulderTop + shoulderSpan * 0.52) / metrics.viewportHeight) * 100), top + 12, 48);
+  const waist = clamp((((hipsMidY + shoulderSpan * 0.16) / metrics.viewportHeight) * 100), underArm + 10, 76);
+  const bottom = clamp(((typeBottom / metrics.viewportHeight) * 100), waist + 12, 98);
+
+  if (type === 'bottom') {
+    return `polygon(${left + 8}% ${top + 8}%, ${right - 8}% ${top + 8}%, ${right}% ${bottom}%, ${left}% ${bottom}%)`;
+  }
+
+  return `polygon(${left}% ${top + 2}%, ${neckLeft}% ${top}%, 50% ${top + 7}%, ${neckRight}% ${top}%, ${right}% ${top + 2}%, ${right + 2}% ${underArm}%, ${right - 1}% ${waist}%, ${right}% ${bottom}%, ${left}% ${bottom}%, ${left + 1}% ${waist}%, ${left - 2}% ${underArm}%)`;
+}
+
+function exactAssetVisualProfile(product) {
+  const type = productType(product);
+  const useClarity = state.ui.fitClarity && state.photoDataUrl;
+
+  return {
+    clipPath: useClarity ? exactAssetClipPath(product) : 'none',
+    filter: type === 'layer'
+      ? 'drop-shadow(0 18px 24px rgba(17,17,17,.18)) contrast(1.04) saturate(1.03)'
+      : type === 'dress' || type === 'full'
+        ? 'drop-shadow(0 16px 22px rgba(17,17,17,.16)) contrast(1.03) saturate(1.02)'
+        : 'drop-shadow(0 14px 18px rgba(17,17,17,.14)) contrast(1.03) saturate(1.02)',
+    opacity: useClarity ? '0.98' : '1'
+  };
+}
+
 function renderGarment() {
   const svg = document.getElementById('garment-svg');
   const image = document.getElementById('garment-image');
@@ -821,7 +1006,7 @@ function renderGarment() {
     image.dataset.bound = 'true';
   }
 
-  const asset = product.overlayAsset || '';
+  const asset = resolvedOverlayAsset(product);
   const assetState = productAssetState(product);
 
   if (asset && image.dataset.asset !== asset && assetState !== 'missing') {
@@ -834,13 +1019,20 @@ function renderGarment() {
   const useExactAsset = !!asset && productAssetState(product) === 'loaded';
 
   if (useExactAsset) {
+    const profile = exactAssetVisualProfile(product);
     image.classList.remove('hidden');
     image.classList.add('exact');
+    image.style.clipPath = profile.clipPath;
+    image.style.filter = profile.filter;
+    image.style.opacity = profile.opacity;
     svg.classList.add('hidden');
     svg.innerHTML = '';
   } else {
     image.classList.add('hidden');
     image.classList.remove('exact');
+    image.style.clipPath = 'none';
+    image.style.filter = '';
+    image.style.opacity = '1';
     svg.classList.remove('hidden');
     svg.innerHTML = garmentSvg(product);
   }
@@ -1043,8 +1235,9 @@ function renderSummary() {
   const summary = document.getElementById('selected-product-summary');
   const rec = recommendSize(product);
   const assetState = productAssetState(product);
+  const customAsset = !!productCustomAsset(product);
   const assetChip = assetState === 'loaded'
-    ? '<span class="rounded-full border border-emerald-700/20 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-800">PNG Ready</span>'
+    ? `<span class="rounded-full border border-emerald-700/20 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-800">${customAsset ? 'Browser PNG' : 'PNG Ready'}</span>`
     : assetState === 'missing'
       ? '<span class="rounded-full border border-amber-700/20 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-800">PNG Needed</span>'
       : '<span class="rounded-full border border-sky-700/20 bg-sky-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-800">PNG Loading</span>';
@@ -1085,6 +1278,7 @@ function renderSummary() {
 
   renderInsights(product);
   renderSizeClarity(product);
+  renderAssetPanel(product);
 }
 
 function renderSizes() {
@@ -1099,8 +1293,7 @@ function renderSizes() {
     btn.textContent = size;
     btn.addEventListener('click', () => {
       state.selectedSize = size;
-      renderSizes();
-      document.getElementById('recommended-size').textContent = size;
+      updateTryOn();
     });
     el.appendChild(btn);
   });
@@ -1132,6 +1325,7 @@ function renderProducts() {
   }
 
   visibleProducts.forEach(product => {
+    const assetState = productAssetState(product);
     const card = document.createElement('button');
     card.type = 'button';
     card.className = `product-card rounded-[26px] border border-black/10 bg-white/78 p-4 text-left shadow-[0_16px_34px_rgba(17,17,17,.05)] ${product.id === state.selectedProductId ? 'active' : ''}`;
@@ -1150,6 +1344,7 @@ function renderProducts() {
           <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-black/45">
             <span class="rounded-full border border-black/10 bg-white px-3 py-1.5">${product.color}</span>
             <span class="rounded-full border border-black/10 bg-white px-3 py-1.5">${product.supportLevel}</span>
+            <span class="rounded-full border ${assetState === 'loaded' ? 'border-emerald-700/20 bg-emerald-50 text-emerald-800' : 'border-black/10 bg-white text-black/55'} px-3 py-1.5">${assetState === 'loaded' ? 'Exact PNG' : 'Preview Shape'}</span>
           </div>
         </div>
         <span class="rounded-full bg-black px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">$${product.price}</span>
@@ -1242,6 +1437,8 @@ function updateDisplays() {
       stageGuidance.textContent = 'Add your picture for the clearest 3D fit check.';
     } else if (state.pose.status === 'scanning') {
       stageGuidance.textContent = 'Scanning your photo for a body-aware fit...';
+    } else if (productCustomAsset(selectedProduct()) && state.ui.fitClarity) {
+      stageGuidance.textContent = 'Your saved exact PNG is active with fit clarity and body-aware placement.';
     } else if (state.ui.fitClarity && productAssetState(selectedProduct()) === 'loaded') {
       stageGuidance.textContent = 'Fit Clarity is showing shoulder, waist, and hem guides for the exact PNG garment.';
     } else if (state.pose.detected) {
@@ -1400,6 +1597,63 @@ function selectProductForTryOn(productId) {
   state.overlay = smartOverlayValues(product);
   syncOverlayInputs();
   updateTryOn();
+}
+
+function saveCurrentFitDefault() {
+  const product = selectedProduct();
+  if (!product) return;
+
+  const basePlacement = overlayPlacementForProduct(product, { includeCustom: false });
+  const baseOverlay = smartOverlayValues(product, { placement: basePlacement });
+  customPlacementLibrary[productStorageKey(product)] = {
+    scaleAdjust: clamp(Math.round((basePlacement.scaleAdjust || 0) + (state.overlay.scale - baseOverlay.scale)), -45, 45),
+    xAdjust: clamp(Math.round((basePlacement.xAdjust || 0) + (state.overlay.x - baseOverlay.x)), -120, 120),
+    yAdjust: clamp(Math.round((basePlacement.yAdjust || 0) + (state.overlay.y - baseOverlay.y)), -120, 120),
+    rotateAdjust: clamp(Math.round((basePlacement.rotateAdjust || 0) + (state.overlay.rotate - baseOverlay.rotate)), -25, 25)
+  };
+  persistStoredMap(STORAGE_KEYS.placements, customPlacementLibrary);
+  state.overlay = smartOverlayValues(product);
+  syncOverlayInputs();
+  updateTryOn();
+}
+
+function clearCurrentFitDefault() {
+  const product = selectedProduct();
+  if (!product) return;
+
+  delete customPlacementLibrary[productStorageKey(product)];
+  persistStoredMap(STORAGE_KEYS.placements, customPlacementLibrary);
+  autoFitOverlay();
+}
+
+function removeCurrentAsset() {
+  const product = selectedProduct();
+  if (!product) return;
+
+  delete customAssetLibrary[productStorageKey(product)];
+  persistStoredMap(STORAGE_KEYS.assets, customAssetLibrary);
+  delete garmentAssetState[product.id];
+  updateTryOn();
+}
+
+function readExactAsset(event) {
+  const product = selectedProduct();
+  const [file] = event.target.files || [];
+  if (!product || !file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    customAssetLibrary[productStorageKey(product)] = reader.result;
+    persistStoredMap(STORAGE_KEYS.assets, customAssetLibrary);
+    delete garmentAssetState[product.id];
+    state.ui.fitClarity = true;
+    state.ui.viewMode = 'overlay';
+    state.overlay = smartOverlayValues(product);
+    syncOverlayInputs();
+    updateTryOn();
+    event.target.value = '';
+  };
+  reader.readAsDataURL(file);
 }
 
 function readPhoto(event) {
@@ -1685,6 +1939,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const upload = document.getElementById('photo-upload');
   if (upload) upload.addEventListener('change', readPhoto);
+  document.getElementById('asset-upload-input')?.addEventListener('change', readExactAsset);
 
   const dropzone = document.querySelector('label[for="photo-upload"]');
   dropzone?.addEventListener('dragover', event => {
@@ -1738,6 +1993,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('center-overlay-btn')?.addEventListener('click', centerOverlay);
 
   document.getElementById('reset-overlay-btn')?.addEventListener('click', resetOverlay);
+  document.getElementById('save-fit-default-btn')?.addEventListener('click', saveCurrentFitDefault);
+  document.getElementById('clear-fit-default-btn')?.addEventListener('click', clearCurrentFitDefault);
+  document.getElementById('remove-asset-btn')?.addEventListener('click', removeCurrentAsset);
   document.getElementById('browse-collection-btn')?.addEventListener('click', () => {
     window.location.href = 'collections.html';
   });

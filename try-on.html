@@ -474,7 +474,37 @@
             </div>
           </div>
           <div class="mt-6 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
-            <div class="summary-shell p-5"><p class="text-xs uppercase tracking-[0.25em] text-black/40">Selected Look</p><div id="selected-product-summary" class="mt-3 space-y-2"><p class="text-lg font-semibold">Loading product...</p></div></div>
+            <div class="summary-shell p-5">
+              <p class="text-xs uppercase tracking-[0.25em] text-black/40">Selected Look</p>
+              <div id="selected-product-summary" class="mt-3 space-y-2"><p class="text-lg font-semibold">Loading product...</p></div>
+              <div class="soft-rule my-5"></div>
+              <div id="exact-asset-panel" class="rounded-[24px] border border-black/10 bg-white/72 p-4">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.22em] text-black/40">Exact Garment PNG</p>
+                    <p id="asset-panel-headline" class="mt-2 text-sm font-semibold text-black/75">Upload a transparent front-view garment PNG for this selected product.</p>
+                  </div>
+                  <span id="asset-origin-chip" class="rounded-full border border-black/10 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/60">PNG Needed</span>
+                </div>
+                <div class="mt-4 grid gap-4 sm:grid-cols-[110px_minmax(0,1fr)] sm:items-start">
+                  <div class="relative overflow-hidden rounded-[20px] border border-black/10 bg-[#f4efe8] aspect-[3/4]">
+                    <img id="asset-preview-image" alt="Exact garment PNG preview" class="hidden h-full w-full object-contain p-3">
+                    <div id="asset-preview-empty" class="flex h-full items-center justify-center px-4 text-center text-xs leading-6 text-black/45">No exact PNG is saved for this garment yet.</div>
+                  </div>
+                  <div>
+                    <p id="asset-status-copy" class="text-sm leading-7 text-black/60">Upload the isolated garment as a transparent PNG to replace the fallback try-on shape for this selected product.</p>
+                    <p class="mt-3 text-xs uppercase tracking-[0.18em] text-black/40">Saved only in this browser for now.</p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <label for="asset-upload-input" class="cursor-pointer rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">Upload Exact PNG</label>
+                      <button id="save-fit-default-btn" type="button" class="rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">Save Current Fit</button>
+                      <button id="clear-fit-default-btn" type="button" class="rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">Clear Saved Fit</button>
+                      <button id="remove-asset-btn" type="button" class="rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] hover:bg-black hover:text-white">Remove PNG</button>
+                    </div>
+                    <input id="asset-upload-input" type="file" accept="image/png,image/webp,image/svg+xml" class="hidden">
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="size-shell p-5">
               <p class="text-xs uppercase tracking-[0.25em] text-black/40">Recommended Size</p>
               <div class="mt-3 flex items-end gap-3"><span id="recommended-size" class="serif text-4xl font-bold">M</span><span id="fit-confidence" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-black/55">Balanced fit</span></div>
@@ -538,6 +568,6 @@
   <script src="products.js?v=catalog-3"></script>  
   <script src="cart-enhanced.js"></script>
   <script type="module" src="try-on-pose.js?v=pose-fit-2"></script>
-  <script src="try-on-simple.js?v=tryon-3d-3"></script>
+  <script src="try-on-simple.js?v=tryon-asset-1"></script>
 </body>
 </html>
