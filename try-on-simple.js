@@ -71,8 +71,9 @@ function tryOnCategoryMatches(product) {
 function productType(product) {
   if (!product) return 'top';
   const sub = product.subcategory;
+  if (sub === 'jackets') return 'layer';
   if (sub === 'leggings' || sub === 'shorts' || sub === 'skort' || sub === 'pants' || sub === 'trousers') return 'bottom';
-  if (sub === 'sports-bra' || sub === 'tops' || sub === 'jackets' || sub === 't-shirts') return 'top';
+  if (sub === 'sports-bra' || sub === 'tops' || sub === 't-shirts') return 'top';
   if (sub === 'shalwar-kameez' || sub === 'gown') return 'full';
   if (sub === 'kurta' || sub === 'shirt') return 'dress';
   return 'top';
@@ -209,6 +210,7 @@ function smartOverlayValues(product) {
 
   const baseByType = {
     top: { scale: 96, y: -8 },
+    layer: { scale: 108, y: -4 },
     bottom: { scale: 104, y: 58 },
     dress: { scale: 108, y: 18 },
     full: { scale: 114, y: 26 }
@@ -257,6 +259,8 @@ function stylingNotes(product) {
 
   if (type === 'top') {
     notes.push('Keep the hem close to the natural waist so the shoulders feel sharper and the drape looks cleaner.');
+  } else if (type === 'layer') {
+    notes.push('For light shells and hooded layers, settle the shoulder width first so the outer layer reads like it is sitting over your base look.');
   } else if (type === 'bottom') {
     notes.push('Match the waistband to your hip line first, then fine tune the leg fall with scale instead of drag alone.');
   } else if (type === 'dress') {
@@ -420,6 +424,19 @@ function garmentSvg(product) {
     `;
   }
 
+  if (type === 'layer') {
+    shapes += `
+      <path d="M ${c - shoulder / 2 - 6} ${top + 4} C ${c - shoulder / 2 - 20} ${top + 40}, ${c - waistWidth / 2 - 18} ${top + 110}, ${c - waistWidth / 2 - 8} ${top + length} L ${c + waistWidth / 2 + 8} ${top + length} C ${c + waistWidth / 2 + 18} ${top + 110}, ${c + shoulder / 2 + 20} ${top + 40}, ${c + shoulder / 2 + 6} ${top + 4} L ${c + shoulder / 2 - 10} ${top - 18} Q ${c + 26} ${top - 26} ${c + 2} ${top + 8} L ${c - 2} ${top + 8} Q ${c - 26} ${top - 26} ${c - shoulder / 2 + 10} ${top - 18} Z" fill="url(#fill)"/>
+      <path d="M ${c - 2} ${top + 10} L ${c - 2} ${top + length - 16}" stroke="rgba(255,255,255,.46)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M ${c - shoulder / 2 + 2} ${top + 28} C ${c - shoulder / 2 - 34} ${top + 88}, ${c - shoulder / 2 - 32} ${top + 152}, ${c - shoulder / 2 + 4} ${top + 212}" fill="none" stroke="${colors.shadow}" stroke-width="22" stroke-linecap="round" stroke-opacity=".92"/>
+      <path d="M ${c + shoulder / 2 - 2} ${top + 28} C ${c + shoulder / 2 + 34} ${top + 88}, ${c + shoulder / 2 + 32} ${top + 152}, ${c + shoulder / 2 - 4} ${top + 212}" fill="none" stroke="${colors.shadow}" stroke-width="22" stroke-linecap="round" stroke-opacity=".92"/>
+      <path d="M ${c - 54} ${top + 108} Q ${c - 74} ${top + 132} ${c - 46} ${top + 148}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M ${c + 54} ${top + 108} Q ${c + 74} ${top + 132} ${c + 46} ${top + 148}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M ${c - 30} ${top - 8} Q ${c} ${top - 42} ${c + 30} ${top - 8}" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M ${c - shoulder / 2 + 20} ${top + length - 12} L ${c + shoulder / 2 - 20} ${top + length - 12}" stroke="rgba(255,255,255,.28)" stroke-width="4" stroke-linecap="round"/>
+    `;
+  }
+
   if (type === 'bottom') {
     shapes += `
       <rect x="${c - hip / 2}" y="${top - 18}" width="${hip}" height="30" rx="14" fill="${colors.shadow}"/>
@@ -479,7 +496,7 @@ function renderGarment() {
     : 'none';
 
   if (shadow) {
-    const width = productType(product) === 'bottom' ? 34 : productType(product) === 'top' ? 38 : 48;
+    const width = productType(product) === 'bottom' ? 34 : productType(product) === 'top' ? 38 : productType(product) === 'layer' ? 44 : 48;
     const height = productType(product) === 'full' ? 11 : 9;
     shadow.style.width = `${width}%`;
     shadow.style.height = `${height}%`;
@@ -668,9 +685,7 @@ function renderProducts() {
       <p class="text-sm leading-6 text-black/58">${product.description.slice(0, 92)}${product.description.length > 92 ? '...' : ''}</p>
     `;
     card.addEventListener('click', () => {
-      state.selectedProductId = product.id;
-      state.selectedSize = '';
-      updateTryOn();
+      selectProductForTryOn(product.id);
     });
     grid.appendChild(card);
   });
@@ -741,7 +756,7 @@ function updateDisplays() {
   const photoStatus = document.getElementById('photo-status');
   if (photoStatus) {
     photoStatus.textContent = state.photoDataUrl
-      ? `${state.photoName || 'Photo ready'} is loaded. The 3D stage is active, Split Compare is ready, and Auto Fit can refine the drape any time.`
+      ? `${state.photoName || 'Photo ready'} is loaded. Your product opens in full overlay first, and you can switch to Split Compare whenever you want a side-by-side fit check.`
       : 'No picture loaded yet. Add one to unlock the clearest personal 3D fitting view.';
   }
 
@@ -807,6 +822,28 @@ function updateTryOn() {
   renderScene3D();
 }
 
+function selectProductForTryOn(productId) {
+  const product = getProductById(productId);
+  if (!product) return;
+
+  state.selectedProductId = product.id;
+  state.selectedSize = '';
+  state.ui.overlayPreset = 'balanced';
+
+  if (state.photoDataUrl) {
+    state.ui.viewMode = 'overlay';
+    state.ui.orbitPreset = 'front';
+    state.ui.sceneOrbit = ORBIT_PRESETS.front.orbit;
+    state.ui.sceneDepth = ORBIT_PRESETS.front.depth;
+    state.ui.sceneLift = ORBIT_PRESETS.front.lift;
+    syncSceneInputs();
+  }
+
+  state.overlay = smartOverlayValues(product);
+  syncOverlayInputs();
+  updateTryOn();
+}
+
 function readPhoto(event) {
   const [file] = event.target.files || [];
   if (!file) return;
@@ -816,11 +853,11 @@ function readPhoto(event) {
     state.photoDataUrl = reader.result;
     state.photoName = file.name;
     state.ui.overlayPreset = 'balanced';
-    state.ui.viewMode = 'split';
+    state.ui.viewMode = 'overlay';
     state.ui.showAvatar = false;
     state.overlay = smartOverlayValues(selectedProduct());
     syncOverlayInputs();
-    updateTryOn();
+    applyOrbitPreset('front');
   };
   reader.readAsDataURL(file);
 }
@@ -838,13 +875,13 @@ function handlePhotoDrop(event) {
     state.photoDataUrl = reader.result;
     state.photoName = file.name;
     state.ui.overlayPreset = 'balanced';
-    state.ui.viewMode = 'split';
+    state.ui.viewMode = 'overlay';
     state.ui.showAvatar = false;
     state.overlay = smartOverlayValues(selectedProduct());
     const upload = document.getElementById('photo-upload');
     if (upload) upload.value = '';
     syncOverlayInputs();
-    updateTryOn();
+    applyOrbitPreset('front');
   };
   reader.readAsDataURL(file);
 }
