@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Virtual Try-On</title>
+<style>
+  body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+  h1 { color: #333; }
+  .row { display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+  .box { flex: 1; min-width: 250px; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .box h3 { margin: 0 0 12px; color: #555; font-size: 14px; text-transform: uppercase; }
+  input[type=file] { width: 100%; padding: 10px; border: 2px dashed #ccc; border-radius: 8px; cursor: pointer; }
+  .preview { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none; }
+  button { width: 100%; padding: 16px; background: #222; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin: 20px 0; }
+  button:disabled { background: #999; cursor: not-allowed; }
+  #status { padding: 12px; border-radius: 8px; background: #e8f4fd; color: #1a6; font-weight: bold; display: none; margin: 10px 0; }
+  #status.error { background: #fde8e8; color: #c00; }
+  #result-img { width: 100%; border-radius: 12px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+<h1>🤗 Virtual Try-On</h1>
+<div class="box" style="margin-bottom:10px">
+  <h3>HuggingFace Token (required)</h3>
+  <input type="password" id="hf-token" placeholder="hf_xxxxxxxxxxxxxxxx" style="width:100%;padding:10px;border:2px solid #ccc;border-radius:8px;font-size:14px" oninput="localStorage.setItem('hf.token',this.value)">
+  <p style="margin:6px 0 0;font-size:12px;color:#888">Get free token at huggingface.co/settings/tokens</p>
+</div>
+<div class="row">
+  <div class="box">
+    <h3>Step 1 — Your Photo</h3>
+    <input type="file" id="person-input" accept="image/*">
+    <img id="person-preview" class="preview">
+  </div>
+  <div class="box">
+    <h3>Step 2 — Garment Photo</h3>
+    <input type="file" id="garment-input" accept="image/*">
+    <img id="garment-preview" class="preview">
+  </div>
+</div>
+<div id="status"></div>
+<button id="btn" onclick="generate()">Generate Try-On</button>
+<h3>Result:</h3>
+<img id="result-img" alt="Try-on result">
+
+<script>
+function readFile(input) {
+  return new Promise((resolve) => {
+    const file = input.files[0];
+    if (!file) return resolve(null);
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('person-input').onchange = function() {
+  readFile(this).then(d => { if(d) { const img = document.getElementById('person-preview'); img.src = d; img.style.display = 'block'; } });
+};
+document.getElementById('garment-input').onchange = function() {
+  readFile(this).then(d => { if(d) { const img = document.getElementById('garment-preview'); img.src = d; img.style.display = 'block'; } });
+};
+
+async function generate() {
+  const personData = await readFile(document.getElementById('person-input'));
+  const garmentData = await readFile(document.getElementById('garment-input'));
+
+  if (!personData) { alert('Please upload a person photo first.'); return; }
+  if (!garmentData) { alert('Please upload a garment photo first.'); return; }
+
+  const btn = document.getElementById('btn');
+  const status = document.getElementById('status');
+  const resultImg = document.getElementById('result-img');
+
+  btn.disabled = true;
+  btn.textContent = 'Generating... (30-60 seconds)';
+  status.style.display = 'block';
+  status.className = '';
+  status.textContent = '⏳ Sending to HuggingFace AI...';
+  resultImg.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/tryon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        personImage: personData,
+        garmentImage: garmentData,
+        hfToken: document.getElementById('hf-token').value.trim() || localStorage.getItem('hf.token') || ''
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.ok && data.result) {
+      resultImg.src = data.result;
+      resultImg.style.display = 'block';
+      status.textContent = '✅ Done! Scroll down to see the result.';
+    } else {
+      status.className = 'error';
+      status.textContent = '❌ Error: ' + (data.error || 'Unknown error');
+    }
+  } catch (e) {
+    status.className = 'error';
+    status.textContent = '❌ Could not connect to server. Make sure you opened this page from http://127.0.0.1:8000/simple-tryon.html';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Generate Try-On';
+}
+</script>
+</body>
+</html>

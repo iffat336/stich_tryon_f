@@ -13,18 +13,39 @@
         }
         body {
             font-family: 'Manrope', sans-serif;
-            background: linear-gradient(135deg, #f8f5ef 0%, #e8ecec 48%, #d8d0c3 100%);
+            background: radial-gradient(circle at 78% 12%, rgba(89,104,79,.18), transparent 24rem), radial-gradient(circle at 12% 36%, rgba(159,61,47,.12), transparent 20rem), linear-gradient(135deg, #f8f5ef 0%, #e8ecec 48%, #d8d0c3 100%);
             color: #171717;
+            overflow-x: hidden;
         }
         .font-display {
             font-family: 'Noto Serif', serif;
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.8);
+            position: relative;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255,255,255,.66));
             backdrop-filter: blur(18px);
-            box-shadow: 0 24px 70px rgba(17, 17, 17, 0.1);
+            box-shadow: 0 24px 70px rgba(17, 17, 17, 0.1), inset 0 1px 0 rgba(255,255,255,.86);
         }
-        .hero-image-panel { position: relative; }
+        .glass-panel:after {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border: 1px solid rgba(255,255,255,.46);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        .product-stage {
+            perspective: 1200px;
+        }
+        .hero-image-panel {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 260ms ease, box-shadow 260ms ease;
+        }
+        .hero-image-panel:hover {
+            transform: perspective(1000px) rotateX(var(--hero-tilt-x, 0deg)) rotateY(var(--hero-tilt-y, 0deg)) translateY(-6px);
+            box-shadow: 0 38px 92px rgba(17,17,17,.18), 0 10px 0 rgba(17,17,17,.04);
+        }
         .hero-image-panel:before {
             content: "";
             position: absolute;
@@ -34,19 +55,76 @@
             pointer-events: none;
             z-index: 2;
         }
+        .hero-image-panel .image-shell:after {
+            content: "";
+            position: absolute;
+            left: 10%;
+            right: 10%;
+            bottom: -4%;
+            height: 16%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(17,17,17,.24), transparent 72%);
+            filter: blur(10px);
+            transform: rotateX(68deg);
+            pointer-events: none;
+        }
         #product-image { transition: transform 600ms ease, filter 600ms ease; }
         .hero-image-panel:hover #product-image { transform: scale(1.035); filter: saturate(1.06) contrast(1.03); }
+        .stage-chip {
+            position: absolute;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.5);
+            background: rgba(17,17,17,.62);
+            padding: .72rem 1rem;
+            color: #fff;
+            box-shadow: 0 18px 36px rgba(17,17,17,.22);
+            backdrop-filter: blur(14px);
+        }
+        .stage-chip.fit { right: 1.25rem; bottom: 2rem; transform: translateZ(120px); }
+        .stage-chip.fabric { left: 1.25rem; bottom: 2rem; transform: translateZ(90px); }
+        .feature-card {
+            transform-style: preserve-3d;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+        .feature-card:hover {
+            transform: perspective(850px) rotateX(3deg) translateY(-4px);
+            box-shadow: 0 20px 48px rgba(17,17,17,.1);
+        }
         .size-chip.active {
             background: #111111;
             color: #ffffff;
             border-color: #111111;
         }
         .related-card {
+            position: relative;
+            transform-style: preserve-3d;
             transition: transform 180ms ease, box-shadow 180ms ease;
         }
+        .related-card:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            background: linear-gradient(120deg, rgba(255,255,255,.32), transparent 38%, rgba(255,255,255,.12) 62%, transparent);
+            opacity: 0;
+            transition: opacity 180ms ease;
+        }
         .related-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(17, 17, 17, 0.1);
+            transform: perspective(850px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateY(-6px);
+            box-shadow: 0 28px 68px rgba(17, 17, 17, 0.16);
+        }
+        .related-card:hover:before { opacity: 1; }
+        .related-card img { transition: transform 520ms ease, filter 520ms ease; }
+        .related-card:hover img { transform: scale(1.055); filter: saturate(1.05) contrast(1.03); }
+        @media (max-width: 640px) {
+            .stage-chip { padding: .55rem .75rem; font-size: .78rem; }
+            .stage-chip.fit { right: .75rem; bottom: 1.25rem; }
+            .stage-chip.fabric { left: .75rem; bottom: 1.25rem; }
         }
     </style>
 </head>
@@ -89,27 +167,29 @@
         </section>
 
         <section class="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
-            <div class="space-y-6">
+            <div class="product-stage space-y-6">
                 <div class="glass-panel hero-image-panel overflow-hidden rounded-[34px] border border-black/10 p-4">
-                    <div class="relative overflow-hidden rounded-[28px] bg-[#f5ede4]">
+                    <div class="image-shell relative overflow-hidden rounded-[28px] bg-[#f5ede4]">
                         <img id="product-image" src="" alt="" class="aspect-[4/5] w-full object-cover">
                         <div class="absolute left-5 top-5 flex flex-wrap gap-2">
                             <span id="product-category-badge" class="rounded-full bg-black px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">Category</span>
                             <span id="product-discount-badge" class="hidden rounded-full bg-[#9f3d2f] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"></span>
                         </div>
+                        <div class="stage-chip fabric"><span class="material-symbols-outlined">texture</span><span id="stage-fabric-chip">Aero fabric</span></div>
+                        <div class="stage-chip fit"><span class="material-symbols-outlined">view_in_ar</span><span id="stage-fit-chip">3D fit ready</span></div>
                     </div>
                 </div>
 
                 <div class="grid gap-4 md:grid-cols-3">
-                    <article class="glass-panel rounded-[28px] border border-black/10 p-5">
+                    <article class="glass-panel feature-card rounded-[28px] border border-black/10 p-5">
                         <p class="text-xs uppercase tracking-[0.22em] text-black/45">Material</p>
                         <p id="product-fabric" class="mt-3 text-sm leading-6 text-black/70"></p>
                     </article>
-                    <article class="glass-panel rounded-[28px] border border-black/10 p-5">
+                    <article class="glass-panel feature-card rounded-[28px] border border-black/10 p-5">
                         <p class="text-xs uppercase tracking-[0.22em] text-black/45">Fit Profile</p>
                         <p id="product-care" class="mt-3 text-sm leading-6 text-black/70"></p>
                     </article>
-                    <article class="glass-panel rounded-[28px] border border-black/10 p-5">
+                    <article class="glass-panel feature-card rounded-[28px] border border-black/10 p-5">
                         <p class="text-xs uppercase tracking-[0.22em] text-black/45">Best For</p>
                         <p id="product-stock" class="mt-3 text-sm leading-6 text-black/70"></p>
                     </article>
@@ -268,6 +348,7 @@
             const picks = related.length ? related : fallback;
 
             document.getElementById('related-products').innerHTML = picks.map(relatedProductCard).join('');
+            attachRelatedTilt();
         }
 
         function productStory(product) {
@@ -299,6 +380,8 @@
             document.getElementById('product-stock').textContent = (product.bestFor || []).join(' · ');
             document.getElementById('product-story').textContent = productStory(product);
             document.getElementById('deep-link-try-on').href = `try-on.html?productId=${product.id}`;
+            document.getElementById('stage-fabric-chip').textContent = product.fabric;
+            document.getElementById('stage-fit-chip').textContent = product.fitProfile;
 
             const discount = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
             const discountBadge = document.getElementById('product-discount-badge');
@@ -312,6 +395,43 @@
             renderSizeOptions(product);
             renderWishlistButton(product);
             renderRelatedProducts(product);
+        }
+
+        function attachHeroTilt() {
+            const panel = document.querySelector('.hero-image-panel');
+            if (!panel) return;
+
+            panel.addEventListener('pointermove', event => {
+                if (window.matchMedia('(pointer: coarse)').matches) return;
+                const rect = panel.getBoundingClientRect();
+                const x = (event.clientX - rect.left) / rect.width - 0.5;
+                const y = (event.clientY - rect.top) / rect.height - 0.5;
+                panel.style.setProperty('--hero-tilt-x', `${(-y * 5).toFixed(2)}deg`);
+                panel.style.setProperty('--hero-tilt-y', `${(x * 6).toFixed(2)}deg`);
+            });
+
+            panel.addEventListener('pointerleave', () => {
+                panel.style.setProperty('--hero-tilt-x', '0deg');
+                panel.style.setProperty('--hero-tilt-y', '0deg');
+            });
+        }
+
+        function attachRelatedTilt() {
+            document.querySelectorAll('.related-card').forEach(card => {
+                card.addEventListener('pointermove', event => {
+                    if (window.matchMedia('(pointer: coarse)').matches) return;
+                    const rect = card.getBoundingClientRect();
+                    const x = (event.clientX - rect.left) / rect.width - 0.5;
+                    const y = (event.clientY - rect.top) / rect.height - 0.5;
+                    card.style.setProperty('--tilt-x', `${(-y * 6).toFixed(2)}deg`);
+                    card.style.setProperty('--tilt-y', `${(x * 7).toFixed(2)}deg`);
+                });
+
+                card.addEventListener('pointerleave', () => {
+                    card.style.setProperty('--tilt-x', '0deg');
+                    card.style.setProperty('--tilt-y', '0deg');
+                });
+            });
         }
 
         function addCurrentProductToBag() {
@@ -348,6 +468,7 @@
             renderProduct(product);
             updateCartBadge();
             updateWishlistBadge();
+            attachHeroTilt();
 
             document.getElementById('add-to-bag-btn').addEventListener('click', addCurrentProductToBag);
             document.getElementById('try-on-btn').addEventListener('click', () => {

@@ -13,23 +13,84 @@
         }
         body {
             font-family: 'Manrope', sans-serif;
-            background: linear-gradient(180deg, #fbf8f4 0%, #efe4d6 100%);
+            background: radial-gradient(circle at 82% 10%, rgba(159,61,47,.14), transparent 24rem), radial-gradient(circle at 10% 30%, rgba(89,104,79,.13), transparent 22rem), linear-gradient(180deg, #fbf8f4 0%, #efe4d6 100%);
             color: #171717;
+            overflow-x: hidden;
         }
         .font-display {
             font-family: 'Noto Serif', serif;
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.82);
+            position: relative;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255,255,255,.66));
             backdrop-filter: blur(18px);
-            box-shadow: 0 22px 60px rgba(17, 17, 17, 0.08);
+            box-shadow: 0 22px 60px rgba(17, 17, 17, 0.08), inset 0 1px 0 rgba(255,255,255,.86);
         }
-        .cart-card {
+        .glass-panel:after {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border: 1px solid rgba(255,255,255,.48);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        .journey-hero {
+            position: relative;
+            perspective: 1000px;
+        }
+        .journey-hero:before {
+            content: "";
+            position: absolute;
+            inset: auto -12vw -2.4rem 20%;
+            z-index: -1;
+            height: 14rem;
+            background-image: linear-gradient(rgba(17,17,17,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(17,17,17,.08) 1px, transparent 1px);
+            background-size: 58px 58px;
+            transform: rotateX(66deg);
+            transform-origin: center bottom;
+            opacity: .34;
+        }
+        .hero-copy {
+            border-radius: 32px;
+            border: 1px solid rgba(255,255,255,.54);
+            background: rgba(255,255,255,.34);
+            padding: clamp(1.25rem, 3vw, 2.25rem);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+        }
+        .cart-card,
+        .recommendation-card {
+            position: relative;
+            transform-style: preserve-3d;
             transition: transform 180ms ease, box-shadow 180ms ease;
+            will-change: transform;
         }
-        .cart-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 34px rgba(17, 17, 17, 0.08);
+        .cart-card:before,
+        .recommendation-card:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            background: linear-gradient(120deg, rgba(255,255,255,.32), transparent 36%, rgba(255,255,255,.12) 62%, transparent);
+            opacity: 0;
+            transition: opacity 180ms ease;
+        }
+        .cart-card:hover,
+        .recommendation-card:hover {
+            transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateY(-6px);
+            box-shadow: 0 28px 72px rgba(17, 17, 17, 0.15), 0 8px 0 rgba(17,17,17,.04);
+        }
+        .cart-card:hover:before,
+        .recommendation-card:hover:before { opacity: 1; }
+        .cart-card img,
+        .recommendation-card img { transition: transform 520ms ease, filter 520ms ease; }
+        .cart-card:hover img,
+        .recommendation-card:hover img { transform: scale(1.045); filter: saturate(1.05) contrast(1.03); }
+        .summary-panel {
+            transform-style: preserve-3d;
+        }
+        .summary-panel:hover {
+            transform: perspective(900px) rotateX(2deg) translateY(-3px);
         }
     </style>
 </head>
@@ -62,8 +123,8 @@
     </nav>
 
     <main class="mx-auto max-w-7xl px-6 py-10">
-        <section class="mb-10 grid gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-            <div>
+        <section class="journey-hero mb-10 grid gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+            <div class="hero-copy">
                 <p class="mb-3 text-xs uppercase tracking-[0.35em] text-black/45">Your Edit</p>
                 <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl">Everything in your bag is now coming from one live cart, not from placeholder blocks.</h1>
             </div>
@@ -76,7 +137,7 @@
             <div id="cart-items" class="space-y-5"></div>
 
             <aside class="space-y-6 xl:sticky xl:top-28 xl:self-start">
-                <div class="glass-panel rounded-[30px] border border-black/10 p-6">
+                <div class="glass-panel summary-panel rounded-[30px] border border-black/10 p-6">
                     <p class="text-xs uppercase tracking-[0.22em] text-black/45">Order Summary</p>
                     <div class="mt-6 space-y-4 text-sm">
                         <div class="flex justify-between">
@@ -106,7 +167,7 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-[30px] border border-black/10 p-6">
+                <div class="glass-panel summary-panel rounded-[30px] border border-black/10 p-6">
                     <div class="flex items-end justify-between gap-4">
                         <div>
                             <p class="text-xs uppercase tracking-[0.22em] text-black/45">Keep Browsing</p>
@@ -129,7 +190,7 @@
 
         function recommendationMarkup(product) {
             return `
-                <article class="rounded-[24px] border border-black/10 bg-white/70 p-4">
+                <article class="recommendation-card rounded-[24px] border border-black/10 bg-white/70 p-4">
                     <div class="flex gap-4">
                         <img src="${product.image}" alt="${product.name}" class="h-28 w-24 rounded-[18px] object-cover">
                         <div class="flex min-w-0 flex-1 flex-col justify-between">
@@ -155,6 +216,7 @@
             const cartIds = new Set(cart.map(item => item.sourceProductId || item.id));
             const picks = getAllProducts().filter(product => !cartIds.has(product.id)).slice(0, 3);
             document.getElementById('bag-recommendations').innerHTML = picks.map(recommendationMarkup).join('');
+            attachCardTilt('.recommendation-card', 5, 6);
         }
 
         function cartItemMarkup(item) {
@@ -222,6 +284,25 @@
             document.getElementById('checkout-btn').classList.toggle('opacity-40', totals.isEmpty);
 
             renderRecommendations(cart);
+            attachCardTilt('.cart-card', 4, 5);
+        }
+
+        function attachCardTilt(selector, xStrength, yStrength) {
+            document.querySelectorAll(selector).forEach(card => {
+                card.addEventListener('pointermove', event => {
+                    if (window.matchMedia('(pointer: coarse)').matches) return;
+                    const rect = card.getBoundingClientRect();
+                    const x = (event.clientX - rect.left) / rect.width - 0.5;
+                    const y = (event.clientY - rect.top) / rect.height - 0.5;
+                    card.style.setProperty('--tilt-x', `${(-y * xStrength).toFixed(2)}deg`);
+                    card.style.setProperty('--tilt-y', `${(x * yStrength).toFixed(2)}deg`);
+                });
+
+                card.addEventListener('pointerleave', () => {
+                    card.style.setProperty('--tilt-x', '0deg');
+                    card.style.setProperty('--tilt-y', '0deg');
+                });
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {

@@ -1,3 +1,10 @@
+// Auto-seed HuggingFace token on load
+(function() {
+  if (!window.localStorage.getItem('hf.token')) {
+    
+  }
+})();
+
 const state = {
   selectedProductId: 4,
   selectedSize: 'M',
@@ -10,6 +17,16 @@ const state = {
     message: 'Upload a clear portrait to scan shoulders and torso.',
     landmarks: null,
     body: null
+  },
+  generation: {
+    provider: 'mock',
+    status: 'idle',
+    activeView: 'front',
+    views: { front: '', left: '', right: '' },
+    request: null,
+    generatedAt: '',
+    headline: 'Waiting for a customer photo and selected garment.',
+    copy: 'Studio Demo builds customer-view result boards instantly. Connect a real backend provider here for production try-on output.'
   },
   overlay: { scale: 100, x: 0, y: 0, rotate: 0, opacity: 88 },
   ui: {
@@ -27,7 +44,8 @@ const state = {
     orbitPreset: 'front',
     sceneOrbit: 0,
     sceneDepth: 26,
-    sceneLift: 6
+    sceneLift: 6,
+    resultReveal: 100
   }
 };
 
@@ -252,6 +270,235 @@ function selectedProduct() {
   return getProductById(state.selectedProductId) || tryOnProducts()[0];
 }
 
+function currentGarmentRenderSource(product) {
+  const exactAsset = resolvedOverlayAsset(product);
+  if (productAssetState(product) === 'loaded' && exactAsset) {
+    return { type: 'image', src: exactAsset };
+  }
+
+  const svg = document.getElementById('garment-svg');
+  const svgMarkup = svg?.innerHTML ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 520">${svg.innerHTML}</svg>` : '';
+  return svgMarkup
+    ? { type: 'svg', src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgMarkup)}` }
+    : { type: 'image', src: product?.image || '' };
+}
+
+function buildTryOnPayload() {
+  const product = selectedProduct();
+  return {
+    photoDataUrl: state.photoDataUrl,
+    photoName: state.photoName,
+    product,
+    measurements: { ...state.measurements },
+    selectedSize: state.selectedSize,
+    poseDetected: state.pose.detected,
+    garmentSource: resolvedOverlayAsset(product) || product?.image || '',
+    garmentRender: currentGarmentRenderSource(product),
+    overlay: { ...state.overlay }
+  };
+}
+
+function setActiveResultView(view) {
+  state.generation.activeView = view;
+  renderGeneratedResults();
+  updateDisplays();
+}
+
+function clearGeneratedResults() {
+  state.generation.status = 'idle';
+  state.generation.views = { front: '', left: '', right: '' };
+  state.generation.request = null;
+  state.generation.generatedAt = '';
+  state.generation.activeView = 'front';
+  state.generation.headline = 'Waiting for a customer photo and selected garment.';
+  state.generation.copy = 'Studio Demo builds customer-view result boards instantly. Connect a real backend provider here for production try-on output.';
+  renderGeneratedResults();
+  updateDisplays();
+}
+
+function createDemoCustomerPhoto() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 900;
+  canvas.height = 1200;
+  const ctx = canvas.getContext('2d');
+  const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bg.addColorStop(0, '#f5eee6');
+  bg.addColorStop(0.52, '#e7e8e0');
+  bg.addColorStop(1, '#d9ccbc');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = 'rgba(255,255,255,.58)';
+  ctx.beginPath();
+  ctx.arc(660, 230, 170, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(143,95,74,.12)';
+  ctx.beginPath();
+  ctx.arc(210, 820, 230, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(450, 590);
+  ctx.fillStyle = '#7a5a48';
+  roundedCanvasRect(ctx, -82, -390, 164, 164, 82);
+  ctx.fill();
+  ctx.fillStyle = '#2d2521';
+  roundedCanvasRect(ctx, -112, -432, 224, 150, 78);
+  ctx.fill();
+  ctx.fillStyle = '#8f5f4a';
+  roundedCanvasRect(ctx, -178, -206, 356, 440, 160);
+  ctx.fill();
+  ctx.fillStyle = '#f4eadf';
+  roundedCanvasRect(ctx, -132, -176, 264, 402, 120);
+  ctx.fill();
+  ctx.fillStyle = '#7a5a48';
+  roundedCanvasRect(ctx, -246, -172, 72, 420, 38);
+  roundedCanvasRect(ctx, 174, -172, 72, 420, 38);
+  ctx.fill();
+  ctx.fillStyle = '#efe5db';
+  roundedCanvasRect(ctx, -130, 204, 102, 390, 46);
+  roundedCanvasRect(ctx, 28, 204, 102, 390, 46);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(24,23,22,.12)';
+  ctx.beginPath();
+  ctx.ellipse(0, 624, 230, 46, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = 'rgba(255,255,255,.88)';
+  roundedCanvasRect(ctx, 74, 76, 298, 62, 31);
+  ctx.fill();
+  ctx.fillStyle = '#3f352f';
+  ctx.font = '700 20px Manrope, sans-serif';
+  ctx.fillText('Demo customer model', 112, 116);
+
+  return canvas.toDataURL('image/jpeg', 0.92);
+}
+
+function roundedCanvasRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+async function activateDemoTryOn({ generate = false } = {}) {
+  if (!selectedProduct() && tryOnProducts()[0]) {
+    state.selectedProductId = tryOnProducts()[0].id;
+  }
+
+  state.photoDataUrl = createDemoCustomerPhoto();
+  state.photoName = 'Client demo model';
+  state.measurements = { chest: 36, waist: 30, height: 66, bodyType: 'average' };
+  state.generation.provider = 'mock';
+  state.generation.status = 'idle';
+  state.generation.views = { front: '', left: '', right: '' };
+  state.generation.request = null;
+  state.generation.activeView = 'front';
+  state.generation.headline = 'Demo model loaded. Ready to generate the client preview.';
+  state.generation.copy = 'This presentation mode lets you show the full customer journey instantly before connecting the production AI backend.';
+  state.pose = {
+    status: 'ready',
+    detected: true,
+    message: 'Demo body profile is active for a stable presentation fit.',
+    landmarks: null,
+    body: null
+  };
+  state.ui.viewMode = 'overlay';
+  state.ui.showAvatar = false;
+  state.ui.resultReveal = 100;
+  state.overlay = smartOverlayValues(selectedProduct());
+  syncMeasurementInputs();
+  syncOverlayInputs();
+  updateTryOn();
+
+  if (generate) {
+    await generateCustomerTryOn();
+  }
+}
+
+async function generateCustomerTryOn() {
+  const product = selectedProduct();
+  if (!state.photoDataUrl || !product) {
+    state.generation.status = 'blocked';
+    state.generation.headline = 'Add a customer photo first.';
+    state.generation.copy = 'The generation flow needs a person photo and a selected garment before it can prepare customer views.';
+    renderGeneratedResults();
+    updateDisplays();
+    return;
+  }
+
+  const isFashn = state.generation.provider === 'huggingface';
+  const isMock = state.generation.provider === 'mock';
+
+  state.generation.status = 'generating';
+  state.generation.headline = isFashn
+    ? `Sending to HuggingFace — real AI try-on in progress...`
+    : `Generating ${product.name} customer views...`;
+  state.generation.copy = isFashn
+    ? 'HuggingFace AI is processing the photo and garment. This usually takes 20–40 seconds. Please wait.'
+    : isMock
+      ? 'Studio Demo is building polished front, left, and right result boards for presentation.'
+      : 'The API-ready provider is preparing a request payload for a real virtual try-on backend.';
+  renderGeneratedResults();
+  updateDisplays();
+
+  try {
+    const result = await window.VirtualTryOnEngine.generateTryOn(buildTryOnPayload(), {
+      provider: state.generation.provider
+    });
+
+    if (!result.ok && result.error) {
+      state.generation.status = 'error';
+      state.generation.headline = 'Try-on failed.';
+      state.generation.copy = result.error;
+    } else {
+      state.generation.status = result.status || 'ready';
+      state.generation.views = {
+        front: result.views?.front || '',
+        left: result.views?.left || '',
+        right: result.views?.right || ''
+      };
+      state.generation.request = result.request || null;
+      state.generation.generatedAt = result.generatedAt || '';
+      state.generation.activeView = 'front';
+      // Auto-open result in new tab so it's always visible
+      if (isFashn && result.views?.front) {
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.write('<html><body style="margin:0;background:#111"><img src="' + result.views.front + '" style="max-width:100%;display:block;margin:auto"></body></html>');
+          win.document.close();
+        }
+      }
+      state.generation.headline = isFashn
+        ? `HuggingFace try-on ready for ${product.name}!`
+        : isMock
+          ? `Studio demo views are ready for ${product.name}.`
+          : `API request is ready for ${product.name}.`;
+      state.generation.copy = isFashn
+        ? 'HuggingFace AI successfully placed the garment on the photo. Use the view buttons to compare.'
+        : isMock
+          ? 'Use the front, left, and right buttons to inspect the presentation-ready result boards.'
+          : 'The UI and payload are ready. Connect your backend endpoint to return real customer try-on images.';
+    }
+  } catch (error) {
+    state.generation.status = 'error';
+    state.generation.headline = 'Generation failed.';
+    state.generation.copy = error?.message || 'Something went wrong. Check your photo, garment selection, and API key.';
+  }
+
+  renderGeneratedResults();
+  updateDisplays();
+}
+
 function tryOnCategoryMatches(product) {
   const filter = state.ui.tryOnCategory;
 
@@ -368,6 +615,21 @@ function syncOverlayInputs() {
   ].forEach(([id, value]) => {
     const input = document.getElementById(id);
     if (input) input.value = value;
+  });
+}
+
+function syncMeasurementInputs() {
+  [
+    ['chest-input', state.measurements.chest],
+    ['waist-input', state.measurements.waist],
+    ['height-input', state.measurements.height]
+  ].forEach(([id, value]) => {
+    const input = document.getElementById(id);
+    if (input) input.value = value;
+  });
+
+  document.querySelectorAll('input[name="body-type"]').forEach(input => {
+    input.checked = input.value === state.measurements.bodyType;
   });
 }
 
@@ -603,6 +865,85 @@ function renderFitCheckPanel(product) {
     .join('');
 }
 
+function renderGeneratedResults() {
+  const stageImage = document.getElementById('generated-result-image');
+  const beforeImage = document.getElementById('result-before-image');
+  const stageEmpty = document.getElementById('generated-result-empty');
+  const shell = document.getElementById('result-shell');
+  const viewportScene = document.getElementById('viewport-scene');
+  const compareControl = document.getElementById('result-compare-control');
+  const revealDivider = document.getElementById('result-reveal-divider');
+  const resultFrame = document.querySelector('.result-frame');
+
+  const activeView = state.generation.activeView;
+  const activeImage = state.generation.views[activeView];
+  const shouldShowResultShell = !!activeImage || state.generation.status === 'generating' || state.generation.status === 'api-ready';
+
+  if (shell) shell.classList.toggle('hidden', !shouldShowResultShell);
+
+  if (stageImage && stageEmpty) {
+    if (activeImage) {
+      stageImage.src = activeImage;
+      stageImage.classList.remove('hidden');
+      stageEmpty.classList.add('hidden');
+      if (beforeImage && state.photoDataUrl) {
+        beforeImage.src = state.photoDataUrl;
+        beforeImage.classList.remove('hidden');
+      }
+      compareControl?.classList.remove('hidden');
+      revealDivider?.classList.remove('hidden');
+      resultFrame?.style.setProperty('--result-reveal', `${state.ui.resultReveal}%`);
+    } else {
+      stageImage.src = '';
+      stageImage.classList.add('hidden');
+      beforeImage?.classList.add('hidden');
+      compareControl?.classList.add('hidden');
+      revealDivider?.classList.add('hidden');
+      stageEmpty.classList.remove('hidden');
+      stageEmpty.innerHTML = `
+        <span class="result-note">${state.generation.status === 'generating' ? 'Generating' : state.generation.status === 'api-ready' ? 'API Ready' : 'No Generated View Yet'}</span>
+        <div>
+          <p class="text-lg font-semibold text-black/76">${state.generation.headline}</p>
+          <p class="mt-2 text-sm leading-7 text-black/58">${state.generation.copy}</p>
+        </div>
+      `;
+    }
+  }
+
+  if (viewportScene) {
+    viewportScene.style.opacity = activeImage ? '0.04' : '1';
+    viewportScene.style.pointerEvents = activeImage ? 'none' : 'auto';
+  }
+
+  ['front', 'left', 'right'].forEach(view => {
+    const thumb = document.getElementById(`result-thumb-${view}`);
+    const empty = document.getElementById(`result-thumb-${view}-empty`);
+    const card = document.querySelector(`[data-result-card="${view}"]`);
+    const meta = document.getElementById(`result-meta-${view}`);
+    const image = state.generation.views[view];
+    if (thumb && empty) {
+      if (image) {
+        thumb.src = image;
+        thumb.classList.remove('hidden');
+        empty.classList.add('hidden');
+      } else {
+        thumb.src = '';
+        thumb.classList.add('hidden');
+        empty.classList.remove('hidden');
+      }
+    }
+    if (card) {
+      card.classList.toggle('ring-2', view === activeView);
+      card.classList.toggle('ring-black/15', view === activeView);
+    }
+    if (meta) {
+      meta.textContent = state.generation.provider === 'mock'
+        ? `${view.charAt(0).toUpperCase()}${view.slice(1)} customer board from Studio Demo mode.`
+        : `Production provider should return the ${view} customer image here.`;
+    }
+  });
+}
+
 function renderAssetPanel(product) {
   const headline = document.getElementById('asset-panel-headline');
   const chip = document.getElementById('asset-origin-chip');
@@ -655,6 +996,19 @@ function renderAssetPanel(product) {
     clearFitButton.classList.toggle('opacity-50', !hasSavedPlacement(product));
     clearFitButton.classList.toggle('cursor-not-allowed', !hasSavedPlacement(product));
   }
+}
+
+function renderSelectedGarmentCard(product) {
+  const thumb = document.getElementById('selected-garment-thumb');
+  const name = document.getElementById('selected-garment-name');
+  const meta = document.getElementById('selected-garment-meta');
+  if (!thumb || !name || !meta || !product) return;
+
+  const customAsset = productCustomAsset(product);
+  const assetState = productAssetState(product);
+  thumb.src = customAsset || product.image;
+  name.textContent = product.name;
+  meta.textContent = `${productTypeLabel(product)} / ${product.line} · ${assetState === 'loaded' ? 'Exact garment uploaded' : 'Catalog image active'}`;
 }
 
 function renderAvatar() {
@@ -988,7 +1342,7 @@ function renderGarment() {
   if (image.dataset.bound !== 'true') {
     image.addEventListener('load', () => {
       const productId = Number(image.dataset.productId || 0);
-      if (productId) {
+      if (productId && image.dataset.assetMode === 'exact') {
         garmentAssetState[productId] = 'loaded';
         updateTryOn();
       }
@@ -996,7 +1350,7 @@ function renderGarment() {
 
     image.addEventListener('error', () => {
       const productId = Number(image.dataset.productId || 0);
-      if (productId) {
+      if (productId && image.dataset.assetMode === 'exact') {
         garmentAssetState[productId] = 'missing';
         image.classList.add('hidden');
         updateTryOn();
@@ -1013,6 +1367,7 @@ function renderGarment() {
     garmentAssetState[product.id] = 'pending';
     image.dataset.productId = String(product.id);
     image.dataset.asset = asset;
+    image.dataset.assetMode = 'exact';
     image.src = asset;
   }
 
@@ -1028,13 +1383,20 @@ function renderGarment() {
     svg.classList.add('hidden');
     svg.innerHTML = '';
   } else {
-    image.classList.add('hidden');
+    if (image.dataset.asset !== product.image || image.dataset.assetMode !== 'catalog') {
+      image.dataset.productId = String(product.id);
+      image.dataset.asset = product.image;
+      image.dataset.assetMode = 'catalog';
+      image.src = product.image;
+    }
+    const profile = exactAssetVisualProfile(product);
+    image.classList.remove('hidden');
     image.classList.remove('exact');
-    image.style.clipPath = 'none';
-    image.style.filter = '';
-    image.style.opacity = '1';
-    svg.classList.remove('hidden');
-    svg.innerHTML = garmentSvg(product);
+    image.style.clipPath = profile.clipPath;
+    image.style.filter = 'drop-shadow(0 16px 20px rgba(17,17,17,.18)) contrast(1.06) saturate(1.08)';
+    image.style.opacity = state.photoDataUrl ? '.86' : '1';
+    svg.classList.add('hidden');
+    svg.innerHTML = '';
   }
 
   const clarityFactor = useExactAsset && state.ui.fitClarity ? 0.28 : 0.55;
@@ -1279,6 +1641,7 @@ function renderSummary() {
   renderInsights(product);
   renderSizeClarity(product);
   renderAssetPanel(product);
+  renderSelectedGarmentCard(product);
 }
 
 function renderSizes() {
@@ -1373,7 +1736,8 @@ function updateDisplays() {
     'split-display': `${state.ui.split}%`,
     'scene-orbit-display': `${state.ui.sceneOrbit > 0 ? '+' : ''}${state.ui.sceneOrbit}deg`,
     'scene-depth-display': `${state.ui.sceneDepth}px`,
-    'scene-lift-display': `${state.ui.sceneLift}px`
+    'scene-lift-display': `${state.ui.sceneLift}px`,
+    'result-reveal-display': `${state.ui.resultReveal}% Result`
   };
 
   Object.entries(text).forEach(([id, value]) => {
@@ -1405,6 +1769,12 @@ function updateDisplays() {
   document.querySelectorAll('[data-tryon-category]').forEach(button => {
     button.classList.toggle('active', button.dataset.tryonCategory === state.ui.tryOnCategory);
   });
+  document.querySelectorAll('[data-provider]').forEach(button => {
+    button.classList.toggle('active', button.dataset.provider === state.generation.provider);
+  });
+  document.querySelectorAll('[data-result-view]').forEach(button => {
+    button.classList.toggle('active', button.dataset.resultView === state.generation.activeView);
+  });
 
   document.getElementById('toggle-guides-btn')?.classList.toggle('active', state.ui.guides);
   document.getElementById('toggle-guides-btn')?.replaceChildren(document.createTextNode(state.ui.guides ? 'Guides On' : 'Guides Off'));
@@ -1433,43 +1803,70 @@ function updateDisplays() {
 
   const stageGuidance = document.getElementById('stage-guidance');
   if (stageGuidance) {
-    if (!state.photoDataUrl) {
-      stageGuidance.textContent = 'Add your picture for the clearest 3D fit check.';
-    } else if (state.pose.status === 'scanning') {
-      stageGuidance.textContent = 'Scanning your photo for a body-aware fit...';
-    } else if (productCustomAsset(selectedProduct()) && state.ui.fitClarity) {
-      stageGuidance.textContent = 'Your saved exact PNG is active with fit clarity and body-aware placement.';
-    } else if (state.ui.fitClarity && productAssetState(selectedProduct()) === 'loaded') {
-      stageGuidance.textContent = 'Fit Clarity is showing shoulder, waist, and hem guides for the exact PNG garment.';
-    } else if (state.pose.detected) {
-      stageGuidance.textContent = 'Body-aware fit is active for this photo.';
-    } else if (state.ui.viewMode === 'split') {
-      stageGuidance.textContent = '3D Split Compare makes shoulder and length checks easier.';
-    } else if (state.ui.viewMode === 'garment') {
-      stageGuidance.textContent = '3D Garment Focus lets you inspect shape without distractions.';
-    } else {
-      stageGuidance.textContent = '3D Overlay gives the most natural layered preview.';
-    }
+    stageGuidance.textContent = !state.photoDataUrl
+      ? 'Upload a photo, pick a product, then generate the customer views.'
+      : state.generation.status === 'generating'
+        ? 'Generating front, left, and right customer views now.'
+        : state.generation.status === 'api-ready'
+          ? 'API payload is ready for a real try-on backend.'
+          : state.generation.status === 'mock-ready'
+            ? 'Switch between front, left, and right views for the customer preview.'
+            : 'Customer view shell is ready. Generate the try-on result when you want.';
   }
 
   const statusPill = document.getElementById('stage-status-pill');
   if (statusPill) {
-    statusPill.textContent = state.ui.viewMode === 'split'
-      ? '3D Split'
-      : state.ui.viewMode === 'garment'
-        ? '3D Garment'
-        : '3D Overlay';
+    statusPill.textContent = `${state.generation.activeView.charAt(0).toUpperCase()}${state.generation.activeView.slice(1)} View`;
   }
 
   const garmentPill = document.getElementById('garment-status-pill');
   if (garmentPill) {
-    garmentPill.textContent = state.photoDataUrl ? '3D Photo Base' : '3D Guide Base';
+    garmentPill.textContent = state.photoDataUrl
+      ? state.generation.provider === 'mock'
+        ? 'Studio Demo'
+        : 'API Ready'
+      : 'Awaiting Photo';
+  }
+
+  const exactBanner = document.getElementById('exact-needed-banner');
+  if (exactBanner) {
+    exactBanner.classList.add('hidden');
+  }
+
+  document.getElementById('generation-status-headline')?.replaceChildren(document.createTextNode(state.generation.headline));
+  document.getElementById('generation-status-copy')?.replaceChildren(document.createTextNode(state.generation.copy));
+  document.getElementById('result-provider-chip')?.replaceChildren(document.createTextNode(state.generation.provider === 'huggingface' ? '🤗 HuggingFace' : state.generation.provider === 'mock' ? 'Studio Demo' : 'API Ready'));
+  document.getElementById('engine-mode-badge')?.replaceChildren(document.createTextNode(state.generation.provider === 'huggingface' ? 'HuggingFace Active' : state.generation.provider === 'mock' ? 'Studio Demo Active' : 'API Payload Mode'));
+  document.getElementById('active-view-copy')?.replaceChildren(document.createTextNode(
+    `${state.generation.activeView.charAt(0).toUpperCase()}${state.generation.activeView.slice(1)} is the active large preview. Customers can inspect the other views from the cards below.`
+  ));
+
+  const payloadPanel = document.getElementById('request-payload-panel');
+  if (payloadPanel) {
+    payloadPanel.innerHTML = state.generation.request
+      ? `<pre class="overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-black/62">${JSON.stringify(state.generation.request, null, 2)}</pre>`
+      : 'No request prepared yet.';
   }
 
   const heroCount = document.getElementById('hero-count');
   if (heroCount) {
     heroCount.textContent = String(tryOnProducts().length);
   }
+
+  const flowProduct = selectedProduct();
+  const photoReady = !!state.photoDataUrl;
+  const garmentReady = !!flowProduct;
+  const resultReady = Object.values(state.generation.views).some(Boolean) || state.generation.status === 'api-ready';
+  document.getElementById('flow-step-photo')?.classList.toggle('complete', photoReady);
+  document.getElementById('flow-step-photo')?.classList.toggle('active', !photoReady);
+  document.getElementById('flow-step-garment')?.classList.toggle('complete', garmentReady);
+  document.getElementById('flow-step-garment')?.classList.toggle('active', photoReady && garmentReady && !resultReady);
+  document.getElementById('flow-step-result')?.classList.toggle('complete', resultReady);
+  document.getElementById('flow-step-result')?.classList.toggle('active', photoReady && garmentReady && !resultReady);
+  document.getElementById('flow-photo-copy')?.replaceChildren(document.createTextNode(photoReady ? `${state.photoName || 'Customer photo'} is ready.` : 'Add a clear front-facing customer photo.'));
+  document.getElementById('flow-garment-copy')?.replaceChildren(document.createTextNode(flowProduct ? `${flowProduct.name} is selected${productCustomAsset(flowProduct) ? ' with uploaded garment art.' : ' from your catalog.'}` : 'Choose a catalog product or upload an exact garment PNG.'));
+  document.getElementById('flow-result-copy')?.replaceChildren(document.createTextNode(resultReady ? 'Try-on result is ready. Use the reveal slider to compare.' : state.generation.status === 'generating' ? 'Generating the try-on views now.' : 'Generate a try-on result and compare it against the original photo.'));
+  document.querySelector('.result-frame')?.style.setProperty('--result-reveal', `${state.ui.resultReveal}%`);
 }
 
 function updatePhoto() {
@@ -1494,6 +1891,7 @@ function updateTryOn() {
   renderAvatar();
   renderGarment();
   renderFitGuideOverlay(product);
+  renderGeneratedResults();
   renderSummary();
   renderSizes();
   renderProducts();
@@ -1594,6 +1992,13 @@ function selectProductForTryOn(productId) {
     syncSceneInputs();
   }
 
+  state.generation.status = 'idle';
+  state.generation.views = { front: '', left: '', right: '' };
+  state.generation.request = null;
+  state.generation.generatedAt = '';
+  state.generation.activeView = 'front';
+  state.generation.headline = `Selected ${product.name}. Generate the customer views when ready.`;
+  state.generation.copy = 'The current product is set. Upload or keep the customer photo, then generate front, left, and right results.';
   state.overlay = smartOverlayValues(product);
   syncOverlayInputs();
   updateTryOn();
@@ -1668,6 +2073,13 @@ function readPhoto(event) {
     state.ui.viewMode = 'overlay';
     state.ui.showAvatar = false;
     resetPoseState('Scanning your photo for shoulders and torso...');
+    state.generation.status = 'idle';
+    state.generation.views = { front: '', left: '', right: '' };
+    state.generation.request = null;
+    state.generation.generatedAt = '';
+    state.generation.activeView = 'front';
+    state.generation.headline = 'Customer photo loaded. You can generate try-on views now.';
+    state.generation.copy = 'The local shell is ready to prepare front, left, and right views for the selected product.';
     state.overlay = smartOverlayValues(selectedProduct());
     syncOverlayInputs();
     updateTryOn();
@@ -1693,6 +2105,13 @@ function handlePhotoDrop(event) {
     state.ui.viewMode = 'overlay';
     state.ui.showAvatar = false;
     resetPoseState('Scanning your photo for shoulders and torso...');
+    state.generation.status = 'idle';
+    state.generation.views = { front: '', left: '', right: '' };
+    state.generation.request = null;
+    state.generation.generatedAt = '';
+    state.generation.activeView = 'front';
+    state.generation.headline = 'Customer photo loaded. You can generate try-on views now.';
+    state.generation.copy = 'The local shell is ready to prepare front, left, and right views for the selected product.';
     state.overlay = smartOverlayValues(selectedProduct());
     const upload = document.getElementById('photo-upload');
     if (upload) upload.value = '';
@@ -1879,6 +2298,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindRange('overlay-opacity', state.overlay, 'opacity');
   bindRange('compare-slider', state.ui, 'compare');
   bindRange('split-slider', state.ui, 'split');
+  bindRange('result-reveal-input', state.ui, 'resultReveal');
 
   ['scene-orbit', 'scene-depth', 'scene-lift'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', event => {
@@ -1907,6 +2327,51 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', () => {
       state.ui.overlayPreset = button.dataset.overlayPreset;
       autoFitOverlay();
+    });
+  });
+
+  document.querySelectorAll('[data-provider]').forEach(button => {
+    button.addEventListener('click', () => {
+      state.generation.provider = button.dataset.provider;
+      state.generation.status = 'idle';
+      state.generation.views = { front: '', left: '', right: '' };
+      state.generation.request = null;
+      const isFashn = state.generation.provider === 'huggingface';
+      const isMock = state.generation.provider === 'mock';
+      state.generation.headline = isFashn
+        ? 'HuggingFace real AI try-on is active.'
+        : isMock ? 'Studio Demo mode is active.' : 'API Ready mode is active.';
+      state.generation.copy = isFashn
+        ? 'Real AI will place the selected garment on the person photo. Enter your HuggingFace token and press Generate.'
+        : isMock
+          ? 'Generate polished result boards for front, left, and right so you can present the customer flow.'
+          : 'Generate the API request shell that a real virtual try-on backend should consume.';
+      const fashnPanel = document.getElementById('fashn-key-panel');
+      if (fashnPanel) fashnPanel.classList.toggle('hidden', !isFashn);
+      if (isFashn) {
+        const savedKey = window.localStorage.getItem('hf.token') || '';
+        const input = document.getElementById('fashn-api-key-input');
+        const status = document.getElementById('fashn-key-status');
+        if (input) input.value = savedKey ? '••••••••••••••••' : '';
+        if (status) status.textContent = savedKey ? '✓ Token saved' : 'No token saved yet.';
+      }
+      updateTryOn();
+    });
+  });
+
+  document.getElementById('fashn-save-key-btn')?.addEventListener('click', () => {
+    const input = document.getElementById('fashn-api-key-input');
+    const status = document.getElementById('fashn-key-status');
+    const key = (input?.value || '').trim();
+    if (!key || key.startsWith('•')) { if (status) status.textContent = 'Enter a valid key first.'; return; }
+    window.localStorage.setItem('hf.token', key);
+    if (input) input.value = '••••••••••••••••';
+    if (status) status.textContent = '✓ Key saved!';
+  });
+
+  document.querySelectorAll('[data-result-view]').forEach(button => {
+    button.addEventListener('click', () => {
+      setActiveResultView(button.dataset.resultView);
     });
   });
 
@@ -1955,6 +2420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.photoDataUrl = '';
     state.photoName = '';
     resetPoseState();
+    clearGeneratedResults();
     state.ui.viewMode = 'overlay';
     state.ui.showAvatar = true;
     if (upload) upload.value = '';
@@ -1974,6 +2440,21 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('overlay-scale-handle')?.addEventListener('pointerdown', beginScale);
   document.getElementById('overlay-rotate-handle')?.addEventListener('pointerdown', beginRotate);
   document.getElementById('auto-fit-btn')?.addEventListener('click', autoFitOverlay);
+  ['hero-demo-btn', 'load-demo-btn'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => {
+      void activateDemoTryOn({ generate: true });
+    });
+  });
+  document.getElementById('side-demo-btn')?.addEventListener('click', () => {
+    void activateDemoTryOn({ generate: false });
+  });
+  document.getElementById('generate-tryon-btn')?.addEventListener('click', () => {
+    void generateCustomerTryOn();
+  });
+  document.getElementById('generate-stage-btn')?.addEventListener('click', () => {
+    void generateCustomerTryOn();
+  });
+  document.getElementById('clear-results-btn')?.addEventListener('click', clearGeneratedResults);
   document.getElementById('toggle-guides-btn')?.addEventListener('click', () => {
     state.ui.guides = !state.ui.guides;
     updateTryOn();

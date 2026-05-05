@@ -21,14 +21,33 @@
         body {
             font-family: 'Manrope', sans-serif;
             background: linear-gradient(135deg, var(--paper) 0%, var(--mist) 48%, #d7cbbb 100%);
+            overflow-x: hidden;
         }
         .hero-gradient {
             min-height: 88vh;
             display: flex;
             align-items: center;
             background:
-                linear-gradient(90deg, rgba(17,17,17,.86) 0%, rgba(17,17,17,.62) 46%, rgba(17,17,17,.20) 100%),
+                radial-gradient(circle at 74% 38%, rgba(255,255,255,.22), transparent 27rem),
+                linear-gradient(90deg, rgba(17,17,17,.90) 0%, rgba(17,17,17,.68) 44%, rgba(17,17,17,.16) 100%),
                 url('https://images.pexels.com/photos/8499273/pexels-photo-8499273.jpeg?auto=compress&cs=tinysrgb&w=1600') center/cover;
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+        }
+        .hero-gradient:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+            background-size: 72px 72px;
+            mask-image: linear-gradient(90deg, transparent, #000 44%, transparent);
+            transform: perspective(900px) rotateX(63deg) translateY(13rem) scale(1.35);
+            transform-origin: center bottom;
+            opacity: .48;
         }
         .glass-nav {
             backdrop-filter: blur(20px);
@@ -44,12 +63,26 @@
             border: 1px solid rgba(17,17,17,.1);
             background: rgba(255,255,255,.74);
             box-shadow: 0 18px 44px rgba(17,17,17,.08);
+            transform-style: preserve-3d;
             transition: transform .22s ease, box-shadow .22s ease;
         }
+        .category-card:before,
+        .product-card:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: linear-gradient(120deg, rgba(255,255,255,.36), transparent 38%, rgba(255,255,255,.12) 62%, transparent);
+            opacity: 0;
+            transition: opacity .22s ease;
+        }
         .category-card:hover {
-            transform: translateY(-6px);
+            transform: perspective(900px) rotateX(4deg) rotateY(-5deg) translateY(-8px);
             box-shadow: 0 28px 70px rgba(17,17,17,.16);
         }
+        .category-card:hover:before,
+        .product-card:hover:before { opacity: 1; }
         .category-card img {
             transition: transform .55s ease, filter .55s ease;
         }
@@ -57,17 +90,137 @@
             transform: scale(1.08);
             filter: saturate(1.06) contrast(1.04);
         }
+        .product-card {
+            position: relative;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
         .product-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 24px 60px rgba(17,17,17,0.14);
+            transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateY(-8px);
+            box-shadow: 0 30px 80px rgba(17,17,17,0.18), 0 9px 0 rgba(17,17,17,.04);
         }
         .product-card img { transition: transform .55s ease; }
         .product-card:hover img { transform: scale(1.05); }
+        .depth-scene {
+            position: relative;
+            min-height: 34rem;
+            perspective: 1200px;
+        }
+        .depth-stage {
+            position: absolute;
+            inset: 1rem 0 0 auto;
+            width: min(42vw, 34rem);
+            min-width: 26rem;
+            height: 32rem;
+            transform-style: preserve-3d;
+            animation: sceneFloat 7s ease-in-out infinite;
+        }
+        .depth-disc {
+            position: absolute;
+            left: 6%;
+            right: 5%;
+            bottom: 1.6rem;
+            height: 7.5rem;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,.38), rgba(255,255,255,.08) 48%, transparent 72%);
+            filter: blur(.2px);
+            transform: rotateX(74deg) translateZ(-110px);
+        }
+        .depth-ring {
+            position: absolute;
+            inset: 5.5rem 4.5rem auto auto;
+            width: 18rem;
+            height: 18rem;
+            border: 1px solid rgba(255,255,255,.4);
+            border-radius: 50%;
+            transform: rotateY(-28deg) rotateX(18deg) translateZ(-80px);
+            box-shadow: 0 0 80px rgba(255,255,255,.12);
+        }
+        .depth-panel {
+            position: absolute;
+            border: 1px solid rgba(255,255,255,.18);
+            background: rgba(255,255,255,.1);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 36px 90px rgba(0,0,0,.32);
+            overflow: hidden;
+        }
+        .depth-panel img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+        .depth-panel.main {
+            top: 1.6rem;
+            right: 3.2rem;
+            width: 18rem;
+            height: 25.5rem;
+            border-radius: 2rem;
+            transform: rotateY(-18deg) rotateX(4deg) translateZ(120px);
+        }
+        .depth-panel.side {
+            left: 1rem;
+            top: 7.8rem;
+            width: 13.5rem;
+            height: 18rem;
+            border-radius: 1.45rem;
+            transform: rotateY(24deg) rotateX(2deg) translateZ(25px);
+            opacity: .92;
+        }
+        .depth-chip {
+            position: absolute;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.22);
+            background: rgba(17,17,17,.54);
+            padding: .75rem 1rem;
+            color: #fff;
+            box-shadow: 0 22px 45px rgba(0,0,0,.26);
+            backdrop-filter: blur(14px);
+            transform-style: preserve-3d;
+        }
+        .depth-chip.fit { right: .6rem; top: 5.2rem; transform: translateZ(180px) rotateY(-12deg); }
+        .depth-chip.move { left: .1rem; bottom: 7.4rem; transform: translateZ(150px) rotateY(16deg); }
+        .depth-chip .material-symbols-outlined { font-size: 1.25rem; }
+        @keyframes sceneFloat {
+            0%, 100% { transform: rotateX(0deg) rotateY(-6deg) translateY(0); }
+            50% { transform: rotateX(2deg) rotateY(4deg) translateY(-12px); }
+        }
         .feature-panel {
             background: rgba(255,255,255,.78);
             backdrop-filter: blur(18px);
             border: 1px solid rgba(17,17,17,.08);
             box-shadow: 0 24px 64px rgba(17,17,17,.08);
+        }
+        .dimensional-section {
+            position: relative;
+            isolation: isolate;
+        }
+        .dimensional-section:before {
+            content: "";
+            position: absolute;
+            inset: 2rem -8vw auto auto;
+            z-index: -1;
+            width: min(36rem, 70vw);
+            height: min(36rem, 70vw);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(159,61,47,.12), transparent 68%);
+        }
+        .dimensional-section:after {
+            content: "";
+            position: absolute;
+            left: 12%;
+            right: 12%;
+            bottom: -3rem;
+            z-index: -1;
+            height: 12rem;
+            background-image: linear-gradient(rgba(17,17,17,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(17,17,17,.07) 1px, transparent 1px);
+            background-size: 58px 58px;
+            transform: perspective(900px) rotateX(68deg);
+            transform-origin: center bottom;
+            opacity: .36;
         }
         #about .grid.md\:grid-cols-4 > div {
             border-radius: 24px;
@@ -75,6 +228,12 @@
             background: rgba(255,255,255,.78);
             padding: 1.5rem;
             box-shadow: 0 20px 54px rgba(17,17,17,.08);
+            transform-style: preserve-3d;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        #about .grid.md\:grid-cols-4 > div:hover {
+            transform: perspective(850px) rotateX(4deg) translateY(-6px);
+            box-shadow: 0 28px 68px rgba(17,17,17,.13);
         }
         #about .grid.md\:grid-cols-4 > div > .text-4xl {
             display: none;
@@ -101,6 +260,8 @@
             border: 1px solid rgba(255,255,255,.18);
             background: rgba(255,255,255,.09);
             backdrop-filter: blur(12px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 18px 34px rgba(0,0,0,.15);
+            transform: translateZ(0);
         }
         @keyframes slideIn {
             from {
@@ -117,6 +278,69 @@
         }
         .font-display {
             font-family: 'Noto Serif', serif;
+        }
+        .perspective-grid {
+            perspective: 1000px;
+        }
+        @media (max-width: 1023px) {
+            .depth-scene {
+                min-height: 25rem;
+                margin-top: 3rem;
+            }
+            .depth-stage {
+                inset: 0 auto auto 50%;
+                width: 28rem;
+                min-width: 0;
+                height: 24rem;
+                transform: translateX(-50%);
+            }
+            .depth-panel.main {
+                width: 14rem;
+                height: 19.5rem;
+                right: 4rem;
+            }
+            .depth-panel.side {
+                width: 10.5rem;
+                height: 14rem;
+                left: 2.5rem;
+                top: 6rem;
+            }
+            .depth-ring {
+                width: 14rem;
+                height: 14rem;
+            }
+            .depth-chip { font-size: .8rem; }
+        }
+        @media (max-width: 640px) {
+            .hero-gradient { min-height: 100vh; }
+            .depth-scene { min-height: 19rem; }
+            .depth-stage {
+                width: 20rem;
+                height: 18rem;
+            }
+            .depth-panel.main {
+                width: 10.5rem;
+                height: 14.5rem;
+                right: 2.8rem;
+                border-radius: 1.35rem;
+            }
+            .depth-panel.side {
+                width: 8rem;
+                height: 10.5rem;
+                left: 1.2rem;
+                top: 4.5rem;
+                border-radius: 1rem;
+            }
+            .depth-ring {
+                width: 10.5rem;
+                height: 10.5rem;
+                inset: 3.7rem 2.8rem auto auto;
+            }
+            .depth-chip {
+                padding: .55rem .75rem;
+            }
+            .depth-chip.fit { right: .2rem; top: 2.8rem; }
+            .depth-chip.move { left: .1rem; bottom: 4.8rem; }
         }
     </style>
 </head>
@@ -152,26 +376,42 @@
 
     <!-- Hero Section -->
     <section class="hero-gradient text-white px-6 pb-16 pt-36 md:pt-28">
-        <div class="max-w-7xl mx-auto w-full animate-slide">
-            <div class="max-w-3xl">
-                <p class="mb-4 text-xs uppercase tracking-[0.35em] text-white/55">Kinetic Muse Studio</p>
-                <h1 class="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.98]">Performance pieces with a digital fitting edge.</h1>
-                <p class="mt-6 max-w-xl text-base md:text-lg leading-8 text-white/72">Shop the modern edit, preview pieces in the try-on studio, and move from product discovery to bag without losing the look.</p>
-                <div class="mt-8 flex flex-col sm:flex-row gap-3">
-                    <button onclick="document.getElementById('collections').scrollIntoView({ behavior: 'smooth' })" class="rounded-full bg-white px-8 py-4 font-semibold text-black hover:bg-white/90 transition">Shop Collection</button>
-                    <button onclick="window.location.href='try-on.html'" class="rounded-full border border-white/55 px-8 py-4 font-semibold text-white hover:bg-white/10 transition">Open Try-On Studio</button>
+        <div class="max-w-7xl mx-auto grid w-full items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(360px,0.98fr)]">
+            <div class="animate-slide">
+                <div class="max-w-3xl">
+                    <p class="mb-4 text-xs uppercase tracking-[0.35em] text-white/55">Kinetic Muse Studio</p>
+                    <h1 class="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.98]">Performance pieces with a digital fitting edge.</h1>
+                    <p class="mt-6 max-w-xl text-base md:text-lg leading-8 text-white/72">Shop the modern edit, preview pieces in the try-on studio, and move from product discovery to bag without losing the look.</p>
+                    <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                        <button onclick="document.getElementById('collections').scrollIntoView({ behavior: 'smooth' })" class="rounded-full bg-white px-8 py-4 font-semibold text-black hover:bg-white/90 transition">Shop Collection</button>
+                        <button onclick="window.location.href='try-on.html'" class="rounded-full border border-white/55 px-8 py-4 font-semibold text-white hover:bg-white/10 transition">Open Try-On Studio</button>
+                    </div>
+                </div>
+                <div class="mt-12 grid max-w-3xl gap-3 sm:grid-cols-3">
+                    <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Live Catalog</p><p class="font-display mt-2 text-3xl font-bold">18</p></div>
+                    <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Try-On Modes</p><p class="font-display mt-2 text-3xl font-bold">3</p></div>
+                    <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Core Fits</p><p class="font-display mt-2 text-3xl font-bold">4</p></div>
                 </div>
             </div>
-            <div class="mt-12 grid max-w-3xl gap-3 sm:grid-cols-3">
-                <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Live Catalog</p><p class="font-display mt-2 text-3xl font-bold">18</p></div>
-                <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Try-On Modes</p><p class="font-display mt-2 text-3xl font-bold">3</p></div>
-                <div class="stat-chip rounded-[22px] p-4"><p class="text-xs uppercase tracking-[0.22em] text-white/45">Core Fits</p><p class="font-display mt-2 text-3xl font-bold">4</p></div>
+            <div class="depth-scene" aria-hidden="true">
+                <div class="depth-stage">
+                    <div class="depth-ring"></div>
+                    <div class="depth-disc"></div>
+                    <div class="depth-panel side">
+                        <img src="https://images.pexels.com/photos/5310743/pexels-photo-5310743.jpeg?auto=compress&cs=tinysrgb&w=700" alt="">
+                    </div>
+                    <div class="depth-panel main">
+                        <img src="https://images.pexels.com/photos/5012029/pexels-photo-5012029.jpeg?auto=compress&cs=tinysrgb&w=800" alt="">
+                    </div>
+                    <div class="depth-chip fit"><span class="material-symbols-outlined">view_in_ar</span><span>3D Fit Preview</span></div>
+                    <div class="depth-chip move"><span class="material-symbols-outlined">bolt</span><span>Motion Ready</span></div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Category Preview -->
-    <section class="max-w-7xl mx-auto px-6 py-20">
+    <section class="dimensional-section max-w-7xl mx-auto px-6 py-20">
         <div class="mb-12 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
                 <p class="text-xs uppercase tracking-[0.3em] text-black/45">Curated Paths</p>
@@ -179,7 +419,7 @@
             </div>
             <a href="collections.html" class="w-fit rounded-full border border-black/10 px-5 py-3 text-sm font-semibold hover:bg-black hover:text-white transition">View Everything</a>
         </div>
-        <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
+        <div class="perspective-grid grid md:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
             <!-- Athletic Wear -->
             <div class="category-card group cursor-pointer p-3" onclick="filterByCategory('athletic')">
                 <div class="aspect-[4/5] bg-gradient-to-br from-gray-100 to-gray-200 rounded-[20px] overflow-hidden">
@@ -224,7 +464,7 @@
     </section>
 
     <!-- Featured Products -->
-    <section id="collections" class="py-20 px-6">
+    <section id="collections" class="dimensional-section py-20 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-6 mb-12">
                 <div>
@@ -278,12 +518,12 @@
                 </div>
             </div>
             <div class="mt-16 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-                <div class="rounded-3xl border border-black/10 bg-gray-50 p-8">
+                <div class="feature-panel rounded-3xl p-8">
                     <p class="text-xs uppercase tracking-[0.25em] text-gray-500">About The Brand</p>
                     <h4 class="font-display mt-3 text-3xl font-bold">A sharper storefront for motion, fit, and performance.</h4>
                     <p class="mt-4 text-gray-600 leading-8">Kinetic Muse now connects browsing, product detail, cart, checkout, and try-on into one flow. The goal is not just a pretty homepage, but a storefront where every major action leads somewhere real.</p>
                 </div>
-                <div class="rounded-3xl bg-black text-white p-8">
+                <div class="rounded-3xl bg-black text-white p-8 shadow-[0_30px_70px_rgba(17,17,17,.24)]">
                     <p class="text-xs uppercase tracking-[0.25em] text-white/55">What To Try</p>
                     <div class="mt-4 space-y-3 text-sm text-white/75">
                         <p>Open a product detail page from the homepage cards.</p>
@@ -407,6 +647,27 @@
                 `;
                 
                 grid.appendChild(card);
+            });
+
+            attachCardTilt();
+        }
+
+        function attachCardTilt() {
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach((card) => {
+                card.addEventListener('pointermove', (event) => {
+                    if (window.matchMedia('(pointer: coarse)').matches) return;
+                    const rect = card.getBoundingClientRect();
+                    const x = (event.clientX - rect.left) / rect.width - 0.5;
+                    const y = (event.clientY - rect.top) / rect.height - 0.5;
+                    card.style.setProperty('--tilt-x', `${(-y * 7).toFixed(2)}deg`);
+                    card.style.setProperty('--tilt-y', `${(x * 8).toFixed(2)}deg`);
+                });
+
+                card.addEventListener('pointerleave', () => {
+                    card.style.setProperty('--tilt-x', '0deg');
+                    card.style.setProperty('--tilt-y', '0deg');
+                });
             });
         }
         
