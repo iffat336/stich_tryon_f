@@ -21,7 +21,7 @@
   button:disabled { background: #999; cursor: not-allowed; }
   #status { padding: 12px; border-radius: 8px; background: #e8f4fd; color: #1a6; font-weight: bold; display: none; margin: 10px 0; }
   #status.error { background: #fde8e8; color: #c00; }
-  #result-img { width: 100%; border-radius: 12px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+  #result-img { width: 100%; max-width: 768px; margin: 16px auto 0; border-radius: 12px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
   .fit-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
   .fit-field label { display: block; font-size: 12px; color: #666; margin-bottom: 6px; font-weight: bold; }
   .fit-field input { width: 100%; box-sizing: border-box; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; }
@@ -44,7 +44,9 @@
   #comparison-box { display: none; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
   .compare-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
   .compare-card h4 { margin: 0 0 10px; color: #555; font-size: 13px; text-transform: uppercase; }
-  .compare-card img { width: 100%; border-radius: 10px; display: block; }
+  .compare-card img { width: 100%; max-height: 620px; object-fit: contain; border-radius: 10px; display: block; background: #f6f6f6; }
+  .quality-note { margin: 10px 0 0; color: #666; line-height: 1.45; font-size: 13px; }
+  #open-hd-link { display: none; width: auto; margin: 14px auto 0; padding: 12px 18px; border-radius: 10px; background: #222; color: white; text-align: center; text-decoration: none; font-weight: bold; }
   .business-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 24px; }
   .business-strip div { background: #fff; border-radius: 12px; padding: 16px; border: 1px solid #e8e1da; }
   .business-strip strong { display: block; margin-bottom: 6px; color: #222; }
@@ -64,6 +66,7 @@
   <div class="flow-step"><strong>3. Measurements</strong>Add height, chest/bust, and waist.</div>
   <div class="flow-step"><strong>4. Result</strong>Get try-on, size, and confidence.</div>
 </div>
+<p class="quality-note">For the sharpest result, use a clear full-body photo in good light and a front-facing garment photo without heavy shadows.</p>
 <div class="box" style="margin-bottom:10px">
   <h3>HuggingFace Token (required)</h3>
   <input type="password" id="hf-token" placeholder="hf_xxxxxxxxxxxxxxxx" style="width:100%;padding:10px;border:2px solid #ccc;border-radius:8px;font-size:14px" oninput="localStorage.setItem('hf.token',this.value)">
@@ -127,6 +130,7 @@
   </div>
 </div>
 <img id="result-img" alt="Try-on result">
+<a id="open-hd-link" href="#" target="_blank" rel="noopener">Open HD Result</a>
 <div class="business-strip">
   <div><strong>Reduce Returns</strong><p>Customers can preview style and size before ordering.</p></div>
   <div><strong>Increase Confidence</strong><p>Fit guidance helps shoppers choose faster.</p></div>
@@ -206,6 +210,7 @@ async function generate() {
   const status = document.getElementById('status');
   const resultImg = document.getElementById('result-img');
   const comparisonBox = document.getElementById('comparison-box');
+  const hdLink = document.getElementById('open-hd-link');
 
   btn.disabled = true;
   btn.textContent = 'Generating... (30-60 seconds)';
@@ -215,6 +220,7 @@ async function generate() {
   resultImg.style.display = 'none';
   document.getElementById('result-size-card').style.display = 'none';
   comparisonBox.style.display = 'none';
+  hdLink.style.display = 'none';
 
   try {
     const res = await fetch('/api/tryon', {
@@ -234,6 +240,8 @@ async function generate() {
       resultImg.style.display = 'block';
       document.getElementById('before-img').src = personData;
       document.getElementById('after-img').src = data.result;
+      hdLink.href = data.result;
+      hdLink.style.display = 'block';
       updateSizeRecommendation();
       document.getElementById('result-size-card').style.display = 'block';
       comparisonBox.style.display = 'grid';
