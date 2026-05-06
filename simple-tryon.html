@@ -26,6 +26,11 @@
   .size-pill.active strong { color: white; }
   #fit-recommendation { margin-top: 14px; padding: 14px; border-radius: 10px; background: #f6efe7; color: #4a3528; line-height: 1.45; }
   #fit-recommendation strong { color: #222; }
+  #result-size-card { display: none; margin: 18px 0; padding: 18px; border-radius: 12px; background: #222; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.14); }
+  #result-size-card .label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.7); margin: 0 0 8px; }
+  #result-size-card .size-line { margin: 0; font-size: 28px; font-weight: 800; }
+  #result-size-card .size-line span { color: #f7d9b2; }
+  #result-size-card .copy { margin: 8px 0 0; color: rgba(255,255,255,.78); line-height: 1.45; }
   @media (max-width: 640px) { .fit-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -74,6 +79,11 @@
 <div id="status"></div>
 <button id="btn" onclick="generate()">Generate Try-On</button>
 <h3>Result:</h3>
+<div id="result-size-card">
+  <p class="label">Recommended Size</p>
+  <p class="size-line">Size <span id="result-size-value">M</span></p>
+  <p class="copy" id="result-size-copy">Medium is the safest pick for a natural try-on fit.</p>
+</div>
 <img id="result-img" alt="Try-on result">
 
 <script>
@@ -129,6 +139,9 @@ function updateSizeRecommendation() {
   document.getElementById('fit-recommendation').innerHTML =
     '<strong>' + prefix + ': ' + rec.size + ' (' + rec.fit + ')</strong><br>' +
     rec.confidence + '. ' + rec.note + ' This is an estimate from the entered measurements, so confirm with the brand size chart before ordering.';
+
+  document.getElementById('result-size-value').textContent = rec.size + ' - ' + rec.fit;
+  document.getElementById('result-size-copy').textContent = rec.confidence + '. ' + rec.note;
 }
 
 updateSizeRecommendation();
@@ -150,6 +163,7 @@ async function generate() {
   status.className = '';
   status.textContent = '⏳ Sending to HuggingFace AI...';
   resultImg.style.display = 'none';
+  document.getElementById('result-size-card').style.display = 'none';
 
   try {
     const res = await fetch('/api/tryon', {
@@ -168,6 +182,7 @@ async function generate() {
       resultImg.src = data.result;
       resultImg.style.display = 'block';
       updateSizeRecommendation();
+      document.getElementById('result-size-card').style.display = 'block';
       status.textContent = '✅ Done! Scroll down to see the result.';
     } else {
       status.className = 'error';
