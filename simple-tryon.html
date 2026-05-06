@@ -5,7 +5,13 @@
 <title>Virtual Try-On</title>
 <style>
   body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
-  h1 { color: #333; }
+  h1 { color: #222; margin-bottom: 8px; }
+  .hero { background: #222; color: white; border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .hero p { margin: 0; color: rgba(255,255,255,.78); line-height: 1.55; }
+  .hero .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: #f7d9b2; font-weight: bold; margin-bottom: 8px; }
+  .flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 16px 0 20px; }
+  .flow-step { background: white; border-radius: 10px; padding: 12px; border: 1px solid #e8e1da; color: #444; font-size: 13px; }
+  .flow-step strong { display: block; color: #222; margin-bottom: 4px; }
   .row { display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
   .box { flex: 1; min-width: 250px; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
   .box h3 { margin: 0 0 12px; color: #555; font-size: 14px; text-transform: uppercase; }
@@ -31,11 +37,33 @@
   #result-size-card .size-line { margin: 0; font-size: 28px; font-weight: 800; }
   #result-size-card .size-line span { color: #f7d9b2; }
   #result-size-card .copy { margin: 8px 0 0; color: rgba(255,255,255,.78); line-height: 1.45; }
-  @media (max-width: 640px) { .fit-grid { grid-template-columns: 1fr; } }
+  .confidence-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  .confidence-bar { flex: 1; height: 10px; background: rgba(255,255,255,.18); border-radius: 999px; overflow: hidden; }
+  #confidence-fill { display: block; width: 82%; height: 100%; background: #f7d9b2; border-radius: inherit; }
+  #confidence-value { font-weight: 800; color: #f7d9b2; }
+  #comparison-box { display: none; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+  .compare-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+  .compare-card h4 { margin: 0 0 10px; color: #555; font-size: 13px; text-transform: uppercase; }
+  .compare-card img { width: 100%; border-radius: 10px; display: block; }
+  .business-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 24px; }
+  .business-strip div { background: #fff; border-radius: 12px; padding: 16px; border: 1px solid #e8e1da; }
+  .business-strip strong { display: block; margin-bottom: 6px; color: #222; }
+  .business-strip p { margin: 0; color: #666; line-height: 1.45; font-size: 14px; }
+  @media (max-width: 640px) { .fit-grid, .flow, #comparison-box, .business-strip { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-<h1>🤗 Virtual Try-On</h1>
+<div class="hero">
+  <div class="eyebrow">AI Virtual Try-On For Fashion Brands</div>
+  <h1>Virtual Try-On + Size Recommendation</h1>
+  <p>Upload a customer photo and a dress image to generate an AI try-on result with a recommended size for online shoppers.</p>
+</div>
+<div class="flow">
+  <div class="flow-step"><strong>1. Customer Photo</strong>Upload a clear front-facing image.</div>
+  <div class="flow-step"><strong>2. Dress Image</strong>Upload the selected garment.</div>
+  <div class="flow-step"><strong>3. Measurements</strong>Add height, chest/bust, and waist.</div>
+  <div class="flow-step"><strong>4. Result</strong>Get try-on, size, and confidence.</div>
+</div>
 <div class="box" style="margin-bottom:10px">
   <h3>HuggingFace Token (required)</h3>
   <input type="password" id="hf-token" placeholder="hf_xxxxxxxxxxxxxxxx" style="width:100%;padding:10px;border:2px solid #ccc;border-radius:8px;font-size:14px" oninput="localStorage.setItem('hf.token',this.value)">
@@ -83,8 +111,27 @@
   <p class="label">Recommended Size</p>
   <p class="size-line">Size <span id="result-size-value">M</span></p>
   <p class="copy" id="result-size-copy">Medium is the safest pick for a natural try-on fit.</p>
+  <div class="confidence-row">
+    <div class="confidence-bar"><span id="confidence-fill"></span></div>
+    <span id="confidence-value">82%</span>
+  </div>
+</div>
+<div id="comparison-box">
+  <div class="compare-card">
+    <h4>Before</h4>
+    <img id="before-img" alt="Uploaded customer photo">
+  </div>
+  <div class="compare-card">
+    <h4>After Try-On</h4>
+    <img id="after-img" alt="Generated try-on result">
+  </div>
 </div>
 <img id="result-img" alt="Try-on result">
+<div class="business-strip">
+  <div><strong>Reduce Returns</strong><p>Customers can preview style and size before ordering.</p></div>
+  <div><strong>Increase Confidence</strong><p>Fit guidance helps shoppers choose faster.</p></div>
+  <div><strong>Brand Ready</strong><p>Works as a web flow for Sapphire, Nishat, and similar catalogs.</p></div>
+</div>
 
 <script>
 function readFile(input) {
@@ -118,12 +165,12 @@ function recommendSize() {
   const score = Math.max(upperScore, lowerScore + 5);
 
   if (score <= 35) {
-    return { size: 'S', fit: 'Small', confidence: 'Best for a closer fit', note: 'Small should sit cleanly if the garment is stretchy or fitted.' };
+    return { size: 'S', fit: 'Small', confidence: 'Best for a closer fit', percent: 84, note: 'Small should sit cleanly if the garment is stretchy or fitted.' };
   }
   if (score <= 40) {
-    return { size: 'M', fit: 'Medium', confidence: 'Most balanced choice', note: 'Medium is the safest pick for a natural try-on fit.' };
+    return { size: 'M', fit: 'Medium', confidence: 'Most balanced choice', percent: 88, note: 'Medium is the safest pick for a natural try-on fit.' };
   }
-  return { size: 'L', fit: 'Large', confidence: 'Best for comfort', note: 'Large should give better room through the body and garment drape.' };
+  return { size: 'L', fit: 'Large', confidence: 'Best for comfort', percent: 83, note: 'Large should give better room through the body and garment drape.' };
 }
 
 function updateSizeRecommendation() {
@@ -142,6 +189,8 @@ function updateSizeRecommendation() {
 
   document.getElementById('result-size-value').textContent = rec.size + ' - ' + rec.fit;
   document.getElementById('result-size-copy').textContent = rec.confidence + '. ' + rec.note;
+  document.getElementById('confidence-fill').style.width = rec.percent + '%';
+  document.getElementById('confidence-value').textContent = rec.percent + '%';
 }
 
 updateSizeRecommendation();
@@ -156,6 +205,7 @@ async function generate() {
   const btn = document.getElementById('btn');
   const status = document.getElementById('status');
   const resultImg = document.getElementById('result-img');
+  const comparisonBox = document.getElementById('comparison-box');
 
   btn.disabled = true;
   btn.textContent = 'Generating... (30-60 seconds)';
@@ -164,6 +214,7 @@ async function generate() {
   status.textContent = '⏳ Sending to HuggingFace AI...';
   resultImg.style.display = 'none';
   document.getElementById('result-size-card').style.display = 'none';
+  comparisonBox.style.display = 'none';
 
   try {
     const res = await fetch('/api/tryon', {
@@ -181,8 +232,11 @@ async function generate() {
     if (data.ok && data.result) {
       resultImg.src = data.result;
       resultImg.style.display = 'block';
+      document.getElementById('before-img').src = personData;
+      document.getElementById('after-img').src = data.result;
       updateSizeRecommendation();
       document.getElementById('result-size-card').style.display = 'block';
+      comparisonBox.style.display = 'grid';
       status.textContent = '✅ Done! Scroll down to see the result.';
     } else {
       status.className = 'error';
