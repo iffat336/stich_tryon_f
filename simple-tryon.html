@@ -101,7 +101,7 @@ async function generate() {
     }
   } catch (e) {
     status.className = 'error';
-    status.textContent = '❌ Could not connect to server. Make sure you opened this page from http://127.0.0.1:8000/simple-tryon.html';
+    status.textContent = 'Could not connect to /api/tryon. If this is deployed, make sure Railway redeployed with package.json and start command: npm start.';
   }
 
   btn.disabled = false;

@@ -6,7 +6,7 @@ const { URL } = require('url');
 
 const root = __dirname;
 const host = '0.0.0.0';
-const port = 8000;
+const port = process.env.PORT || 8000;
 
 // In-memory cache for result images
 const resultCache = new Map();
