@@ -130,7 +130,7 @@
   </div>
 </div>
 <img id="result-img" alt="Try-on result">
-<a id="open-hd-link" href="#" target="_blank" rel="noopener">Open HD Result</a>
+<a id="open-hd-link" href="#" target="_blank" rel="noopener">Open Enhanced HD Result</a>
 <div class="business-strip">
   <div><strong>Reduce Returns</strong><p>Customers can preview style and size before ordering.</p></div>
   <div><strong>Increase Confidence</strong><p>Fit guidance helps shoppers choose faster.</p></div>
@@ -197,6 +197,62 @@ function updateSizeRecommendation() {
   document.getElementById('confidence-value').textContent = rec.percent + '%';
 }
 
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function enhanceResultImage(src) {
+  const image = await loadImage(src);
+  const scale = image.naturalWidth < 1200 ? Math.min(2, 1200 / image.naturalWidth) : 1;
+  const width = Math.round(image.naturalWidth * scale);
+  const height = Math.round(image.naturalHeight * scale);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  canvas.width = width;
+  canvas.height = height;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(image, 0, 0, width, height);
+
+  const original = ctx.getImageData(0, 0, width, height);
+  const output = ctx.createImageData(width, height);
+  const srcData = original.data;
+  const outData = output.data;
+  const amount = 0.42;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      if (x === 0 || y === 0 || x === width - 1 || y === height - 1) {
+        outData[i] = srcData[i];
+        outData[i + 1] = srcData[i + 1];
+        outData[i + 2] = srcData[i + 2];
+        outData[i + 3] = srcData[i + 3];
+        continue;
+      }
+
+      const left = i - 4;
+      const right = i + 4;
+      const up = i - width * 4;
+      const down = i + width * 4;
+      for (let c = 0; c < 3; c++) {
+        const blur = (srcData[left + c] + srcData[right + c] + srcData[up + c] + srcData[down + c]) / 4;
+        outData[i + c] = Math.max(0, Math.min(255, srcData[i + c] + (srcData[i + c] - blur) * amount));
+      }
+      outData[i + 3] = srcData[i + 3];
+    }
+  }
+
+  ctx.putImageData(output, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
 updateSizeRecommendation();
 
 async function generate() {
@@ -236,11 +292,19 @@ async function generate() {
     const data = await res.json();
 
     if (data.ok && data.result) {
-      resultImg.src = data.result;
+      status.textContent = 'Enhancing result quality...';
+      let displayResult = data.result;
+      try {
+        displayResult = await enhanceResultImage(data.result);
+      } catch (e) {
+        displayResult = data.result;
+      }
+
+      resultImg.src = displayResult;
       resultImg.style.display = 'block';
       document.getElementById('before-img').src = personData;
-      document.getElementById('after-img').src = data.result;
-      hdLink.href = data.result;
+      document.getElementById('after-img').src = displayResult;
+      hdLink.href = displayResult;
       hdLink.style.display = 'block';
       updateSizeRecommendation();
       document.getElementById('result-size-card').style.display = 'block';
