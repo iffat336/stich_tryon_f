@@ -16,6 +16,17 @@
   #status { padding: 12px; border-radius: 8px; background: #e8f4fd; color: #1a6; font-weight: bold; display: none; margin: 10px 0; }
   #status.error { background: #fde8e8; color: #c00; }
   #result-img { width: 100%; border-radius: 12px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+  .fit-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .fit-field label { display: block; font-size: 12px; color: #666; margin-bottom: 6px; font-weight: bold; }
+  .fit-field input { width: 100%; box-sizing: border-box; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; }
+  .size-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+  .size-pill { border: 2px solid #e1e1e1; border-radius: 10px; padding: 12px 8px; text-align: center; background: #fafafa; color: #555; }
+  .size-pill strong { display: block; font-size: 20px; color: #222; }
+  .size-pill.active { border-color: #222; background: #222; color: white; }
+  .size-pill.active strong { color: white; }
+  #fit-recommendation { margin-top: 14px; padding: 14px; border-radius: 10px; background: #f6efe7; color: #4a3528; line-height: 1.45; }
+  #fit-recommendation strong { color: #222; }
+  @media (max-width: 640px) { .fit-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -37,6 +48,29 @@
     <img id="garment-preview" class="preview">
   </div>
 </div>
+<div class="box">
+  <h3>Step 3 - Size Recommendation</h3>
+  <div class="fit-grid">
+    <div class="fit-field">
+      <label for="height-input">Height (inches)</label>
+      <input type="number" id="height-input" min="48" max="84" value="66" oninput="updateSizeRecommendation()">
+    </div>
+    <div class="fit-field">
+      <label for="chest-input">Chest/Bust (inches)</label>
+      <input type="number" id="chest-input" min="26" max="56" value="36" oninput="updateSizeRecommendation()">
+    </div>
+    <div class="fit-field">
+      <label for="waist-input">Waist (inches)</label>
+      <input type="number" id="waist-input" min="22" max="52" value="30" oninput="updateSizeRecommendation()">
+    </div>
+  </div>
+  <div class="size-options">
+    <div class="size-pill" data-size-pill="S"><strong>S</strong><span>Small</span></div>
+    <div class="size-pill" data-size-pill="M"><strong>M</strong><span>Medium</span></div>
+    <div class="size-pill" data-size-pill="L"><strong>L</strong><span>Large</span></div>
+  </div>
+  <div id="fit-recommendation">Upload both photos and add measurements to get a size estimate.</div>
+</div>
 <div id="status"></div>
 <button id="btn" onclick="generate()">Generate Try-On</button>
 <h3>Result:</h3>
@@ -54,11 +88,50 @@ function readFile(input) {
 }
 
 document.getElementById('person-input').onchange = function() {
-  readFile(this).then(d => { if(d) { const img = document.getElementById('person-preview'); img.src = d; img.style.display = 'block'; } });
+  readFile(this).then(d => { if(d) { const img = document.getElementById('person-preview'); img.src = d; img.style.display = 'block'; updateSizeRecommendation(); } });
 };
 document.getElementById('garment-input').onchange = function() {
-  readFile(this).then(d => { if(d) { const img = document.getElementById('garment-preview'); img.src = d; img.style.display = 'block'; } });
+  readFile(this).then(d => { if(d) { const img = document.getElementById('garment-preview'); img.src = d; img.style.display = 'block'; updateSizeRecommendation(); } });
 };
+
+function numberValue(id, fallback) {
+  const value = Number(document.getElementById(id).value);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function recommendSize() {
+  const height = numberValue('height-input', 66);
+  const chest = numberValue('chest-input', 36);
+  const waist = numberValue('waist-input', 30);
+  const upperScore = chest + (height - 66) * 0.15;
+  const lowerScore = waist + (height - 66) * 0.12;
+  const score = Math.max(upperScore, lowerScore + 5);
+
+  if (score <= 35) {
+    return { size: 'S', fit: 'Small', confidence: 'Best for a closer fit', note: 'Small should sit cleanly if the garment is stretchy or fitted.' };
+  }
+  if (score <= 40) {
+    return { size: 'M', fit: 'Medium', confidence: 'Most balanced choice', note: 'Medium is the safest pick for a natural try-on fit.' };
+  }
+  return { size: 'L', fit: 'Large', confidence: 'Best for comfort', note: 'Large should give better room through the body and garment drape.' };
+}
+
+function updateSizeRecommendation() {
+  const personReady = document.getElementById('person-input').files.length > 0;
+  const garmentReady = document.getElementById('garment-input').files.length > 0;
+  const rec = recommendSize();
+
+  document.querySelectorAll('[data-size-pill]').forEach(pill => {
+    pill.classList.toggle('active', pill.dataset.sizePill === rec.size);
+  });
+
+  const prefix = personReady && garmentReady ? 'Recommended size' : 'Preliminary size estimate';
+  document.getElementById('fit-recommendation').innerHTML =
+    '<strong>' + prefix + ': ' + rec.size + ' (' + rec.fit + ')</strong><br>' +
+    rec.confidence + '. ' + rec.note + ' This is an estimate from the entered measurements, so confirm with the brand size chart before ordering.';
+}
+
+updateSizeRecommendation();
 
 async function generate() {
   const personData = await readFile(document.getElementById('person-input'));
@@ -94,6 +167,7 @@ async function generate() {
     if (data.ok && data.result) {
       resultImg.src = data.result;
       resultImg.style.display = 'block';
+      updateSizeRecommendation();
       status.textContent = '✅ Done! Scroll down to see the result.';
     } else {
       status.className = 'error';
