@@ -7,3 +7,8 @@ node_modules/
 *.tmp
 whatsapp_qr.png
 whatsapp_qr_make.py
+last-tryon-result.webp
+test-tryon-result.webp
+video_frames/
+*.zip
+.env

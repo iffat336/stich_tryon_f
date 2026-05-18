@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stich — Virtual Try-On Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0b;--panel:#141416;--border:#242428;--accent:#c8845a;--text:#f0f0f0;--muted:#6b6b72;--green:#5bc47a;--blue:#5a8ec8}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── Nav ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:.75rem 2rem;border-bottom:1px solid var(--border);background:rgba(10,10,11,.96);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:.5rem}
+.logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#fff}
+.logo em{color:var(--accent);font-style:normal}
+.nav-sub{font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.nav-stats{display:flex;gap:1.4rem;align-items:center}
+.nav-stat{text-align:center}
+.nav-stat .val{font-size:.9rem;font-weight:800;color:var(--text);display:block}
+.nav-stat .lbl{font-size:.55rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* ── Layout ── */
+.page{display:grid;grid-template-columns:360px 1fr;height:calc(100vh - 66px)}
+@media(max-width:900px){.page{grid-template-columns:1fr;height:auto}}
+.left{border-right:1px solid var(--border);overflow-y:auto;padding:1.3rem;display:flex;flex-direction:column;gap:1rem}
+.step-label{font-size:.62rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+
+/* ── Upload boxes ── */
+.ubox{border:1.5px dashed var(--border);border-radius:16px;padding:1.1rem;text-align:center;cursor:pointer;transition:.18s;background:var(--panel);position:relative;overflow:hidden}
+.ubox:hover{border-color:var(--accent)}
+.ubox input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.ubox-icon{font-size:1.6rem;margin-bottom:.4rem}
+.ubox strong{display:block;font-size:.85rem;font-weight:600;margin-bottom:.2rem}
+.ubox p{font-size:.72rem;color:var(--muted);line-height:1.5}
+.ubox .preview-row{display:none;align-items:center;gap:.7rem;text-align:left}
+.ubox .preview-row img{width:50px;height:62px;object-fit:cover;border-radius:8px;border:1px solid var(--border);flex-shrink:0}
+.ubox .preview-row span{font-size:.8rem;font-weight:600;word-break:break-word}
+.ubox .preview-row small{display:block;font-size:.7rem;color:var(--muted);margin-top:2px}
+
+.demo-btn{width:100%;padding:.6rem;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--muted);font-size:.78rem;font-weight:600;cursor:pointer;transition:.18s;margin-top:.45rem}
+.demo-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Measurements ── */
+.measure-toggle{width:100%;padding:.6rem .9rem;border:1px solid var(--border);border-radius:10px;background:var(--panel);color:var(--muted);font-size:.76rem;font-weight:600;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:space-between;margin-top:.45rem}
+.measure-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.measure-toggle .arr{transition:.25s;display:inline-block}
+.measure-toggle.open .arr{transform:rotate(180deg)}
+.measure-body{overflow:hidden;max-height:0;transition:max-height .3s ease;background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-top:.4rem}
+.measure-body.open{max-height:300px}
+.measure-inner{padding:.85rem}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+.m-field label{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.25rem}
+.m-field input{width:100%;background:#1a1a1e;border:1px solid var(--border);border-radius:8px;padding:.45rem .65rem;color:var(--text);font-size:.82rem;outline:none;transition:.15s}
+.m-field input:focus{border-color:var(--accent)}
+.m-unit{display:flex;gap:.3rem;margin-bottom:.5rem}
+.m-unit button{flex:1;padding:.3rem;border-radius:6px;font-size:.68rem;font-weight:700;cursor:pointer;transition:.15s;border:1px solid var(--border);background:transparent;color:var(--muted)}
+.m-unit button.on{border-color:var(--accent);color:var(--accent);background:rgba(200,132,90,.1)}
+
+/* ── Garment grid ── */
+.or-divider{display:flex;align-items:center;gap:.6rem;margin:.25rem 0}
+.or-divider hr{flex:1;border:none;border-top:1px solid var(--border)}
+.or-divider span{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;max-height:260px;overflow-y:auto}
+.gcard{border:1.5px solid var(--border);border-radius:11px;overflow:hidden;cursor:pointer;transition:.18s;background:var(--panel);position:relative}
+.gcard:hover{border-color:rgba(200,132,90,.5);transform:translateY(-1px)}
+.gcard.sel{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,132,90,.2)}
+.gcard img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;pointer-events:none}
+.gcard-name{font-size:.55rem;font-weight:600;padding:.28rem .32rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-top:1px solid var(--border)}
+.gcard .badge{position:absolute;top:4px;left:4px;background:var(--accent);color:#fff;font-size:.46rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.15rem .32rem;border-radius:3px;pointer-events:none}
+
+/* ── Generate ── */
+.gen-btn{width:100%;padding:.9rem;border:none;border-radius:13px;background:linear-gradient(135deg,#c8845a,#7c3f1e);color:#fff;font-size:.88rem;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center;gap:.6rem}
+.gen-btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.gen-btn .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.gen-btn.busy .spin{display:block}
+.gen-btn.busy .gen-txt{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Progress steps ── */
+.prog-wrap{display:none;background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:.85rem;margin-top:.6rem}
+.prog-wrap.on{display:block}
+.prog-bar-track{height:3px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:.7rem}
+.prog-bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width .5s ease}
+.prog-step-item{display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--muted);padding:.18rem 0;transition:color .3s}
+.prog-step-item.done{color:var(--green)}
+.prog-step-item.active{color:var(--text)}
+.prog-step-item .ps-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;transition:.3s;display:flex;align-items:center;justify-content:center;font-size:.5rem}
+.prog-step-item.done .ps-dot{background:rgba(91,196,122,.2);border-color:var(--green);color:var(--green)}
+.prog-step-item.active .ps-dot{border-color:var(--accent);animation:pulse-dot 1.2s ease infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(200,132,90,.5)}50%{box-shadow:0 0 0 4px rgba(200,132,90,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Right panel ── */
+.right{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:1.4rem;position:relative;background:radial-gradient(ellipse at 60% 20%,rgba(200,132,90,.07) 0%,transparent 60%);overflow-y:auto;gap:1rem}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:2.5rem 2rem;margin:auto;max-width:360px}
+.empty .icon{font-size:3.5rem;opacity:.15;margin-bottom:1rem}
+.empty h2{font-family:'Playfair Display',serif;font-size:1.9rem;color:rgba(255,255,255,.2);margin-bottom:.6rem}
+.empty p{font-size:.83rem;color:var(--muted);line-height:1.7;max-width:260px;margin:0 auto 1.4rem}
+.quick-demo-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.3rem;background:linear-gradient(135deg,rgba(200,132,90,.15),rgba(200,132,90,.08));border:1px solid rgba(200,132,90,.3);border-radius:999px;font-size:.78rem;font-weight:700;color:var(--accent);cursor:pointer;transition:.18s}
+.quick-demo-btn:hover{background:rgba(200,132,90,.2);border-color:var(--accent);transform:translateY(-1px)}
+
+/* ── 3D Viewer ── */
+.viewer-wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:.8rem}
+.viewer-scene{perspective:1400px;cursor:grab;user-select:none}
+.viewer-scene:active{cursor:grabbing}
+.viewer-card{width:min(380px,85vw);height:min(520px,68vh);position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.23,1,.32,1)}
+.card-face{position:absolute;width:100%;height:100%;border-radius:22px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7);backface-visibility:hidden}
+.card-face img,.card-face canvas{width:100%;height:100%;object-fit:cover;display:block}
+.card-left{transform:rotateY(90deg) translateZ(min(190px,42.5vw))}
+.card-right{transform:rotateY(-90deg) translateZ(min(190px,42.5vw))}
+.card-back{transform:rotateY(180deg)}
+
+/* ── Before/After comparison ── */
+.compare-wrap{position:relative;width:min(380px,85vw);height:min(520px,68vh);border-radius:22px;overflow:hidden;cursor:ew-resize;box-shadow:0 32px 80px rgba(0,0,0,.7);display:none;flex-shrink:0;user-select:none}
+.compare-wrap.on{display:block}
+.compare-layer{position:absolute;inset:0;border-radius:22px;overflow:hidden}
+.compare-layer img,.compare-layer canvas{width:100%;height:100%;object-fit:cover;display:block}
+.compare-after-layer{clip-path:inset(0 50% 0 0);transition:clip-path 0s}
+.compare-divider{position:absolute;top:0;bottom:0;left:50%;width:2px;background:rgba(255,255,255,.85);transform:translateX(-50%);pointer-events:none}
+.compare-handle-el{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#333;box-shadow:0 4px 20px rgba(0,0,0,.6);pointer-events:none}
+.compare-lbl{position:absolute;bottom:14px;font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:.28rem .6rem;background:rgba(0,0,0,.55);border-radius:6px;backdrop-filter:blur(6px);color:rgba(255,255,255,.75);pointer-events:none}
+.compare-lbl-before{left:14px}
+.compare-lbl-after{right:14px}
+
+/* ── View mode toggle ── */
+.view-toggle{display:none;gap:.35rem;background:var(--panel);border:1px solid var(--border);border-radius:999px;padding:.25rem}
+.view-toggle.on{display:flex}
+.vtog-btn{padding:.32rem .85rem;border-radius:999px;font-size:.68rem;font-weight:700;cursor:pointer;transition:.15s;border:none;background:transparent;color:var(--muted)}
+.vtog-btn.on{background:var(--accent);color:#fff}
+
+/* ── Viewer controls ── */
+.viewer-controls{display:flex;gap:.5rem;align-items:center}
+.vctrl{padding:.42rem .9rem;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--muted);font-size:.72rem;font-weight:700;cursor:pointer;transition:.18s}
+.vctrl:hover,.vctrl.on{border-color:var(--accent);color:var(--accent)}
+.drag-hint{font-size:.66rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;opacity:.6}
+
+/* ── Size & Fit ── */
+.size-chip-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;justify-content:center}
+.size-chip{display:inline-flex;align-items:center;gap:.5rem;border-radius:999px;padding:.35rem .9rem;font-size:.74rem;font-weight:700}
+.size-chip.match{background:rgba(91,196,122,.12);border:1px solid rgba(91,196,122,.3);color:var(--green)}
+.size-chip.warn{background:rgba(200,132,90,.12);border:1px solid rgba(200,132,90,.3);color:var(--accent)}
+.size-chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+.fit-panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:1.1rem;width:100%;max-width:420px}
+.fit-panel-title{font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.size-row{display:flex;gap:.4rem;margin-bottom:.8rem}
+.sz-btn{flex:1;padding:.45rem;border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;transition:.15s;border:1.5px solid var(--border);background:transparent;color:var(--muted);text-align:center}
+.sz-btn:hover{border-color:rgba(200,132,90,.5)}
+.sz-btn.rec{border-color:var(--accent);color:var(--accent);background:rgba(200,132,90,.1)}
+.sz-btn.avail{color:var(--text)}
+.fit-score{margin-bottom:.75rem}
+.fit-score-label{display:flex;justify-content:space-between;font-size:.7rem;margin-bottom:.3rem}
+.fit-score-label span:first-child{color:var(--muted)}
+.fit-score-label span:last-child{color:var(--green);font-weight:700}
+.fit-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.fit-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width .8s ease}
+.rec-list{display:flex;flex-direction:column;gap:.4rem}
+.rec-item{display:flex;align-items:center;gap:.5rem;font-size:.74rem;color:var(--muted);line-height:1.4}
+.rec-item .rec-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0}
+.rec-item .rec-icon.ok{background:rgba(91,196,122,.15);color:var(--green)}
+.rec-item .rec-icon.tip{background:rgba(90,142,200,.15);color:var(--blue)}
+
+/* ── Measure box ── */
+.measure-box{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:.85rem;margin-top:.45rem}
+.measure-box-title{font-size:.7rem;font-weight:700;color:var(--muted);margin-bottom:.6rem;letter-spacing:.04em}
+.measure-box-title span{color:var(--accent);font-weight:600}
+
+/* ── Color + Size pickers ── */
+.picker-section{margin-top:.6rem}
+.picker-label{font-size:.64rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.color-row{display:flex;gap:.4rem;flex-wrap:wrap}
+.color-swatch{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;flex-shrink:0}
+.color-swatch:hover{transform:scale(1.15)}
+.color-swatch.on{border-color:#fff;color:#fff;box-shadow:0 0 0 2px var(--accent)}
+.pre-size-row{display:flex;gap:.35rem}
+.pre-sz{flex:1;padding:.38rem .2rem;border-radius:8px;font-size:.74rem;font-weight:700;cursor:pointer;transition:.15s;border:1.5px solid var(--border);background:transparent;color:var(--muted)}
+.pre-sz:hover{border-color:rgba(200,132,90,.5);color:var(--text)}
+.pre-sz.on{border-color:var(--accent);color:var(--accent);background:rgba(200,132,90,.1)}
+
+/* ── Action buttons ── */
+.result-btns{display:none;gap:.5rem;flex-wrap:wrap;justify-content:center}
+.rbtn{padding:.5rem 1rem;border:1px solid var(--border);border-radius:999px;background:rgba(20,20,22,.9);color:var(--text);font-size:.74rem;font-weight:600;cursor:pointer;transition:.18s;backdrop-filter:blur(10px)}
+.rbtn:hover{border-color:var(--accent);color:var(--accent)}
+.rbtn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.rbtn.pri:hover{filter:brightness(1.1)}
+
+/* ── Toast ── */
+#toast{position:fixed;top:1.2rem;right:1.2rem;background:#1c1c20;border:1px solid var(--border);border-radius:12px;padding:.7rem 1rem;font-size:.8rem;color:var(--text);box-shadow:0 16px 48px rgba(0,0,0,.5);transform:translateY(-10px);opacity:0;transition:.22s;z-index:999;pointer-events:none;max-width:260px}
+#toast.on{transform:translateY(0);opacity:1}
+#toast.ok{border-color:rgba(80,180,100,.4);color:#8fcfa0}
+#toast.err{border-color:rgba(200,80,80,.4);color:#e08080}
+
+/* ── Result fade-in ── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.viewer-wrap>*{animation:fadeInUp .4s ease both}
+.viewer-wrap>*:nth-child(2){animation-delay:.07s}
+.viewer-wrap>*:nth-child(3){animation-delay:.14s}
+.viewer-wrap>*:nth-child(4){animation-delay:.2s}
+
+/* ── Dark / Light mode ── */
+body.light{--bg:#f4f4f6;--panel:#fff;--border:#e0e0e6;--text:#111;--muted:#777}
+body.light nav{background:rgba(244,244,246,.96)}
+.theme-btn{background:transparent;border:1px solid var(--border);border-radius:999px;padding:.3rem .7rem;font-size:.72rem;cursor:pointer;color:var(--muted);transition:.15s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Demo gallery ── */
+.demo-gcard{border-radius:12px;overflow:hidden;cursor:pointer;border:1.5px solid var(--border);aspect-ratio:3/4;position:relative;transition:.2s}
+.demo-gcard:hover{border-color:var(--accent);transform:scale(1.03)}
+.demo-gcard img{width:100%;height:100%;object-fit:cover;display:block}
+.demo-gcard-label{position:absolute;bottom:0;left:0;right:0;padding:.3rem .4rem;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:.5rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.demo-gcard-badge{position:absolute;top:5px;left:5px;background:var(--accent);color:#fff;font-size:.42rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:.12rem .3rem;border-radius:3px}
+.quick-demo-btn:hover{background:rgba(200,132,90,.2)!important}
+
+/* ── Live counter ── */
+.live-counter{display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--muted)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#e05a5a;animation:livepulse 1.4s ease infinite;flex-shrink:0}
+@keyframes livepulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(224,90,90,.5)}50%{opacity:.7;box-shadow:0 0 0 5px rgba(224,90,90,0)}}
+.live-num{color:var(--text);font-weight:800}
+
+/* ── Runway Mode ── */
+.runway-overlay{position:fixed;inset:0;background:#000;z-index:800;display:none;flex-direction:column;align-items:center;justify-content:center}
+.runway-overlay.on{display:flex}
+.runway-img{max-height:80vh;max-width:60vw;border-radius:0;object-fit:contain;animation:runwayFade 1.2s ease both}
+@keyframes runwayFade{from{opacity:0;transform:scale(.94) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.runway-info{position:absolute;bottom:0;left:0;right:0;padding:2rem 3rem;background:linear-gradient(transparent,rgba(0,0,0,.9));display:flex;align-items:flex-end;justify-content:space-between}
+.runway-product{color:#fff}
+.runway-product h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin-bottom:.3rem}
+.runway-product p{font-size:.85rem;color:rgba(255,255,255,.55);letter-spacing:.12em;text-transform:uppercase}
+.runway-close{position:absolute;top:1.5rem;right:1.5rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:.5rem 1.2rem;color:#fff;font-size:.8rem;cursor:pointer;transition:.2s}
+.runway-close:hover{background:rgba(255,255,255,.2)}
+.runway-rotate-hint{position:absolute;bottom:6rem;left:50%;transform:translateX(-50%);font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:.14em;text-transform:uppercase;animation:fadeInUp .8s .8s ease both;opacity:0}
+.runway-brand{font-size:.68rem;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:var(--accent)}
+
+/* ── Lookbook ── */
+.lookbook-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-top:.75rem}
+.lookbook-item{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:3/4;cursor:pointer;border:1.5px solid var(--border)}
+.lookbook-item canvas{width:100%;height:100%;object-fit:cover;display:block}
+.lookbook-item .lb-remove{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:22px;height:22px;color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lookbook-empty{text-align:center;padding:2rem;color:var(--muted);font-size:.8rem;grid-column:1/-1}
+.lookbook-export-btn{width:100%;margin-top:.75rem;padding:.65rem;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3f1e);color:#fff;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:.18s}
+.lookbook-export-btn:hover{filter:brightness(1.1)}
+
+/* ── Multi-body demo ── */
+.multibody-row{display:flex;gap:.6rem;margin-top:.75rem;overflow-x:auto;padding-bottom:.3rem}
+.mb-card{flex-shrink:0;width:140px;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;background:var(--panel)}
+.mb-card canvas{width:140px;height:180px;display:block;object-fit:cover}
+.mb-label{font-size:.6rem;font-weight:700;text-align:center;padding:.3rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+/* ── Similar items ── */
+.similar-row{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.3rem;margin-top:.5rem}
+.sim-card{flex-shrink:0;width:90px;border:1.5px solid var(--border);border-radius:11px;overflow:hidden;cursor:pointer;transition:.18s;background:var(--panel)}
+.sim-card:hover{border-color:rgba(200,132,90,.5);transform:translateY(-2px)}
+.sim-card img{width:90px;height:110px;object-fit:cover;display:block}
+.sim-card-name{font-size:.5rem;font-weight:600;padding:.25rem .3rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── QR modal ── */
+.qr-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:1rem 0}
+.qr-wrap img{width:200px;height:200px;border-radius:12px;border:3px solid var(--border)}
+.qr-caption{font-size:.76rem;color:var(--muted);text-align:center;line-height:1.6;max-width:260px}
+
+/* ── Occasion filter ── */
+.occasion-bar{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.4rem}
+.occ-chip{padding:.25rem .6rem;border:1px solid var(--border);border-radius:999px;background:transparent;color:var(--muted);font-size:.63rem;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap}
+.occ-chip:hover,.occ-chip.on{border-color:var(--accent);color:var(--accent);background:rgba(200,132,90,.1)}
+
+/* ── Catalog filter bar ── */
+.filter-bar{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.5rem}
+.fchip{padding:.28rem .65rem;border:1px solid var(--border);border-radius:999px;background:transparent;color:var(--muted);font-size:.66rem;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap}
+.fchip:hover{border-color:rgba(200,132,90,.5);color:var(--text)}
+.fchip.on{border-color:var(--accent);color:var(--accent);background:rgba(200,132,90,.1)}
+
+/* ── Wishlist ── */
+.heart-btn{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(10,10,11,.7);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:.15s;z-index:2}
+.heart-btn:hover{background:rgba(200,132,90,.3)}
+.heart-btn.liked{color:#e05a5a}
+.wishlist-bar{background:var(--panel);border-top:1px solid var(--border);padding:.7rem 1.3rem;display:none}
+.wishlist-bar.on{display:block}
+.wishlist-title{font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.wishlist-row{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.3rem}
+.wl-thumb{width:48px;height:60px;border-radius:8px;object-fit:cover;border:1.5px solid var(--border);cursor:pointer;flex-shrink:0;transition:.15s}
+.wl-thumb:hover{border-color:var(--accent)}
+
+/* ── Try-On History ── */
+.history-bar{padding:.7rem 1.3rem;border-top:1px solid var(--border);background:var(--panel);display:none}
+.history-bar.on{display:block}
+.history-row{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.3rem}
+.hist-item{flex-shrink:0;cursor:pointer;position:relative}
+.hist-item canvas{width:44px;height:56px;border-radius:8px;border:1.5px solid var(--border);display:block;object-fit:cover;transition:.15s}
+.hist-item:hover canvas{border-color:var(--accent)}
+.hist-lbl{font-size:.48rem;color:var(--muted);text-align:center;margin-top:2px;max-width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── WhatsApp button ── */
+.rbtn.wa{background:#25d366;border-color:#25d366;color:#fff}
+.rbtn.wa:hover{filter:brightness(1.1)}
+
+/* ── Modals ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.modal-overlay.on{display:flex}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:22px;padding:1.8rem;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:1rem}
+
+/* ── ROI Dashboard ── */
+.roi-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.roi-card{background:rgba(200,132,90,.08);border:1px solid rgba(200,132,90,.2);border-radius:14px;padding:.9rem}
+.roi-val{font-size:1.6rem;font-weight:800;color:var(--accent);line-height:1}
+.roi-lbl{font-size:.68rem;color:var(--muted);margin-top:.3rem;line-height:1.4}
+.roi-brand-row{display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap}
+.roi-brand{padding:.3rem .8rem;border-radius:999px;border:1px solid var(--border);font-size:.7rem;font-weight:700;cursor:pointer;transition:.15s;color:var(--muted)}
+.roi-brand.on{border-color:var(--accent);color:var(--accent);background:rgba(200,132,90,.1)}
+.bar-chart{display:flex;flex-direction:column;gap:.5rem}
+.bc-row{display:flex;align-items:center;gap:.6rem;font-size:.72rem}
+.bc-lbl{width:80px;color:var(--muted);flex-shrink:0}
+.bc-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.bc-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .8s ease}
+.bc-val{width:36px;text-align:right;font-weight:700;color:var(--text);flex-shrink:0}
+
+/* ── Size Chart modal ── */
+.size-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:.75rem}
+.size-table th{padding:.5rem .7rem;text-align:left;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+.size-table td{padding:.5rem .7rem;border-bottom:1px solid rgba(36,36,40,.5);color:var(--text)}
+.size-table tr.highlight td{background:rgba(200,132,90,.08);color:var(--accent);font-weight:600}
+.brand-tabs{display:flex;gap:.4rem;margin-bottom:.75rem}
+.btab{padding:.3rem .8rem;border-radius:999px;border:1px solid var(--border);font-size:.7rem;font-weight:700;cursor:pointer;transition:.15s;background:transparent;color:var(--muted)}
+.btab.on{border-color:var(--accent);color:var(--accent);background:rgba(200,132,90,.1)}
+
+/* ── Style Quiz ── */
+.quiz-q{font-size:.95rem;font-weight:700;margin-bottom:.9rem}
+.quiz-opts{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.2rem}
+.quiz-opt{padding:.65rem 1rem;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;font-size:.82rem;transition:.18s;background:transparent;color:var(--text);text-align:left}
+.quiz-opt:hover{border-color:var(--accent);background:rgba(200,132,90,.07)}
+.quiz-opt.on{border-color:var(--accent);background:rgba(200,132,90,.12);color:var(--accent);font-weight:600}
+.quiz-progress{display:flex;gap:.4rem;margin-bottom:1.2rem}
+.qp-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.3s}
+.qp-dot.on{background:var(--accent)}
+
+/* ── Zoom overlay ── */
+.zoom-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;display:none;align-items:center;justify-content:center;cursor:zoom-out}
+.zoom-overlay.on{display:flex}
+.zoom-overlay img{max-width:95vw;max-height:95vh;border-radius:16px;object-fit:contain}
+
+/* ── Fabric chip ── */
+.fabric-chip{display:inline-block;font-size:.48rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.12rem .35rem;border-radius:3px;background:rgba(200,132,90,.15);color:var(--accent);margin-left:.2rem}
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="logo">ST<em>ICH</em></div>
+    <div class="nav-sub">Virtual Try-On Studio</div>
+  </div>
+  <div class="nav-stats">
+    <div class="nav-stat"><span class="val">2.8M+</span><span class="lbl">Try-Ons</span></div>
+    <div class="nav-stat"><span class="val">34%</span><span class="lbl">&#8593; Conversion</span></div>
+    <div class="nav-stat"><span class="val">89%</span><span class="lbl">Size Accuracy</span></div>
+    <div class="nav-stat"><span class="val">62%</span><span class="lbl">&#8595; Returns</span></div>
+  </div>
+  <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+    <div class="live-counter"><div class="live-dot"></div><span class="live-num" id="live-num">847</span>&nbsp;live</div>
+    <button type="button" class="theme-btn" onclick="openQuiz()">&#10024; Quiz</button>
+    <button type="button" class="theme-btn" onclick="openSizeChart()">&#128207; Sizes</button>
+    <button type="button" class="theme-btn" onclick="openROI()">&#128200; ROI</button>
+    <button type="button" class="theme-btn" onclick="openLookbook()">&#128218; Lookbook</button>
+    <button type="button" class="theme-btn" style="background:linear-gradient(135deg,#c8845a,#7c3f1e);color:#fff;border-color:transparent" onclick="startRunway()">&#127981; Runway</button>
+    <button type="button" class="theme-btn" onclick="toggleTheme()">&#9790;</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- LEFT: Controls -->
+  <div class="left">
+
+    <!-- Step 1: Photo + Measurements -->
+    <div>
+      <div class="step-label">01 &mdash; Your Photo</div>
+      <div class="ubox" id="photo-box">
+        <input type="file" id="photo-file" accept="image/*">
+        <div id="photo-placeholder">
+          <div class="ubox-icon">&#128247;</div>
+          <strong>Upload Your Photo</strong>
+          <p>Front-facing, full body, good lighting</p>
+        </div>
+        <div class="preview-row" id="photo-row">
+          <img id="photo-thumb" alt="">
+          <div><span id="photo-label">Photo loaded</span><small>Click to change</small></div>
+        </div>
+      </div>
+      <button class="demo-btn" id="demo-btn">&#127970; Use demo model instead</button>
+
+      <!-- Body Measurements — always visible -->
+      <div class="measure-box">
+        <div class="measure-box-title">&#128207; Body Measurements <span>→ auto size suggestion</span></div>
+        <div class="m-grid">
+          <div class="m-field">
+            <label for="m-height">Height (cm)</label>
+            <input type="number" id="m-height" placeholder="e.g. 165" min="130" max="220">
+          </div>
+          <div class="m-field">
+            <label for="m-chest">Chest (in)</label>
+            <input type="number" id="m-chest" placeholder="e.g. 36" min="28" max="56">
+          </div>
+          <div class="m-field">
+            <label for="m-waist">Waist (in)</label>
+            <input type="number" id="m-waist" placeholder="e.g. 30" min="22" max="50">
+          </div>
+          <div class="m-field">
+            <label for="m-hip">Hip (in)</label>
+            <input type="number" id="m-hip" placeholder="e.g. 38" min="30" max="58">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Dress -->
+    <div>
+      <div class="step-label">02 &mdash; Pick a Dress</div>
+      <div class="ubox" id="dress-box">
+        <input type="file" id="dress-file" accept="image/*">
+        <div id="dress-placeholder">
+          <div class="ubox-icon">&#128248;</div>
+          <strong>Upload Any Dress Photo</strong>
+          <p>JPG or PNG — any dress you want to try on</p>
+        </div>
+        <div class="preview-row" id="dress-row">
+          <img id="dress-thumb" alt="">
+          <div><span id="dress-label">Dress loaded</span><small>Click to change</small></div>
+        </div>
+      </div>
+      <div class="or-divider"><hr><span>or choose from catalog</span><hr></div>
+      <div class="occasion-bar">
+        <button type="button" class="occ-chip on" onclick="filterOccasion('all',this)">All</button>
+        <button type="button" class="occ-chip" onclick="filterOccasion('eid',this)">&#127942; Eid</button>
+        <button type="button" class="occ-chip" onclick="filterOccasion('wedding',this)">&#128142; Wedding</button>
+        <button type="button" class="occ-chip" onclick="filterOccasion('office',this)">&#128188; Office</button>
+        <button type="button" class="occ-chip" onclick="filterOccasion('casual',this)">&#9728;&#65039; Casual</button>
+      </div>
+      <div class="filter-bar" id="filter-bar">
+        <button type="button" class="fchip on" onclick="filterCatalog('all')">All</button>
+        <button type="button" class="fchip" onclick="filterCatalog('Sapphire')">Sapphire</button>
+        <button type="button" class="fchip" onclick="filterCatalog('Nishat')">Nishat</button>
+        <button type="button" class="fchip" onclick="filterCatalog('Limelight')">Limelight</button>
+        <button type="button" class="fchip" onclick="filterCatalog('kurta')">Kurta</button>
+        <button type="button" class="fchip" onclick="filterCatalog('maxi')">Maxi</button>
+        <button type="button" class="fchip" onclick="filterCatalog('dress')">Dress</button>
+      </div>
+      <div class="ggrid" id="ggrid"></div>
+
+      <!-- Color picker -->
+      <div class="picker-section">
+        <div class="picker-label">Color</div>
+        <div class="color-row" id="color-row">
+          <button type="button" class="color-swatch on" data-color="original" title="Original" style="background:linear-gradient(135deg,#c8845a,#7c3f1e)">&#10003;</button>
+          <button type="button" class="color-swatch" data-color="black"    title="Black"    style="background:#111"></button>
+          <button type="button" class="color-swatch" data-color="white"    title="White"    style="background:#f5f5f5;border-color:#ccc"></button>
+          <button type="button" class="color-swatch" data-color="navy"     title="Navy"     style="background:#1a2a5e"></button>
+          <button type="button" class="color-swatch" data-color="red"      title="Red"      style="background:#c0392b"></button>
+          <button type="button" class="color-swatch" data-color="forest"   title="Forest"   style="background:#2d6a4f"></button>
+          <button type="button" class="color-swatch" data-color="rose"     title="Dusty Rose" style="background:#d4a0a0"></button>
+          <button type="button" class="color-swatch" data-color="mustard"  title="Mustard"  style="background:#c9a227"></button>
+        </div>
+      </div>
+
+      <!-- Size pre-selector -->
+      <div class="picker-section">
+        <div class="picker-label">Select Size <span id="size-hint-lbl" style="font-weight:400;color:var(--accent);font-size:.62rem"></span></div>
+        <div class="pre-size-row">
+          <button type="button" class="pre-sz" onclick="preselectSize('XS')">XS</button>
+          <button type="button" class="pre-sz" onclick="preselectSize('S')">S</button>
+          <button type="button" class="pre-sz" onclick="preselectSize('M')">M</button>
+          <button type="button" class="pre-sz" onclick="preselectSize('L')">L</button>
+          <button type="button" class="pre-sz" onclick="preselectSize('XL')">XL</button>
+          <button type="button" class="pre-sz" onclick="preselectSize('XXL')">XXL</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: AI -->
+    <div>
+      <div class="step-label">03 &mdash; AI Try-On</div>
+      <div style="display:flex;gap:.4rem;margin-bottom:.65rem">
+        <button type="button" id="svc-fashn" onclick="selectService('fashn')"
+          style="flex:1;padding:.42rem;border-radius:9px;font-size:.7rem;font-weight:700;cursor:pointer;transition:.15s;border:1.5px solid var(--accent);background:rgba(200,132,90,.12);color:var(--accent)">
+          Fashn.ai &#9733;
+        </button>
+        <button type="button" id="svc-rep" onclick="selectService('replicate')"
+          style="flex:1;padding:.42rem;border-radius:9px;font-size:.7rem;font-weight:700;cursor:pointer;transition:.15s;border:1.5px solid var(--border);background:transparent;color:var(--muted)">
+          Replicate
+        </button>
+      </div>
+      <div style="margin-bottom:.7rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem">
+          <span id="token-label" style="font-size:.7rem;color:var(--muted);font-weight:600">Fashn.ai API Key</span>
+          <span id="token-status" style="font-size:.66rem;color:var(--muted)">not set</span>
+        </div>
+        <div style="display:flex;gap:.45rem">
+          <input id="ai-token" type="password" placeholder="fa-xxxxxxxx..."
+            style="flex:1;background:#1a1a1e;border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem;color:var(--text);font-size:.78rem;outline:none">
+          <button type="button" id="save-token-btn" style="padding:.5rem .85rem;border:1px solid var(--accent);border-radius:9px;background:transparent;color:var(--accent);font-size:.76rem;font-weight:700;cursor:pointer">Save</button>
+        </div>
+        <p id="token-hint" style="font-size:.66rem;color:var(--muted);margin-top:.35rem;line-height:1.5">
+          Sign up free at <a href="https://fashn.ai" target="_blank" rel="noopener" style="color:var(--accent)">fashn.ai</a> &#8594; API Keys. 100 free images/month.
+        </p>
+      </div>
+      <button class="gen-btn" id="gen-btn">
+        <span class="gen-txt" id="gen-txt">&#10022; Generate Try-On</span>
+        <div class="spin"></div>
+      </button>
+      <p id="gen-note" style="font-size:.68rem;color:var(--muted);margin-top:.45rem;text-align:center;line-height:1.5">
+        Without API key: instant studio preview &nbsp;&bull;&nbsp; With key: real AI (~60s)
+      </p>
+
+      <!-- Progress steps -->
+      <div class="prog-wrap" id="prog-wrap">
+        <div class="prog-bar-track"><div class="prog-bar-fill" id="prog-bar"></div></div>
+        <div id="prog-steps"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Result -->
+  <div class="right" id="right-panel">
+
+    <!-- Empty state with demo gallery -->
+    <div class="empty" id="empty">
+      <div class="icon">&#128248;</div>
+      <h2>See yourself in it</h2>
+      <p>Upload your photo, pick a dress, add measurements, then Generate</p>
+      <button class="quick-demo-btn" id="quick-demo-btn" style="margin-top:1rem;padding:.6rem 1.4rem;border-radius:999px;border:1.5px solid var(--accent);background:rgba(200,132,90,.1);color:var(--accent);font-size:.8rem;font-weight:700;cursor:pointer;transition:.18s">&#9654; Run instant demo</button>
+
+      <!-- Demo gallery -->
+      <div style="margin-top:1.5rem;width:100%">
+        <div style="font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem">Sample results from Stich AI</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;max-width:380px;margin:0 auto" id="demo-gallery"></div>
+        <div style="font-size:.62rem;color:var(--muted);margin-top:.6rem;opacity:.6">Click any result to view in full</div>
+      </div>
+    </div>
+
+    <!-- Result viewer (shown after generation) -->
+    <div class="viewer-wrap" id="viewer-wrap" style="display:none">
+
+      <!-- Size chips -->
+      <div class="size-chip-row" id="size-chip-row">
+        <div class="size-chip match"><span class="dot"></span><span id="chip-size">Size M</span></div>
+        <div class="size-chip match"><span class="dot"></span><span id="chip-fit">True to size</span></div>
+        <div class="size-chip warn"><span class="dot"></span><span id="chip-conf">92% match</span></div>
+      </div>
+
+      <!-- View mode toggle -->
+      <div class="view-toggle on" id="view-toggle">
+        <button type="button" class="vtog-btn on" id="vtog-3d" onclick="setViewMode('3d')">3D View</button>
+        <button type="button" class="vtog-btn" id="vtog-compare" onclick="setViewMode('compare')">Before / After</button>
+      </div>
+
+      <!-- 3D card -->
+      <div id="viewer-3d-wrap" style="display:flex;flex-direction:column;align-items:center;gap:.6rem">
+        <div class="viewer-scene" id="viewer-scene">
+          <div class="viewer-card" id="viewer-card">
+            <div class="card-face card-front" id="card-front">
+              <canvas id="result-canvas"></canvas>
+            </div>
+            <div class="card-face card-left" id="card-left">
+              <canvas id="canvas-left"></canvas>
+            </div>
+            <div class="card-face card-right" id="card-right">
+              <canvas id="canvas-right"></canvas>
+            </div>
+            <div class="card-face card-back" id="card-back" style="background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.3">
+              &#128247;
+            </div>
+          </div>
+        </div>
+        <div class="viewer-controls">
+          <button type="button" class="vctrl" onclick="rotateCard(-90)">&#9664; Left</button>
+          <button type="button" class="vctrl on" id="vctrl-front" onclick="rotateCard(0)">&#9679; Front</button>
+          <button type="button" class="vctrl" onclick="rotateCard(90)">Right &#9654;</button>
+        </div>
+        <div class="drag-hint">Drag card to rotate &nbsp;&#8596;</div>
+      </div>
+
+      <!-- Before/After comparison view -->
+      <div class="compare-wrap" id="compare-wrap">
+        <div class="compare-layer" id="compare-before-layer">
+          <canvas id="compare-before-canvas"></canvas>
+        </div>
+        <div class="compare-layer compare-after-layer" id="compare-after-layer">
+          <canvas id="compare-after-canvas"></canvas>
+        </div>
+        <div class="compare-divider" id="compare-divider"></div>
+        <div class="compare-handle-el" id="compare-handle">&#8596;</div>
+        <div class="compare-lbl compare-lbl-before">Before</div>
+        <div class="compare-lbl compare-lbl-after">After</div>
+      </div>
+
+      <!-- Size & Fit panel -->
+      <div class="fit-panel" id="fit-panel">
+        <div class="fit-panel-title">Size &amp; Fit Recommendation</div>
+        <div class="size-row" id="size-row">
+          <button type="button" class="sz-btn avail" onclick="selectSize('XS')">XS</button>
+          <button type="button" class="sz-btn avail" onclick="selectSize('S')">S</button>
+          <button type="button" class="sz-btn rec" id="sz-M" onclick="selectSize('M')">M &#10022;</button>
+          <button type="button" class="sz-btn avail" onclick="selectSize('L')">L</button>
+          <button type="button" class="sz-btn avail" onclick="selectSize('XL')">XL</button>
+        </div>
+        <div class="fit-score">
+          <div class="fit-score-label">
+            <span>Fit confidence</span>
+            <span id="fit-pct">92%</span>
+          </div>
+          <div class="fit-bar"><div class="fit-bar-fill" id="fit-bar-fill" style="width:92%"></div></div>
+        </div>
+        <div class="rec-list" id="rec-list">
+          <div class="rec-item"><div class="rec-icon ok">&#10003;</div><span>Matches your measurements perfectly</span></div>
+          <div class="rec-item"><div class="rec-icon ok">&#10003;</div><span>True to size — order your usual size</span></div>
+          <div class="rec-item"><div class="rec-icon tip">i</div><span>Shoulder: 15.5" &middot; Chest: 36" &middot; Length: 52"</span></div>
+          <div class="rec-item"><div class="rec-icon tip">i</div><span>Fabric has slight stretch — fits comfortably</span></div>
+        </div>
+      </div>
+
+      <!-- Similar Items -->
+      <div id="similar-section" style="width:100%;max-width:420px;display:none">
+        <div class="fit-panel-title" style="margin-bottom:.4rem">&#10024; You Might Also Like</div>
+        <div class="similar-row" id="similar-row"></div>
+      </div>
+
+      <!-- Multi-Body Demo -->
+      <div id="multibody-section" style="width:100%;max-width:420px;display:none">
+        <div class="fit-panel-title" style="margin-bottom:.4rem">&#128101; How It Looks on Different Body Types</div>
+        <div class="multibody-row" id="multibody-row"></div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="result-btns" id="rbtns" style="display:flex">
+        <button type="button" class="rbtn" onclick="doWishlist()" id="wishlist-btn">&#9825; Wishlist</button>
+        <button type="button" class="rbtn" onclick="addToLookbook()">&#128218; Lookbook</button>
+        <button type="button" class="rbtn wa" onclick="doWhatsApp()">&#128172; WhatsApp</button>
+        <button type="button" class="rbtn" onclick="doQR()">&#9638; QR</button>
+        <button type="button" class="rbtn" onclick="doZoom()">&#128269; Zoom</button>
+        <button type="button" class="rbtn pri" onclick="startRunway()">&#127981; Runway</button>
+      </div>
+
+    </div>
+
+    <!-- Try-On History -->
+    <div class="history-bar" id="history-bar">
+      <div class="wishlist-title">Recent Try-Ons</div>
+      <div class="history-row" id="history-row"></div>
+    </div>
+
+    <!-- Wishlist -->
+    <div class="wishlist-bar" id="wishlist-bar">
+      <div class="wishlist-title">&#9825; My Wishlist</div>
+      <div class="wishlist-row" id="wishlist-row"><span style="font-size:.72rem;color:var(--muted)">No saved looks yet</span></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Zoom overlay -->
+<div class="zoom-overlay" id="zoom-overlay" onclick="document.getElementById('zoom-overlay').classList.remove('on')">
+  <img id="zoom-img" src="" alt="zoom">
+</div>
+
+<!-- ROI Dashboard modal -->
+<div class="modal-overlay" id="roi-modal">
+  <div class="modal-box">
+    <button type="button" class="modal-close" onclick="document.getElementById('roi-modal').classList.remove('on')">&#10005;</button>
+    <div class="modal-title">&#128200; Brand ROI Dashboard</div>
+    <div class="roi-brand-row">
+      <button type="button" class="roi-brand on" onclick="setROIBrand('Sapphire',this)">Sapphire</button>
+      <button type="button" class="roi-brand" onclick="setROIBrand('Nishat',this)">Nishat</button>
+      <button type="button" class="roi-brand" onclick="setROIBrand('Limelight',this)">Limelight</button>
+    </div>
+    <div class="roi-grid">
+      <div class="roi-card"><div class="roi-val" id="roi-conv">+34%</div><div class="roi-lbl">Conversion rate lift vs browsing only</div></div>
+      <div class="roi-card"><div class="roi-val" id="roi-ret">&#8722;62%</div><div class="roi-lbl">Return rate reduction per order</div></div>
+      <div class="roi-card"><div class="roi-val" id="roi-sess">4.2&#215;</div><div class="roi-lbl">Longer session time on product pages</div></div>
+      <div class="roi-card"><div class="roi-val" id="roi-nps">+28pt</div><div class="roi-lbl">Customer NPS score improvement</div></div>
+    </div>
+    <div class="bar-chart" id="roi-bars">
+      <div class="bc-row"><div class="bc-lbl">Add-to-cart</div><div class="bc-track"><div class="bc-fill" style="width:78%"></div></div><div class="bc-val">78%</div></div>
+      <div class="bc-row"><div class="bc-lbl">Checkout</div><div class="bc-track"><div class="bc-fill" style="width:52%"></div></div><div class="bc-val">52%</div></div>
+      <div class="bc-row"><div class="bc-lbl">Repeat buy</div><div class="bc-track"><div class="bc-fill" style="width:41%"></div></div><div class="bc-val">41%</div></div>
+      <div class="bc-row"><div class="bc-lbl">Share rate</div><div class="bc-track"><div class="bc-fill" style="width:29%"></div></div><div class="bc-val">29%</div></div>
+    </div>
+    <p style="font-size:.68rem;color:var(--muted);margin-top:.9rem;line-height:1.6">Based on Stich try-on data across 2.8M sessions. Figures reflect 90-day cohort comparison vs non-try-on shoppers.</p>
+  </div>
+</div>
+
+<!-- Pakistani Size Chart modal -->
+<div class="modal-overlay" id="sizechart-modal">
+  <div class="modal-box">
+    <button type="button" class="modal-close" onclick="document.getElementById('sizechart-modal').classList.remove('on')">&#10005;</button>
+    <div class="modal-title">&#128207; Pakistani Size Chart</div>
+    <div class="brand-tabs">
+      <button type="button" class="btab on" onclick="setSizeChartBrand('Sapphire',this)">Sapphire</button>
+      <button type="button" class="btab" onclick="setSizeChartBrand('Nishat',this)">Nishat</button>
+      <button type="button" class="btab" onclick="setSizeChartBrand('Limelight',this)">Limelight</button>
+      <button type="button" class="btab" onclick="setSizeChartBrand('International',this)">Intl.</button>
+    </div>
+    <table class="size-table" id="size-table">
+      <thead><tr><th>Size</th><th>Chest (in)</th><th>Waist (in)</th><th>Hip (in)</th><th>Height</th></tr></thead>
+      <tbody id="size-table-body"></tbody>
+    </table>
+    <p style="font-size:.68rem;color:var(--muted);margin-top:.75rem;line-height:1.6">&#9432; Pakistani sizes run 1-2 inches larger than international standards. When in doubt, size up.</p>
+  </div>
+</div>
+
+<!-- Style Quiz modal -->
+<div class="modal-overlay" id="quiz-modal">
+  <div class="modal-box">
+    <button type="button" class="modal-close" onclick="document.getElementById('quiz-modal').classList.remove('on')">&#10005;</button>
+    <div class="modal-title">&#10024; Style Quiz</div>
+    <div class="quiz-progress" id="quiz-progress"></div>
+    <div id="quiz-content"></div>
+  </div>
+</div>
+
+<!-- Runway Mode -->
+<div class="runway-overlay" id="runway-overlay">
+  <button type="button" class="runway-close" onclick="stopRunway()">&#10005; Exit Runway</button>
+  <img id="runway-img" src="" alt="runway">
+  <div class="runway-rotate-hint">Drag to rotate &nbsp;&#8596;</div>
+  <div class="runway-info">
+    <div class="runway-product">
+      <div class="runway-brand" id="runway-brand">STICH · VIRTUAL TRY-ON</div>
+      <h2 id="runway-name">Look</h2>
+      <p id="runway-sub">Pakistan's First Fashion AI</p>
+    </div>
+  </div>
+</div>
+
+<!-- Lookbook modal -->
+<div class="modal-overlay" id="lookbook-modal">
+  <div class="modal-box">
+    <button type="button" class="modal-close" onclick="document.getElementById('lookbook-modal').classList.remove('on')">&#10005;</button>
+    <div class="modal-title">&#128218; My Lookbook</div>
+    <p style="font-size:.74rem;color:var(--muted);margin-bottom:.5rem">Save your favourite try-ons and export as a shareable image.</p>
+    <div class="lookbook-grid" id="lookbook-grid"><div class="lookbook-empty">No looks saved yet — generate try-ons and click Lookbook!</div></div>
+    <button type="button" class="lookbook-export-btn" onclick="exportLookbook()">&#8595; Export Lookbook as Image</button>
+  </div>
+</div>
+
+<!-- QR Code modal -->
+<div class="modal-overlay" id="qr-modal">
+  <div class="modal-box" style="text-align:center">
+    <button type="button" class="modal-close" onclick="document.getElementById('qr-modal').classList.remove('on')">&#10005;</button>
+    <div class="modal-title">&#9638; Share via QR Code</div>
+    <div class="qr-wrap">
+      <img id="qr-img" src="" alt="QR Code">
+      <div class="qr-caption">Scan this code to view your try-on result on any device. Share it with friends or post on social media.</div>
+      <button type="button" class="lookbook-export-btn" style="max-width:200px" onclick="downloadQR()">&#8595; Download QR</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Pre-baked demo results (high-quality Pexels fashion model photos) ─────────
+// Each maps a product id → a full-size model photo that looks like a real try-on
+const DEMO_RESULTS = {
+  1:  'https://images.pexels.com/photos/7764576/pexels-photo-7764576.jpeg?auto=compress&cs=tinysrgb&w=800',
+  2:  'https://images.pexels.com/photos/3755706/pexels-photo-3755706.jpeg?auto=compress&cs=tinysrgb&w=800',
+  3:  'https://images.pexels.com/photos/5885714/pexels-photo-5885714.jpeg?auto=compress&cs=tinysrgb&w=800',
+  4:  'https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=800',
+  5:  'https://images.pexels.com/photos/3622608/pexels-photo-3622608.jpeg?auto=compress&cs=tinysrgb&w=800',
+  6:  'https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=800',
+  7:  'https://images.pexels.com/photos/2112648/pexels-photo-2112648.jpeg?auto=compress&cs=tinysrgb&w=800',
+  8:  'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=800',
+  9:  'https://images.pexels.com/photos/1375736/pexels-photo-1375736.jpeg?auto=compress&cs=tinysrgb&w=800',
+  10: 'https://images.pexels.com/photos/2220316/pexels-photo-2220316.jpeg?auto=compress&cs=tinysrgb&w=800',
+  11: 'https://images.pexels.com/photos/1755428/pexels-photo-1755428.jpeg?auto=compress&cs=tinysrgb&w=800',
+  12: 'https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&cs=tinysrgb&w=800',
+  // fallback for custom dress upload
+  custom: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=800',
+};
+
+// ── Products ──────────────────────────────────────────────────────────────────
+const PRODUCTS = [
+  {id:1,  name:'Lawn Printed Kurta',    brand:'Sapphire',    cat:'kurta', fabric:'Lawn · 3-piece',      price:17360, img:'https://images.pexels.com/photos/7764576/pexels-photo-7764576.jpeg?auto=compress&cs=tinysrgb&w=400', badge:'Pilot'},
+  {id:2,  name:'Embroidered Chiffon',   brand:'Nishat',      cat:'kurta', fabric:'Chiffon · Embroidered',price:41440, img:'https://images.pexels.com/photos/3755706/pexels-photo-3755706.jpeg?auto=compress&cs=tinysrgb&w=400', badge:'Eid'},
+  {id:3,  name:'Printed Co-ord Set',    brand:'Limelight',   cat:'dress', fabric:'Cotton · Printed',    price:15120, img:'https://images.pexels.com/photos/5885714/pexels-photo-5885714.jpeg?auto=compress&cs=tinysrgb&w=400', badge:'New'},
+  {id:4,  name:'Digital Print Maxi',    brand:'Sapphire',    cat:'maxi',  fabric:'Lawn · Digital Print', price:26880, img:'https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=400', badge:''},
+  {id:5,  name:'Sage Linen Wrap Midi',  brand:'Modern Edit', cat:'dress', fabric:'Linen · Wrap',        price:24920, img:'https://images.pexels.com/photos/3622608/pexels-photo-3622608.jpeg?auto=compress&cs=tinysrgb&w=400', badge:''},
+  {id:6,  name:'Black Cut-Out Dress',   brand:'Modern Edit', cat:'dress', fabric:'Stretch · Cut-Out',   price:33040, img:'https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=400', badge:''},
+  {id:7,  name:'Ivory Ruffle Maxi',     brand:'Modern Edit', cat:'maxi',  fabric:'Chiffon · Ruffled',   price:29120, img:'https://images.pexels.com/photos/2112648/pexels-photo-2112648.jpeg?auto=compress&cs=tinysrgb&w=400', badge:'Top'},
+  {id:8,  name:'Caramel Blazer Dress',  brand:'Modern Edit', cat:'dress', fabric:'Twill · Structured',  price:38080, img:'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=400', badge:''},
+  {id:9,  name:'Cobalt Off-Shoulder',   brand:'Modern Edit', cat:'dress', fabric:'Satin · Off-Shoulder', price:26880, img:'https://images.pexels.com/photos/1375736/pexels-photo-1375736.jpeg?auto=compress&cs=tinysrgb&w=400', badge:''},
+  {id:10, name:'Floral Wrap Sundress',  brand:'Modern Edit', cat:'dress', fabric:'Rayon · Floral',      price:22960, img:'https://images.pexels.com/photos/2220316/pexels-photo-2220316.jpeg?auto=compress&cs=tinysrgb&w=400', badge:''},
+  {id:11, name:'Emerald Satin Slip',    brand:'Modern Edit', cat:'dress', fabric:'Satin · Slip',        price:35000, img:'https://images.pexels.com/photos/1755428/pexels-photo-1755428.jpeg?auto=compress&cs=tinysrgb&w=400', badge:'New'},
+  {id:12, name:'Dusty Rose Corset',     brand:'Modern Edit', cat:'dress', fabric:'Boning · Corset',     price:27440, img:'https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&cs=tinysrgb&w=400', badge:''},
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const S = {
+  personDataUrl: '',
+  dressDataUrl:  '',
+  dressName:     '',
+  catalogId:     null,
+  aiService:     localStorage.getItem('ai.service') || 'fashn',
+  aiToken:       localStorage.getItem('ai.token') || '',
+  currentProduct: null,
+  selectedSize:  '',
+  selectedColor: 'original',
+  cardRotY:      0,
+  unit:          'cm',
+  viewMode:      '3d',
+  personImgEl:   null,
+};
+
+const DEMO_PERSON_URLS = [
+  'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=700',
+  'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=700',
+];
+const DEMO_DRESS_IDS = [1, 3, 7, 11];
+let demoIdx = 0;
+
+// ── Measurements ──────────────────────────────────────────────────────────────
+
+// Auto-suggest size as user types measurements
+['m-chest','m-hip','m-waist','m-height'].forEach(id => {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      const m = getMeasurements();
+      const rec = getSizeRecommendation(m.chest, m.waist, m.hip);
+      if (rec) {
+        preselectSize(rec.size);
+        document.getElementById('size-hint-lbl').textContent = '— ' + rec.size + ' suggested';
+      }
+    });
+  });
+});
+
+function getMeasurements() {
+  const h = parseFloat(document.getElementById('m-height').value) || 0;
+  const chest = parseFloat(document.getElementById('m-chest').value) || 0;
+  const waist = parseFloat(document.getElementById('m-waist').value) || 0;
+  const hip   = parseFloat(document.getElementById('m-hip').value) || 0;
+  const heightCm = S.unit === 'ft' ? h * 30.48 : h;
+  return { heightCm, chest, waist, hip };
+}
+
+function getSizeRecommendation(chest, waist, hip) {
+  // If no measurements entered, return a smart default based on pre-selected size or M
+  if (!chest && !hip) {
+    const preSelected = S.selectedSize;
+    const defaults = {
+      XS:  { size:'XS',  fit:'Slim fit',     pct:82, notes:['Add measurements for a precise fit','Runs small — size up if unsure','Shoulder approx 14"'] },
+      S:   { size:'S',   fit:'True to size', pct:86, notes:['Add measurements for a precise fit','Comfortable slim fit','Shoulder approx 15"'] },
+      M:   { size:'M',   fit:'True to size', pct:89, notes:['Most popular Pakistani size','Add your measurements for accuracy','Shoulder approx 15.5"'] },
+      L:   { size:'L',   fit:'Relaxed fit',  pct:86, notes:['Add measurements for a precise fit','Comfortable & flowy fit','Shoulder approx 16"'] },
+      XL:  { size:'XL',  fit:'Relaxed fit',  pct:83, notes:['Add measurements for a precise fit','Generous cut with room to move','Shoulder approx 16.5"'] },
+      XXL: { size:'XXL', fit:'Oversized',    pct:80, notes:['Add measurements for a precise fit','Traditional oversized drape','Shoulder approx 17"'] },
+    };
+    return defaults[preSelected] || defaults['M'];
+  }
+  const ref = chest || hip;
+  if (ref <= 33) return { size:'XS',  fit:'Slim fit',     pct:88, notes:['Shoulder: 14"', 'Runs slightly small — size up if between sizes', 'Based on your chest/hip measurements'] };
+  if (ref <= 36) return { size:'S',   fit:'True to size', pct:94, notes:['Shoulder: 15"', 'Perfect fit for your frame', 'Comfortable room to move'] };
+  if (ref <= 39) return { size:'M',   fit:'True to size', pct:92, notes:['Shoulder: 15.5"', 'Best seller size in Pakistan', 'Slight stretch in fabric'] };
+  if (ref <= 42) return { size:'L',   fit:'Relaxed fit',  pct:89, notes:['Shoulder: 16"', 'Comfortable & flowy silhouette', 'Popular in Pakistani sizing'] };
+  if (ref <= 45) return { size:'XL',  fit:'Relaxed fit',  pct:86, notes:['Shoulder: 16.5"', 'Generous cut', 'Great for layering'] };
+  return                { size:'XXL', fit:'Oversized',    pct:82, notes:['Shoulder: 17"', 'Oversized drape', 'Traditional cut'] };
+}
+
+function updateSizeUI(rec) {
+  if (!rec) return;
+  document.getElementById('chip-size').textContent = 'Size ' + rec.size;
+  document.getElementById('chip-fit').textContent = rec.fit;
+  document.getElementById('chip-conf').textContent = rec.pct + '% match';
+  document.getElementById('fit-pct').textContent = rec.pct + '%';
+  document.getElementById('fit-bar-fill').style.width = rec.pct + '%';
+
+  document.querySelectorAll('.sz-btn').forEach(b => {
+    b.classList.remove('rec');
+    if (b.textContent.trim().startsWith(rec.size)) b.classList.add('rec');
+  });
+
+  const recList = document.getElementById('rec-list');
+  recList.innerHTML = rec.notes.map((n, i) =>
+    `<div class="rec-item"><div class="rec-icon ${i < 2 ? 'ok' : 'tip'}">${i < 2 ? '&#10003;' : 'i'}</div><span>${n}</span></div>`
+  ).join('');
+  recList.innerHTML += `
+    <div class="rec-item"><div class="rec-icon ok">&#10003;</div><span>Based on your measurements — ${rec.fit.toLowerCase()}</span></div>
+    <div class="rec-item"><div class="rec-icon tip">i</div><span>Compare with similar saved looks for confidence</span></div>`;
+}
+
+// Pre-select size (Step 2, before generating)
+function preselectSize(s) {
+  S.selectedSize = s;
+  document.querySelectorAll('.pre-sz').forEach(b => b.classList.toggle('on', b.textContent.trim() === s));
+  document.getElementById('size-hint-lbl').textContent = '— ' + s + ' selected';
+  // Also update the fit panel if visible
+  document.querySelectorAll('.sz-btn').forEach(b => {
+    b.classList.remove('rec');
+    if (b.textContent.trim().startsWith(s)) b.classList.add('rec');
+  });
+  toast('Size ' + s + ' selected', 'ok');
+}
+
+// Color swatch selection
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('color-row').addEventListener('click', e => {
+    const sw = e.target.closest('.color-swatch');
+    if (!sw) return;
+    document.querySelectorAll('.color-swatch').forEach(s => { s.classList.remove('on'); s.textContent = ''; });
+    sw.classList.add('on');
+    sw.textContent = '✓';
+    S.selectedColor = sw.dataset.color;
+    toast('Color: ' + sw.title, 'ok');
+  });
+});
+
+function selectSize(s) {
+  document.querySelectorAll('.sz-btn').forEach(b => {
+    b.classList.remove('rec');
+    if (b.textContent.trim().startsWith(s)) b.classList.add('rec');
+  });
+  toast('Size ' + s + ' selected', 'ok');
+}
+
+// ── Service selector ──────────────────────────────────────────────────────────
+const SVC_META = {
+  fashn:     { label:'Fashn.ai API Key',    placeholder:'fa-xxxxxxxx...', hint:'Sign up free at <a href="https://fashn.ai" target="_blank" rel="noopener" style="color:var(--accent)">fashn.ai</a> &#8594; API Keys. 100 free images/month.' },
+  replicate: { label:'Replicate API Token', placeholder:'r8_xxxxxxxx...', hint:'Sign up at <a href="https://replicate.com" target="_blank" rel="noopener" style="color:var(--accent)">replicate.com</a> &#8594; Account &#8594; API Tokens. $5 free credits.' },
+};
+
+function selectService(svc) {
+  S.aiService = svc;
+  localStorage.setItem('ai.service', svc);
+  const m = SVC_META[svc] || SVC_META.fashn;
+  document.getElementById('token-label').textContent = m.label;
+  document.getElementById('ai-token').placeholder = m.placeholder;
+  document.getElementById('token-hint').innerHTML = m.hint;
+  const acSty = 'flex:1;padding:.42rem;border-radius:9px;font-size:.7rem;font-weight:700;cursor:pointer;transition:.15s;border:1.5px solid var(--accent);background:rgba(200,132,90,.12);color:var(--accent)';
+  const dfSty = 'flex:1;padding:.42rem;border-radius:9px;font-size:.7rem;font-weight:700;cursor:pointer;transition:.15s;border:1.5px solid var(--border);background:transparent;color:var(--muted)';
+  document.getElementById('svc-fashn').style.cssText = svc === 'fashn' ? acSty : dfSty;
+  document.getElementById('svc-rep').style.cssText   = svc === 'replicate' ? acSty : dfSty;
+  updateTokenUI();
+}
+
+function updateTokenUI() {
+  const el = document.getElementById('ai-token');
+  const status = document.getElementById('token-status');
+  const txt = document.getElementById('gen-txt');
+  if (el) el.value = S.aiToken;
+  if (S.aiToken) {
+    if (status) { status.textContent = '&#10003; saved'; status.style.color = 'var(--green)'; }
+    if (txt) txt.textContent = '&#10022; Generate Real Try-On';
+  } else {
+    if (status) { status.textContent = 'not set'; status.style.color = ''; }
+    if (txt) txt.textContent = '&#10022; Generate Try-On';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  selectService(S.aiService);
+  document.getElementById('save-token-btn').addEventListener('click', () => {
+    const val = (document.getElementById('ai-token')?.value || '').trim();
+    S.aiToken = val;
+    localStorage.setItem('ai.token', val);
+    updateTokenUI();
+    toast(val ? 'API key saved! Real AI try-on active.' : 'Key cleared.', val ? 'ok' : '');
+  });
+});
+
+// ── Theme toggle ─────────────────────────────────────────────────────────────
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
+});
+
+// ── Catalog filter & grid ─────────────────────────────────────────────────────
+let currentFilter = 'all';
+function filterCatalog(f) {
+  currentFilter = f;
+  document.querySelectorAll('.fchip').forEach(c => c.classList.toggle('on', c.textContent.trim() === f || (f==='all' && c.textContent.trim()==='All')));
+  buildGrid();
+}
+
+function buildGrid() {
+  const filtered = currentFilter === 'all' ? PRODUCTS : PRODUCTS.filter(p =>
+    p.brand === currentFilter || p.cat === currentFilter || p.name.toLowerCase().includes(currentFilter.toLowerCase())
+  );
+  document.getElementById('ggrid').innerHTML = filtered.length ? filtered.map(p =>
+    `<div class="gcard" data-id="${p.id}">
+      ${p.badge ? `<div class="badge">${p.badge}</div>` : ''}
+      <img src="${p.img}" alt="${p.name}" loading="lazy">
+      <div class="gcard-name">${p.name}<span class="fabric-chip">${p.fabric.split('·')[0].trim()}</span></div>
+    </div>`
+  ).join('') : '<p style="font-size:.75rem;color:var(--muted);padding:.5rem;grid-column:1/-1">No items found</p>';
+}
+buildGrid();
+
+document.getElementById('ggrid').addEventListener('click', e => {
+  const card = e.target.closest('.gcard');
+  if (!card) return;
+  const id = +card.dataset.id;
+  S.catalogId = id;
+  S.dressDataUrl = ''; S.dressName = '';
+  document.getElementById('dress-placeholder').style.display = 'block';
+  document.getElementById('dress-row').style.display = 'none';
+  document.getElementById('dress-file').value = '';
+  document.querySelectorAll('.gcard').forEach(c => c.classList.toggle('sel', +c.dataset.id === id));
+  toast(PRODUCTS.find(p=>p.id===id)?.name + ' selected', 'ok');
+});
+
+// ── Photo upload ──────────────────────────────────────────────────────────────
+document.getElementById('photo-file').addEventListener('change', function() {
+  const f = this.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    S.personDataUrl = ev.target.result;
+    S.personImgEl = null;
+    document.getElementById('photo-placeholder').style.display = 'none';
+    document.getElementById('photo-thumb').src = S.personDataUrl;
+    document.getElementById('photo-label').textContent = f.name;
+    document.getElementById('photo-row').style.display = 'flex';
+    toast('Photo ready!', 'ok');
+  };
+  r.readAsDataURL(f);
+});
+
+document.getElementById('demo-btn').addEventListener('click', function() {
+  const url = DEMO_PERSON_URLS[demoIdx % DEMO_PERSON_URLS.length];
+  toast('Loading demo model...');
+  fetch('/api/image?url=' + encodeURIComponent(url))
+    .then(r => r.blob())
+    .then(blob => new Promise((res, rej) => {
+      const fr = new FileReader(); fr.onload = e => res(e.target.result); fr.onerror = rej;
+      fr.readAsDataURL(blob);
+    }))
+    .then(dataUrl => {
+      S.personDataUrl = dataUrl;
+      S.personImgEl = null;
+      document.getElementById('photo-placeholder').style.display = 'none';
+      document.getElementById('photo-thumb').src = dataUrl;
+      document.getElementById('photo-label').textContent = 'Demo model';
+      document.getElementById('photo-row').style.display = 'flex';
+      toast('Demo model loaded!', 'ok');
+    })
+    .catch(() => {
+      // fallback: load directly
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        S.personDataUrl = c.toDataURL('image/jpeg', 0.92);
+        S.personImgEl = img;
+        document.getElementById('photo-placeholder').style.display = 'none';
+        document.getElementById('photo-thumb').src = S.personDataUrl;
+        document.getElementById('photo-label').textContent = 'Demo model';
+        document.getElementById('photo-row').style.display = 'flex';
+        toast('Demo model loaded!', 'ok');
+      };
+      img.onerror = () => toast('Could not load demo model', 'err');
+      img.src = url;
+    });
+  demoIdx++;
+});
+
+// ── Dress upload ──────────────────────────────────────────────────────────────
+document.getElementById('dress-file').addEventListener('change', function() {
+  const f = this.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    S.dressDataUrl = ev.target.result;
+    S.dressName = f.name;
+    S.catalogId = null;
+    document.getElementById('dress-placeholder').style.display = 'none';
+    document.getElementById('dress-thumb').src = S.dressDataUrl;
+    document.getElementById('dress-label').textContent = f.name;
+    document.getElementById('dress-row').style.display = 'flex';
+    document.querySelectorAll('.gcard').forEach(c => c.classList.remove('sel'));
+    toast('Dress ready!', 'ok');
+  };
+  r.readAsDataURL(f);
+});
+
+// ── Quick demo button ─────────────────────────────────────────────────────────
+document.getElementById('quick-demo-btn').addEventListener('click', async () => {
+  const personUrl = DEMO_PERSON_URLS[0];
+  const dressId   = DEMO_DRESS_IDS[Math.floor(Math.random() * DEMO_DRESS_IDS.length)];
+  const dress     = PRODUCTS.find(p => p.id === dressId);
+
+  toast('Loading demo images...');
+  S.catalogId = dressId;
+  S.currentProduct = { name: dress.name, brand: dress.brand, price: dress.price };
+
+  try {
+    // Load person
+    const personImg = await imgLoad(personUrl);
+    const pc = document.createElement('canvas');
+    pc.width = personImg.width; pc.height = personImg.height;
+    pc.getContext('2d').drawImage(personImg, 0, 0);
+    S.personDataUrl = pc.toDataURL('image/jpeg', 0.92);
+    S.personImgEl = personImg;
+
+    document.getElementById('photo-placeholder').style.display = 'none';
+    document.getElementById('photo-thumb').src = S.personDataUrl;
+    document.getElementById('photo-label').textContent = 'Demo model';
+    document.getElementById('photo-row').style.display = 'flex';
+
+    document.querySelectorAll('.gcard').forEach(c => c.classList.toggle('sel', +c.dataset.id === dressId));
+
+    // Load dress then run studio gen
+    const dressImg = await imgLoad(dress.img);
+    const dc = document.createElement('canvas');
+    dc.width = dressImg.width; dc.height = dressImg.height;
+    dc.getContext('2d').drawImage(dressImg, 0, 0);
+    S.dressDataUrl = dc.toDataURL('image/jpeg', 0.92);
+
+    await runWithProgress([
+      { label: 'Analyzing body geometry…',   ms: 900 },
+      { label: 'Mapping garment to figure…', ms: 900 },
+      { label: 'Applying fabric texture…',   ms: 800 },
+      { label: 'Finalizing colors & light…', ms: 600 },
+    ], async () => {
+      const result = await drawStudioComposite(personImg, dressImg);
+      showResult(result, personImg);
+    });
+  } catch(e) {
+    toast('Demo failed: ' + e.message, 'err');
+  }
+});
+
+// ── Generate ──────────────────────────────────────────────────────────────────
+document.getElementById('gen-btn').addEventListener('click', doGenerate);
+
+async function doGenerate() {
+  if (!S.personDataUrl) { toast('Upload your photo first!', 'err'); return; }
+  const hasDress  = !!S.dressDataUrl;
+  const catalog   = PRODUCTS.find(p => p.id === S.catalogId);
+  if (!hasDress && !catalog) { toast('Upload a dress or pick one from the catalog', 'err'); return; }
+
+  S.currentProduct = hasDress
+    ? { name: S.dressName || 'My Dress', brand: 'Custom', price: 0 }
+    : { name: catalog.name, brand: catalog.brand, price: catalog.price };
+  const dressUrl = hasDress ? S.dressDataUrl : catalog.img;
+
+  const btn = document.getElementById('gen-btn');
+  btn.classList.add('busy'); btn.disabled = true;
+
+  try {
+    // Load dress image
+    let dressData = hasDress ? dressUrl : null;
+    let dressImgEl = null;
+    if (!dressData) {
+      const di = await imgLoad(dressUrl);
+      dressImgEl = di;
+      const tc = document.createElement('canvas');
+      tc.width = di.width; tc.height = di.height;
+      tc.getContext('2d').drawImage(di, 0, 0);
+      dressData = tc.toDataURL('image/jpeg', 0.92);
+    } else {
+      dressImgEl = await imgLoad(dressUrl);
+    }
+
+    if (S.aiToken) {
+      // Real AI path
+      await runWithProgress([
+        { label: 'Sending to AI model…',          ms: 0 },
+        { label: 'Analyzing pose & body shape…',  ms: 15000 },
+        { label: 'Warping garment geometry…',     ms: 25000 },
+        { label: 'Rendering fabric & lighting…',  ms: 15000 },
+        { label: 'Finalizing result…',            ms: 5000  },
+      ], async () => {
+        let apiUrl, apiBody;
+        if (S.aiService === 'fashn') {
+          apiUrl  = '/api/fashn-tryon';
+          apiBody = { personImage: S.personDataUrl, garmentImage: dressData, token: S.aiToken, category: 'tops' };
+        } else {
+          apiUrl  = '/api/replicate-tryon';
+          apiBody = { personImage: S.personDataUrl, garmentImage: dressData, token: S.aiToken };
+        }
+        const resp = await fetch(apiUrl, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(apiBody)
+        });
+        const data = await resp.json();
+        if (!data.ok || !data.result) throw new Error(data.error || 'AI returned no result');
+        const resultImg = await imgLoad(data.result);
+        const personImg = await imgLoad(S.personDataUrl);
+        showResult(resultImg, personImg);
+      });
+    } else {
+      // No API key — composite the dress onto the user's actual uploaded photo
+      const personImg = await imgLoad(S.personDataUrl);
+      await runWithProgress([
+        { label: 'Scanning body measurements…',  ms: 800 },
+        { label: 'Mapping garment to figure…',   ms: 900 },
+        { label: 'Rendering fabric & texture…',  ms: 900 },
+        { label: 'Applying lighting & shadows…', ms: 700 },
+        { label: 'Finalizing result…',           ms: 400 },
+      ], async () => {
+        const result = await drawStudioComposite(personImg, dressImgEl);
+        // Add Stich AI badge
+        const ctx = result.getContext('2d');
+        const grad = ctx.createLinearGradient(0, result.height * 0.78, 0, result.height);
+        grad.addColorStop(0, 'rgba(0,0,0,0)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.5)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, result.width, result.height);
+        ctx.fillStyle = 'rgba(200,132,90,0.92)';
+        const bW = 160, bH = 26, bX = result.width - bW - 14, bY = result.height - bH - 14;
+        ctx.beginPath();
+        ctx.roundRect(bX, bY, bW, bH, 13);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = `700 ${Math.round(result.width * 0.018)}px Inter,sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('STICH AI · VIRTUAL TRY-ON', bX + bW / 2, bY + bH * 0.68);
+        ctx.textAlign = 'left';
+        showResult(result, personImg);
+      });
+    }
+  } catch (e) {
+    console.error(e);
+    toast('Error: ' + e.message, 'err');
+  } finally {
+    btn.classList.remove('busy'); btn.disabled = false;
+    hideProg();
+  }
+}
+
+// ── Show result in viewer ─────────────────────────────────────────────────────
+function showResult(resultCanvas, personImg) {
+  // Front canvas
+  const frontCvs = document.getElementById('result-canvas');
+  frontCvs.width = resultCanvas.width; frontCvs.height = resultCanvas.height;
+  frontCvs.getContext('2d').drawImage(resultCanvas, 0, 0);
+
+  // Editorial side views
+  drawEditorial(document.getElementById('canvas-left'),  resultCanvas, 'left');
+  drawEditorial(document.getElementById('canvas-right'), resultCanvas, 'right');
+
+  // Before canvas (person photo)
+  const beforeCvs = document.getElementById('compare-before-canvas');
+  beforeCvs.width = personImg.width || personImg.naturalWidth;
+  beforeCvs.height = personImg.height || personImg.naturalHeight;
+  beforeCvs.getContext('2d').drawImage(personImg, 0, 0);
+
+  // After canvas (result)
+  const afterCvs = document.getElementById('compare-after-canvas');
+  afterCvs.width = resultCanvas.width; afterCvs.height = resultCanvas.height;
+  afterCvs.getContext('2d').drawImage(resultCanvas, 0, 0);
+
+  // Show viewer
+  document.getElementById('empty').style.display = 'none';
+  document.getElementById('viewer-wrap').style.display = 'flex';
+  document.getElementById('view-toggle').classList.add('on');
+  setViewMode('3d');
+  rotateCard(0);
+
+  // Size recommendation — always show, uses measurements if entered or smart default
+  const m = getMeasurements();
+  const rec = getSizeRecommendation(m.chest, m.waist, m.hip);
+  updateSizeUI(rec);
+  // If no measurements, show a prompt in the rec list
+  if (!m.chest && !m.hip) {
+    const extra = document.createElement('div');
+    extra.className = 'rec-item';
+    extra.innerHTML = '<div class="rec-icon tip" style="background:rgba(200,132,90,.15);color:var(--accent)">!</div><span style="color:var(--accent)">Add chest & hip measurements above for a personalised fit score</span>';
+    document.getElementById('rec-list')?.appendChild(extra);
+  }
+
+  addToHistory(resultCanvas, S.currentProduct?.name || 'Look');
+  // Show similar items
+  const curProd = PRODUCTS.find(p => p.id === S.catalogId);
+  if (curProd) showSimilarItems(curProd.id, curProd.cat);
+  // Show multi-body demo
+  showMultiBody(resultCanvas);
+  toast('Try-on ready! 🎉 Try Runway mode for full presentation.', 'ok');
+}
+
+// ── Studio composite (no API) ─────────────────────────────────────────────────
+async function drawStudioComposite(personImg, dressImg) {
+  const W = personImg.naturalWidth  || personImg.width;
+  const H = personImg.naturalHeight || personImg.height;
+  const cvs = document.createElement('canvas');
+  cvs.width = W; cvs.height = H;
+  const ctx = cvs.getContext('2d');
+
+  // Draw person as base
+  ctx.drawImage(personImg, 0, 0, W, H);
+
+  // Dress region: center torso area
+  const dX = W * 0.08;
+  const dY = H * 0.20;
+  const dW = W * 0.84;
+  const dH = H * 0.60;
+
+  // Create a temp canvas for the dress, scaled to torso area
+  const tmp = document.createElement('canvas');
+  tmp.width = W; tmp.height = H;
+  const tc = tmp.getContext('2d');
+
+  // Draw dress scaled into torso region
+  tc.save();
+  // Soft ellipse clip for natural blending
+  tc.beginPath();
+  tc.ellipse(W / 2, dY + dH * 0.45, dW / 2 * 1.05, dH / 2 * 1.1, 0, 0, Math.PI * 2);
+  tc.clip();
+  tc.drawImage(dressImg, dX, dY, dW, dH);
+  tc.restore();
+
+  // Blend onto person with multiply for color depth + semi-transparency
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.drawImage(tmp, 0, 0);
+  ctx.restore();
+
+  // Second pass with screen blend at low opacity for brightness recovery
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.globalCompositeOperation = 'screen';
+  ctx.drawImage(tmp, 0, 0);
+  ctx.restore();
+
+  // Subtle warm tint over the whole image for cohesion
+  ctx.save();
+  ctx.globalAlpha = 0.06;
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.fillStyle = '#c8845a';
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  // Soft vignette
+  const vig = ctx.createRadialGradient(W/2, H*0.4, H*0.1, W/2, H*0.4, H*0.7);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.28)');
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  return cvs;
+}
+
+// ── Progress animation ────────────────────────────────────────────────────────
+async function runWithProgress(steps, workFn) {
+  const wrap = document.getElementById('prog-wrap');
+  const bar  = document.getElementById('prog-bar');
+  const stepsEl = document.getElementById('prog-steps');
+  wrap.classList.add('on');
+  stepsEl.innerHTML = steps.map((s, i) =>
+    `<div class="prog-step-item" id="ps-${i}"><div class="ps-dot"></div><span>${s.label}</span></div>`
+  ).join('');
+
+  const totalMs = steps.reduce((a, s) => a + s.ms, 0) || 3200;
+
+  let stepIdx = 0;
+  let elapsed = 0;
+
+  function activateStep(i) {
+    for (let j = 0; j < steps.length; j++) {
+      const el = document.getElementById('ps-' + j);
+      if (!el) continue;
+      el.classList.toggle('done',   j < i);
+      el.classList.toggle('active', j === i);
+      if (j < i) el.querySelector('.ps-dot').innerHTML = '&#10003;';
+    }
+  }
+
+  activateStep(0);
+
+  // Step timer
+  const stepTimer = setInterval(() => {
+    elapsed += steps[stepIdx]?.ms || 1000;
+    stepIdx++;
+    if (stepIdx < steps.length) {
+      activateStep(stepIdx);
+      bar.style.width = Math.min(95, (stepIdx / steps.length) * 100) + '%';
+    } else {
+      clearInterval(stepTimer);
+    }
+  }, steps[stepIdx]?.ms || 1000);
+
+  // Bar smooth fill for real AI path
+  const barTimer = setInterval(() => {
+    const cur = parseFloat(bar.style.width) || 0;
+    if (cur < 94) bar.style.width = (cur + 0.3) + '%';
+  }, 200);
+
+  try {
+    await workFn();
+    clearInterval(stepTimer);
+    clearInterval(barTimer);
+    steps.forEach((_, i) => {
+      const el = document.getElementById('ps-' + i);
+      if (el) { el.classList.add('done'); el.classList.remove('active'); el.querySelector('.ps-dot').innerHTML = '&#10003;'; }
+    });
+    bar.style.width = '100%';
+    setTimeout(hideProg, 1200);
+  } catch(e) {
+    clearInterval(stepTimer);
+    clearInterval(barTimer);
+    hideProg();
+    throw e;
+  }
+}
+
+function hideProg() {
+  const w = document.getElementById('prog-wrap');
+  w.classList.remove('on');
+  document.getElementById('prog-bar').style.width = '0';
+}
+
+// ── View mode toggle ──────────────────────────────────────────────────────────
+function setViewMode(mode) {
+  S.viewMode = mode;
+  document.getElementById('vtog-3d').classList.toggle('on', mode === '3d');
+  document.getElementById('vtog-compare').classList.toggle('on', mode === 'compare');
+  document.getElementById('viewer-3d-wrap').style.display   = mode === '3d'      ? 'flex' : 'none';
+  document.getElementById('compare-wrap').style.display     = mode === 'compare' ? 'block' : 'none';
+  // Keep compare pos reset
+  if (mode === 'compare') setComparePos(0.5);
+}
+
+// ── Before/After comparison slider ───────────────────────────────────────────
+(function() {
+  const wrap = document.getElementById('compare-wrap');
+  let dragging = false;
+
+  function setPos(e) {
+    const rect = wrap.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const pct = Math.max(0.04, Math.min(0.96, (clientX - rect.left) / rect.width));
+    setComparePos(pct);
+  }
+
+  wrap.addEventListener('mousedown',  e => { dragging = true; setPos(e); e.preventDefault(); });
+  wrap.addEventListener('touchstart', e => { dragging = true; setPos(e); }, { passive: true });
+  window.addEventListener('mousemove',  e => { if (dragging) setPos(e); });
+  window.addEventListener('touchmove',  e => { if (dragging) setPos(e); }, { passive: true });
+  window.addEventListener('mouseup',  () => { dragging = false; });
+  window.addEventListener('touchend', () => { dragging = false; });
+})();
+
+function setComparePos(pct) {
+  const pct100 = (pct * 100).toFixed(1) + '%';
+  document.getElementById('compare-after-layer').style.clipPath = `inset(0 ${(100 - pct * 100).toFixed(1)}% 0 0)`;
+  document.getElementById('compare-divider').style.left = pct100;
+  document.getElementById('compare-handle').style.left  = pct100;
+}
+
+// Draw editorial side views
+function drawEditorial(canvas, srcCanvas, side) {
+  const W = srcCanvas.width, H = srcCanvas.height;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const shift = side === 'left' ? -W * 0.12 : W * 0.12;
+  ctx.drawImage(srcCanvas, shift, 0, W, H);
+
+  const grad = ctx.createLinearGradient(
+    side === 'left' ? 0 : W, 0,
+    side === 'left' ? W * 0.4 : W * 0.6, 0
+  );
+  grad.addColorStop(0, 'rgba(10,10,11,0.72)');
+  grad.addColorStop(1, 'rgba(10,10,11,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.font = '700 ' + Math.round(W * 0.045) + 'px Inter,sans-serif';
+  ctx.textAlign = side === 'left' ? 'left' : 'right';
+  ctx.fillText(side.toUpperCase() + ' VIEW', side === 'left' ? W * 0.06 : W * 0.94, H * 0.06);
+  ctx.textAlign = 'left';
+
+  const vig = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.75);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.35)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, W, H);
+}
+
+// ── 3D Rotation ───────────────────────────────────────────────────────────────
+function rotateCard(deg) {
+  S.cardRotY = deg;
+  document.getElementById('viewer-card').style.transform = `rotateY(${deg}deg)`;
+  document.querySelectorAll('.vctrl').forEach(b => b.classList.remove('on'));
+  const map = {'-90': 0, '0': 1, '90': 2};
+  const ctrls = document.querySelectorAll('.vctrl');
+  if (map[String(deg)] !== undefined) ctrls[map[String(deg)]].classList.add('on');
+}
+
+(function() {
+  const scene = document.getElementById('viewer-scene');
+  let dragging = false, startX = 0, startRot = 0;
+
+  scene.addEventListener('mousedown', e => {
+    dragging = true; startX = e.clientX; startRot = S.cardRotY;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const delta = (e.clientX - startX) * 0.4;
+    const newRot = Math.max(-110, Math.min(110, startRot + delta));
+    S.cardRotY = newRot;
+    document.getElementById('viewer-card').style.transform = `rotateY(${newRot}deg)`;
+    document.querySelectorAll('.vctrl').forEach(b => b.classList.remove('on'));
+  });
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    const snap = Math.round(S.cardRotY / 90) * 90;
+    rotateCard(Math.max(-90, Math.min(90, snap)));
+  });
+
+  scene.addEventListener('touchstart', e => {
+    dragging = true; startX = e.touches[0].clientX; startRot = S.cardRotY;
+  }, { passive: true });
+  window.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const delta = (e.touches[0].clientX - startX) * 0.4;
+    const newRot = Math.max(-110, Math.min(110, startRot + delta));
+    S.cardRotY = newRot;
+    document.getElementById('viewer-card').style.transform = `rotateY(${newRot}deg)`;
+    document.querySelectorAll('.vctrl').forEach(b => b.classList.remove('on'));
+  }, { passive: true });
+  window.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    const snap = Math.round(S.cardRotY / 90) * 90;
+    rotateCard(Math.max(-90, Math.min(90, snap)));
+  });
+})();
+
+// ── Image loader ──────────────────────────────────────────────────────────────
+function imgLoad(src) {
+  return new Promise((resolve, reject) => {
+    if (src.startsWith('data:')) {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = src;
+      return;
+    }
+    const url = /^https?:/i.test(src) ? '/api/image?url=' + encodeURIComponent(src) : src;
+    const timer = setTimeout(() => reject(new Error('Timeout')), 20000);
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
+      .then(blob => {
+        clearTimeout(timer);
+        const burl = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(burl); resolve(img); };
+        img.onerror = () => { URL.revokeObjectURL(burl); reject(new Error('Decode failed')); };
+        img.src = burl;
+      })
+      .catch(e => { clearTimeout(timer); reject(e); });
+  });
+}
+
+// ── Download / Share / Fullscreen / Buy ──────────────────────────────────────
+function doDownload() {
+  const cvs = document.getElementById('result-canvas');
+  try {
+    const a = document.createElement('a');
+    a.download = 'stich-tryon-' + Date.now() + '.jpg';
+    a.href = cvs.toDataURL('image/jpeg', 0.95);
+    a.click();
+    toast('Look saved!', 'ok');
+  } catch(e) { toast('Save failed: ' + e.message, 'err'); }
+}
+
+function doShare() {
+  const cvs = document.getElementById('result-canvas');
+  try {
+    cvs.toBlob(blob => {
+      const file = new File([blob], 'stich-tryon.jpg', { type: 'image/jpeg' });
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        navigator.share({ title: 'My Stich Try-On', files: [file] });
+      } else {
+        doDownload();
+        toast('Saved — share from your downloads!', 'ok');
+      }
+    }, 'image/jpeg', 0.9);
+  } catch(e) { doDownload(); }
+}
+
+function doFullscreen() {
+  const cvs = document.getElementById('result-canvas');
+  try {
+    const dataUrl = cvs.toDataURL('image/jpeg', 0.95);
+    const w = window.open('', '_blank');
+    if (w) {
+      w.document.write('<!DOCTYPE html><html><head><title>Stich Try-On</title>'
+        + '<style>body{margin:0;background:#0a0a0b;display:flex;align-items:center;justify-content:center;min-height:100vh}'
+        + 'img{max-width:min(600px,95vw);max-height:95vh;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.8)}'
+        + '</style></head><body><img src="' + dataUrl + '"></body></html>');
+      w.document.close();
+    }
+  } catch(e) { toast('Fullscreen failed', 'err'); }
+}
+
+function doBuyNow() {
+  const p = S.currentProduct;
+  if (!p) return;
+  toast('Opening ' + p.brand + ' store...', 'ok');
+}
+
+// ── Wishlist ──────────────────────────────────────────────────────────────────
+const wishlist = [];
+function doWishlist() {
+  const cvs = document.getElementById('result-canvas');
+  if (!cvs.width) { toast('Generate a try-on first!', 'err'); return; }
+  const dataUrl = cvs.toDataURL('image/jpeg', 0.7);
+  wishlist.push({ dataUrl, name: S.currentProduct?.name || 'Look' });
+  renderWishlist();
+  const btn = document.getElementById('wishlist-btn');
+  btn.textContent = '♥ Saved!';
+  btn.style.color = '#e05a5a';
+  btn.style.borderColor = '#e05a5a';
+  setTimeout(() => { btn.textContent = '♡ Wishlist'; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+  toast('Saved to wishlist!', 'ok');
+}
+function renderWishlist() {
+  const bar = document.getElementById('wishlist-bar');
+  const row = document.getElementById('wishlist-row');
+  bar.classList.add('on');
+  row.innerHTML = wishlist.map((w,i) =>
+    `<img class="wl-thumb" src="${w.dataUrl}" alt="${w.name}" title="${w.name}" onclick="loadFromWishlist(${i})">`
+  ).join('');
+}
+function loadFromWishlist(i) {
+  const w = wishlist[i];
+  const img = new Image();
+  img.onload = () => {
+    const cvs = document.getElementById('result-canvas');
+    cvs.width = img.width; cvs.height = img.height;
+    cvs.getContext('2d').drawImage(img, 0, 0);
+    document.getElementById('empty').style.display = 'none';
+    document.getElementById('viewer-wrap').style.display = 'flex';
+  };
+  img.src = w.dataUrl;
+  toast('Loaded: ' + w.name, 'ok');
+}
+
+// ── WhatsApp share ────────────────────────────────────────────────────────────
+function doWhatsApp() {
+  const cvs = document.getElementById('result-canvas');
+  if (!cvs.width) { toast('Generate a try-on first!', 'err'); return; }
+  const p = S.currentProduct;
+  const msg = encodeURIComponent(`Check out my virtual try-on! ${p ? p.name + ' by ' + p.brand + ' — Rs. ' + (p.price||'').toLocaleString() : ''} via Stich AI 🛍️`);
+  window.open('https://wa.me/?text=' + msg, '_blank');
+  toast('Opening WhatsApp...', 'ok');
+}
+
+// ── Zoom ──────────────────────────────────────────────────────────────────────
+function doZoom() {
+  const cvs = document.getElementById('result-canvas');
+  if (!cvs.width) { toast('Generate a try-on first!', 'err'); return; }
+  const overlay = document.getElementById('zoom-overlay');
+  document.getElementById('zoom-img').src = cvs.toDataURL('image/jpeg', 0.95);
+  overlay.classList.add('on');
+}
+document.getElementById('result-canvas')?.addEventListener('dblclick', doZoom);
+
+// ── Try-On History ────────────────────────────────────────────────────────────
+const tryonHistory = [];
+function addToHistory(canvas, productName) {
+  const snap = document.createElement('canvas');
+  snap.width = 88; snap.height = 112;
+  snap.getContext('2d').drawImage(canvas, 0, 0, 88, 112);
+  tryonHistory.unshift({ canvas: snap, name: productName });
+  if (tryonHistory.length > 8) tryonHistory.pop();
+  renderHistory();
+}
+function renderHistory() {
+  const bar = document.getElementById('history-bar');
+  const row = document.getElementById('history-row');
+  if (!tryonHistory.length) return;
+  bar.classList.add('on');
+  row.innerHTML = '';
+  tryonHistory.forEach((h, i) => {
+    const el = document.createElement('div');
+    el.className = 'hist-item';
+    el.title = h.name;
+    el.appendChild(h.canvas);
+    const lbl = document.createElement('div');
+    lbl.className = 'hist-lbl';
+    lbl.textContent = h.name;
+    el.appendChild(lbl);
+    el.addEventListener('click', () => {
+      const cvs = document.getElementById('result-canvas');
+      cvs.width = h.canvas.width; cvs.height = h.canvas.height;
+      cvs.getContext('2d').drawImage(h.canvas, 0, 0);
+      toast('Loaded: ' + h.name, 'ok');
+    });
+    row.appendChild(el);
+  });
+}
+
+// ── ROI Dashboard ─────────────────────────────────────────────────────────────
+function openROI() { document.getElementById('roi-modal').classList.add('on'); }
+const ROI_DATA = {
+  Sapphire:  { conv:'+38%', ret:'-58%', sess:'4.8×', nps:'+31pt', bars:[82,56,44,32] },
+  Nishat:    { conv:'+29%', ret:'-64%', sess:'3.9×', nps:'+25pt', bars:[74,48,38,27] },
+  Limelight: { conv:'+41%', ret:'-71%', sess:'5.1×', nps:'+34pt', bars:[86,61,47,35] },
+};
+function setROIBrand(brand, el) {
+  document.querySelectorAll('.roi-brand').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  const d = ROI_DATA[brand];
+  document.getElementById('roi-conv').textContent = d.conv;
+  document.getElementById('roi-ret').textContent = d.ret;
+  document.getElementById('roi-sess').textContent = d.sess;
+  document.getElementById('roi-nps').textContent = d.nps;
+  const rows = document.querySelectorAll('.bc-row');
+  const labels = ['Add-to-cart','Checkout','Repeat buy','Share rate'];
+  d.bars.forEach((v,i) => {
+    rows[i].querySelector('.bc-fill').style.width = v + '%';
+    rows[i].querySelector('.bc-val').textContent = v + '%';
+  });
+}
+
+// ── Pakistani Size Chart ──────────────────────────────────────────────────────
+function openSizeChart() { document.getElementById('sizechart-modal').classList.add('on'); setSizeChartBrand('Sapphire', document.querySelector('.btab.on')); }
+const SIZE_DATA = {
+  Sapphire:      [{s:'XS',ch:'31-32',wa:'25-26',hi:'33-34',ht:'5\'0-5\'2'},{s:'S',ch:'33-34',wa:'27-28',hi:'35-36',ht:'5\'2-5\'4'},{s:'M',ch:'35-37',wa:'29-31',hi:'37-39',ht:'5\'4-5\'6'},{s:'L',ch:'38-40',wa:'32-34',hi:'40-42',ht:'5\'6-5\'8'},{s:'XL',ch:'41-43',wa:'35-37',hi:'43-45',ht:'5\'7+'}],
+  Nishat:        [{s:'XS',ch:'32-33',wa:'26-27',hi:'34-35',ht:'5\'0-5\'2'},{s:'S',ch:'34-35',wa:'28-29',hi:'36-37',ht:'5\'2-5\'4'},{s:'M',ch:'36-38',wa:'30-32',hi:'38-40',ht:'5\'4-5\'6'},{s:'L',ch:'39-41',wa:'33-35',hi:'41-43',ht:'5\'6-5\'8'},{s:'XL',ch:'42-44',wa:'36-38',hi:'44-46',ht:'5\'7+'}],
+  Limelight:     [{s:'XS',ch:'30-32',wa:'24-26',hi:'32-34',ht:'5\'0-5\'2'},{s:'S',ch:'33-35',wa:'27-29',hi:'35-37',ht:'5\'2-5\'4'},{s:'M',ch:'36-38',wa:'30-32',hi:'38-40',ht:'5\'4-5\'6'},{s:'L',ch:'39-41',wa:'33-35',hi:'41-43',ht:'5\'6-5\'8'},{s:'XL',ch:'42-44',wa:'36-38',hi:'44-46',ht:'5\'7+'}],
+  International: [{s:'XS',ch:'30-32',wa:'23-25',hi:'33-35',ht:'5\'1-5\'3'},{s:'S',ch:'32-34',wa:'25-27',hi:'35-37',ht:'5\'3-5\'5'},{s:'M',ch:'34-36',wa:'27-29',hi:'37-39',ht:'5\'5-5\'7'},{s:'L',ch:'36-38',wa:'29-31',hi:'39-41',ht:'5\'6+'},{s:'XL',ch:'38-40',wa:'31-33',hi:'41-43',ht:'5\'6+'}],
+};
+function setSizeChartBrand(brand, el) {
+  if (el) { document.querySelectorAll('.btab').forEach(b => b.classList.remove('on')); el.classList.add('on'); }
+  const rows = SIZE_DATA[brand] || SIZE_DATA.Sapphire;
+  const chest = parseFloat(document.getElementById('m-chest').value) || 0;
+  document.getElementById('size-table-body').innerHTML = rows.map(r => {
+    const [lo, hi] = r.ch.split('-').map(Number);
+    const isMatch = chest && chest >= lo && chest <= hi;
+    return `<tr class="${isMatch ? 'highlight' : ''}"><td>${r.s}${isMatch ? ' ✓' : ''}</td><td>${r.ch}"</td><td>${r.wa}"</td><td>${r.hi}"</td><td>${r.ht}</td></tr>`;
+  }).join('');
+}
+
+// ── Style Quiz ────────────────────────────────────────────────────────────────
+const QUIZ = [
+  { q: 'What\'s your style vibe?', opts: ['Elegant & Classic', 'Bold & Modern', 'Casual & Relaxed', 'Traditional Pakistani'], key: 'vibe' },
+  { q: 'What occasions do you dress for most?', opts: ['Formal events & Eid', 'Work & Office', 'Casual outings', 'Weddings & Parties'], key: 'occasion' },
+  { q: 'Which fabric do you prefer?', opts: ['Lawn & Cotton (breathable)', 'Chiffon & Silk (elegant)', 'Linen & Linen blends', 'Stretch & Bodycon'], key: 'fabric' },
+];
+let quizStep = 0, quizAnswers = {};
+function openQuiz() {
+  quizStep = 0; quizAnswers = {};
+  document.getElementById('quiz-modal').classList.add('on');
+  renderQuiz();
+}
+function renderQuiz() {
+  const q = QUIZ[quizStep];
+  const progress = document.getElementById('quiz-progress');
+  progress.innerHTML = QUIZ.map((_,i) => `<div class="qp-dot ${i <= quizStep ? 'on' : ''}"></div>`).join('');
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-opts">
+      ${q.opts.map(o => `<button type="button" class="quiz-opt" onclick="quizSelect(this,'${o.replace(/'/g,"\\'")}','${q.key}')">${o}</button>`).join('')}
+    </div>`;
+}
+function quizSelect(el, val, key) {
+  document.querySelectorAll('.quiz-opt').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  quizAnswers[key] = val;
+  setTimeout(() => {
+    quizStep++;
+    if (quizStep < QUIZ.length) { renderQuiz(); }
+    else { applyQuizResults(); document.getElementById('quiz-modal').classList.remove('on'); }
+  }, 350);
+}
+function applyQuizResults() {
+  let filter = 'all';
+  if (quizAnswers.vibe?.includes('Traditional')) filter = 'kurta';
+  else if (quizAnswers.vibe?.includes('Elegant')) filter = 'Nishat';
+  else if (quizAnswers.vibe?.includes('Bold')) filter = 'dress';
+  else if (quizAnswers.vibe?.includes('Casual')) filter = 'maxi';
+  filterCatalog(filter);
+  toast('Catalog filtered to your style! ✓', 'ok');
+}
+
+// ── Demo Gallery (shown on empty state) ──────────────────────────────────────
+const GALLERY_SHOWCASE = [
+  { id:7,  label:'Ivory Ruffle Maxi',   brand:'Modern Edit', badge:'Top Pick' },
+  { id:2,  label:'Embroidered Chiffon', brand:'Nishat',      badge:'Eid 2025' },
+  { id:11, label:'Emerald Satin Slip',  brand:'Modern Edit', badge:'New' },
+  { id:1,  label:'Lawn Printed Kurta',  brand:'Sapphire',    badge:'Pilot' },
+  { id:9,  label:'Cobalt Off-Shoulder', brand:'Modern Edit', badge:'' },
+  { id:4,  label:'Digital Print Maxi',  brand:'Sapphire',    badge:'' },
+];
+document.addEventListener('DOMContentLoaded', () => {
+  const gallery = document.getElementById('demo-gallery');
+  if (!gallery) return;
+  GALLERY_SHOWCASE.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'demo-gcard';
+    card.innerHTML = `
+      <img src="${DEMO_RESULTS[item.id]}?auto=compress&cs=tinysrgb&w=300" alt="${item.label}" loading="lazy">
+      ${item.badge ? `<div class="demo-gcard-badge">${item.badge}</div>` : ''}
+      <div class="demo-gcard-label">${item.label} · ${item.brand}</div>`;
+    card.addEventListener('click', () => previewDemoResult(item));
+    gallery.appendChild(card);
+  });
+});
+
+async function previewDemoResult(item) {
+  toast('Loading ' + item.label + '…');
+  try {
+    const img = await imgLoad(DEMO_RESULTS[item.id]);
+    const cvs = document.createElement('canvas');
+    cvs.width = img.width || img.naturalWidth;
+    cvs.height = img.height || img.naturalHeight;
+    const ctx = cvs.getContext('2d');
+    ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+    // Bottom gradient + badge
+    const grad = ctx.createLinearGradient(0, cvs.height * 0.75, 0, cvs.height);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.55)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, cvs.width, cvs.height);
+    ctx.fillStyle = 'rgba(200,132,90,0.92)';
+    const bW = 160, bH = 28, bX = cvs.width - bW - 16, bY = cvs.height - bH - 16;
+    ctx.beginPath(); ctx.roundRect(bX, bY, bW, bH, 14); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = `700 ${Math.round(cvs.width * 0.018)}px Inter,sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('STICH AI · VIRTUAL TRY-ON', bX + bW / 2, bY + bH * 0.68);
+    ctx.textAlign = 'left';
+    S.currentProduct = { name: item.label, brand: item.brand, price: PRODUCTS.find(p=>p.id===item.id)?.price || 0 };
+    S.catalogId = item.id;
+    const personImg = img;
+    showResult(cvs, personImg);
+    toast(item.label + ' — click Runway for full view! ✓', 'ok');
+  } catch(e) { toast('Could not load preview', 'err'); }
+}
+
+// ── Live Session Counter ──────────────────────────────────────────────────────
+(function() {
+  let base = 820 + Math.floor(Math.random() * 80);
+  function tick() {
+    base += Math.floor(Math.random() * 7) - 2;
+    if (base < 600) base = 650;
+    if (base > 1200) base = 1100;
+    const el = document.getElementById('live-num');
+    if (el) el.textContent = base.toLocaleString();
+    setTimeout(tick, 3000 + Math.random() * 4000);
+  }
+  tick();
+})();
+
+// ── Occasion filter ───────────────────────────────────────────────────────────
+const OCCASION_MAP = {
+  eid:     [2, 1, 7, 11],
+  wedding: [2, 7, 9, 11],
+  office:  [8, 5, 3, 6],
+  casual:  [3, 5, 10, 12],
+};
+function filterOccasion(occ, el) {
+  document.querySelectorAll('.occ-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  if (occ === 'all') { filterCatalog('all'); return; }
+  const ids = OCCASION_MAP[occ] || [];
+  const filtered = PRODUCTS.filter(p => ids.includes(p.id));
+  document.getElementById('ggrid').innerHTML = filtered.map(p =>
+    `<div class="gcard" data-id="${p.id}">
+      ${p.badge ? `<div class="badge">${p.badge}</div>` : ''}
+      <img src="${p.img}" alt="${p.name}" loading="lazy">
+      <div class="gcard-name">${p.name}<span class="fabric-chip">${p.fabric.split('·')[0].trim()}</span></div>
+    </div>`
+  ).join('');
+  toast(occ.charAt(0).toUpperCase() + occ.slice(1) + ' collection loaded', 'ok');
+}
+
+// ── Runway Mode ───────────────────────────────────────────────────────────────
+function startRunway() {
+  const cvs = document.getElementById('result-canvas');
+  if (!cvs || !cvs.width) { toast('Generate a try-on first!', 'err'); return; }
+  const overlay = document.getElementById('runway-overlay');
+  const img = document.getElementById('runway-img');
+  img.src = cvs.toDataURL('image/jpeg', 0.96);
+  const p = S.currentProduct;
+  document.getElementById('runway-name').textContent = p?.name || 'Look';
+  document.getElementById('runway-sub').textContent = (p?.brand || 'Stich') + (p?.price ? '  ·  Rs. ' + p.price.toLocaleString() : '');
+  overlay.classList.add('on');
+  // Auto-hide hint
+  setTimeout(() => {
+    const hint = overlay.querySelector('.runway-rotate-hint');
+    if (hint) { hint.style.opacity = '0'; hint.style.transition = 'opacity 1s'; }
+  }, 3000);
+}
+function stopRunway() {
+  document.getElementById('runway-overlay').classList.remove('on');
+}
+// Close runway on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') stopRunway(); });
+
+// ── Lookbook ──────────────────────────────────────────────────────────────────
+const lookbook = [];
+function openLookbook() { document.getElementById('lookbook-modal').classList.add('on'); }
+function addToLookbook() {
+  const cvs = document.getElementById('result-canvas');
+  if (!cvs || !cvs.width) { toast('Generate a try-on first!', 'err'); return; }
+  const snap = document.createElement('canvas');
+  snap.width = 300; snap.height = 400;
+  snap.getContext('2d').drawImage(cvs, 0, 0, 300, 400);
+  lookbook.push({ canvas: snap, name: S.currentProduct?.name || 'Look', brand: S.currentProduct?.brand || '' });
+  renderLookbook();
+  toast('Added to lookbook! ✓', 'ok');
+  openLookbook();
+}
+function renderLookbook() {
+  const grid = document.getElementById('lookbook-grid');
+  grid.innerHTML = '';
+  if (!lookbook.length) {
+    grid.innerHTML = '<div class="lookbook-empty">No looks saved yet — generate try-ons and click Lookbook!</div>';
+    return;
+  }
+  lookbook.forEach((l, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'lookbook-item';
+    wrap.appendChild(l.canvas);
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'lb-remove'; btn.textContent = '✕';
+    btn.addEventListener('click', e => { e.stopPropagation(); lookbook.splice(i, 1); renderLookbook(); });
+    wrap.appendChild(btn);
+    grid.appendChild(wrap);
+  });
+}
+function exportLookbook() {
+  if (!lookbook.length) { toast('Add some looks first!', 'err'); return; }
+  const cols = Math.min(lookbook.length, 2);
+  const rows = Math.ceil(lookbook.length / cols);
+  const W = cols * 310 + 20, H = rows * 420 + 80;
+  const cvs = document.createElement('canvas');
+  cvs.width = W; cvs.height = H;
+  const ctx = cvs.getContext('2d');
+  ctx.fillStyle = '#0a0a0b';
+  ctx.fillRect(0, 0, W, H);
+  // Title
+  ctx.fillStyle = '#c8845a';
+  ctx.font = '700 22px "Playfair Display",serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('STICH · My Lookbook', W / 2, 36);
+  lookbook.forEach((l, i) => {
+    const col = i % cols, row = Math.floor(i / cols);
+    const x = col * 310 + 10, y = row * 420 + 50;
+    ctx.drawImage(l.canvas, x, y, 300, 400);
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.font = '600 11px Inter,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(l.name, x + 150, y + 415);
+  });
+  ctx.textAlign = 'left';
+  const a = document.createElement('a');
+  a.download = 'stich-lookbook-' + Date.now() + '.jpg';
+  a.href = cvs.toDataURL('image/jpeg', 0.92);
+  a.click();
+  toast('Lookbook exported!', 'ok');
+}
+
+// ── QR Code ───────────────────────────────────────────────────────────────────
+function doQR() {
+  const cvs = document.getElementById('result-canvas');
+  if (!cvs || !cvs.width) { toast('Generate a try-on first!', 'err'); return; }
+  const dataUrl = cvs.toDataURL('image/jpeg', 0.7);
+  // Encode share message as QR
+  const msg = encodeURIComponent('My Stich Virtual Try-On: ' + (S.currentProduct?.name || 'Look') + ' via stich.ai');
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + msg + '&color=c8845a&bgcolor=0a0a0b';
+  document.getElementById('qr-img').src = qrUrl;
+  document.getElementById('qr-modal').classList.add('on');
+}
+function downloadQR() {
+  const img = document.getElementById('qr-img');
+  const a = document.createElement('a');
+  a.download = 'stich-qr.png';
+  a.href = img.src;
+  a.click();
+}
+
+// ── Similar Items ─────────────────────────────────────────────────────────────
+function showSimilarItems(currentId, currentCat) {
+  const similar = PRODUCTS.filter(p => p.id !== currentId && (p.cat === currentCat || p.brand === (PRODUCTS.find(x=>x.id===currentId)?.brand))).slice(0, 5);
+  if (!similar.length) return;
+  const section = document.getElementById('similar-section');
+  const row = document.getElementById('similar-row');
+  section.style.display = 'block';
+  row.innerHTML = similar.map(p =>
+    `<div class="sim-card" onclick="quickSelectProduct(${p.id})">
+      <img src="${p.img}" alt="${p.name}" loading="lazy">
+      <div class="sim-card-name">${p.name}</div>
+    </div>`
+  ).join('');
+}
+function quickSelectProduct(id) {
+  S.catalogId = id; S.dressDataUrl = ''; S.dressName = '';
+  document.querySelectorAll('.gcard').forEach(c => c.classList.toggle('sel', +c.dataset.id === id));
+  const p = PRODUCTS.find(x => x.id === id);
+  toast(p?.name + ' selected — hit Generate!', 'ok');
+  document.getElementById('lookbook-modal').classList.remove('on');
+}
+
+// ── Multi-Body Demo ───────────────────────────────────────────────────────────
+async function showMultiBody(resultCanvas) {
+  const section = document.getElementById('multibody-section');
+  const row = document.getElementById('multibody-row');
+  section.style.display = 'block';
+  row.innerHTML = '';
+  const labels = ['Petite', 'Regular', 'Plus Size'];
+  const tints  = ['rgba(255,220,200,.08)', 'rgba(200,220,255,.08)', 'rgba(220,255,200,.08)'];
+  labels.forEach((lbl, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'mb-card';
+    const cvs = document.createElement('canvas');
+    cvs.width = 140; cvs.height = 180;
+    const ctx = cvs.getContext('2d');
+    // Scale result image slightly differently for each body type simulation
+    const scale = [0.88, 1.0, 1.12][i];
+    const offX = (140 - 140 * scale) / 2;
+    const offY = (180 - 180 * scale) / 2;
+    ctx.drawImage(resultCanvas, offX, offY, 140 * scale, 180 * scale);
+    // Overlay tint
+    ctx.fillStyle = tints[i];
+    ctx.fillRect(0, 0, 140, 180);
+    const lbEl = document.createElement('div');
+    lbEl.className = 'mb-label';
+    lbEl.textContent = lbl;
+    wrap.appendChild(cvs);
+    wrap.appendChild(lbEl);
+    row.appendChild(wrap);
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let tTimer;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.innerHTML = msg;
+  el.className = 'on' + (type ? ' ' + type : '');
+  clearTimeout(tTimer);
+  tTimer = setTimeout(() => el.className = '', 3500);
+}
+</script>
+</body>
+</html>
